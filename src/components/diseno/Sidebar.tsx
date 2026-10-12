@@ -14,7 +14,7 @@ export function Sidebar({ accesos, alNavegar, submenu, nombre, rol, cerrando, al
   const cerrado = despliegue.clave === claveUbicacion && despliegue.cerrado
   const id = useId()
   return <div className="co-sidebar-content co-sidebar-compacta">
-    <div className="co-brand co-brand-logo"><img src={`${import.meta.env.BASE_URL}cpx.png`} alt="CPX" width="108" height="108" /><span>CONTROL OPERATIVO</span></div>
+    <div className="co-brand co-brand-logo"><NavLink className="co-brand-home" to="/" end aria-label="COPAMEX, ir a Inicio" title="Ir a Inicio" onClick={alNavegar}><img src={`${import.meta.env.BASE_URL}CPXLOGO.png`} alt="COPAMEX" width="108" height="108" /></NavLink><span>CONTROL OPERATIVO</span></div>
     <p className="co-nav-label">NAVEGACIÓN PRINCIPAL</p>
     <nav className="co-nav" aria-label="Navegación principal">
       <NavLink to="/" end aria-label="Inicio" title="Inicio" onClick={alNavegar}><Icono nombre="inicio" /><span>Inicio</span></NavLink>
