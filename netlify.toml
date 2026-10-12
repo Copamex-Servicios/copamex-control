@@ -6,3 +6,9 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Estos iconos incluyen un hash de contenido en el nombre.
+[[headers]]
+  for = "/iconos-opt/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

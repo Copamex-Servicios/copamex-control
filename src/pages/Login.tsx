@@ -1,5 +1,6 @@
 import { AccesoLayout } from '../components/diseno/AccesoLayout'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { precargarIconos } from '../components/diseno/Icono'
 import type { FormEvent } from 'react'
 import type { RolUsuario } from '../lib/tiposAuth'
 import { Navigate, useLocation } from 'react-router-dom'
@@ -35,6 +36,7 @@ function obtenerDestino(datos: unknown, rol?: RolUsuario): string {
 }
 
 export function Login() {
+  useEffect(() => { precargarIconos() }, [])
   const { sesion, perfil, estado, iniciarSesion } = useAuth()
   const ubicacion = useLocation()
   const destino = obtenerDestino(ubicacion.state)
