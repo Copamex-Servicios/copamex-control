@@ -1,0 +1,60 @@
+/* Avisos y producción: distribución administrativa de la referencia. */
+.co-layout .co-administracion:has(.co-gestion-compacta)>.co-page-header { align-items:center; gap:20px; margin:4px 0 30px; }
+.co-layout .co-administracion:has(.co-gestion-compacta)>.co-page-header h1 { font-size:36px; line-height:1.2; margin:0 0 7px; letter-spacing:-.7px; }
+.co-layout .co-administracion:has(.co-gestion-compacta)>.co-page-header p { margin:0; font-size:15px; color:#667b9c; }
+.co-layout .co-administracion:has(.co-gestion-compacta)>.co-page-header .co-page-icon { width:64px; height:64px; border-radius:16px; }
+.co-layout .co-gestion-compacta .admin-distribucion { display:grid; grid-template-columns:minmax(0,1fr); gap:20px; }
+.co-layout .co-gestion-compacta .admin-menu { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:0 0 1px; border:0; border-bottom:1px solid #d6e1f0; border-radius:0; background:transparent; }
+.co-layout .co-gestion-compacta .admin-menu button { display:flex; align-items:center; justify-content:flex-start; gap:16px; flex:0 0 auto; min-height:54px; padding:13px 24px; border:1px solid transparent; border-radius:9px; background:transparent; font-size:14px; font-weight:600; color:#4d6488; }
+.co-layout .co-gestion-compacta .admin-menu button:hover { background:#edf3fc; }
+.co-layout .co-gestion-compacta .admin-menu button[aria-current] { background:#fff; color:#065ddf; border-color:#d6e4f8; box-shadow:0 2px 5px rgb(27 64 112 / 5%),inset 0 -2px #0864df; }
+.co-layout .co-gestion-compacta .admin-menu button>span:last-child { display:grid; place-items:center; min-width:25px; height:25px; padding:0 7px; background:#e4edfa; color:#436185; border-radius:50%; font-size:12px; }
+.co-layout .co-gestion-compacta .admin-menu button[aria-current]>span:last-child { background:#e5efff; color:#065ddf; }
+.co-layout .co-gestion-compacta .admin-menu .co-gestion-actualizar { margin-left:auto; min-height:32px; padding:6px 10px; font-size:12px; font-weight:500; }
+.co-layout .co-gestion-compacta .admin-contenido { padding:24px; margin:0; border:1px solid #dce6f4; border-radius:15px; background:#fff; box-shadow:0 3px 12px rgb(25 57 100 / 2%); }
+.co-layout .co-gestion-compacta .co-gestion-barra { display:grid; grid-template-columns:minmax(140px,1fr) minmax(280px,500px) auto; gap:14px; align-items:center; }
+.co-layout .co-gestion-compacta .co-gestion-barra h2 { font-size:27px; margin:0; line-height:1.2; letter-spacing:-.4px; }
+.co-layout .co-gestion-compacta .co-gestion-buscador { position:relative; display:block; min-width:0; }
+.co-layout .co-gestion-compacta .co-gestion-buscador>svg { position:absolute; left:14px; top:50%; transform:translateY(-50%); width:19px; height:19px; color:#50668a; pointer-events:none; }
+.co-layout .co-gestion-compacta .co-gestion-buscador input { width:100%; height:42px; min-height:42px; padding:9px 12px 9px 42px; border:1px solid #dce5f2; border-radius:8px; background:#fff; font-size:13px; font-weight:400; }
+.co-layout .co-gestion-compacta .co-sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.co-layout .co-gestion-compacta .co-gestion-barra>.boton-principal { display:flex; align-items:center; justify-content:center; gap:12px; min-height:42px; padding:9px 18px; border-radius:8px; font-size:13px; white-space:nowrap; }
+.co-layout .co-gestion-compacta .co-gestion-mas { font-size:25px; line-height:1; font-weight:400; }
+.co-layout .co-gestion-compacta .admin-contenido>.ayuda-turno { margin:18px 0 14px; font-size:13px; color:#65799a; }
+.co-layout .co-gestion-compacta .admin-tabla { width:100%; font-size:12px; }
+.co-layout .co-gestion-compacta .admin-tabla caption { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); }
+.co-layout .co-gestion-compacta .admin-tabla th { padding:13px 14px; font-size:12px; background:#edf3fb; color:#102950; border-bottom:1px solid #dce6f4; vertical-align:middle; }
+.co-layout .co-gestion-compacta .admin-tabla td { padding:12px 14px; border-bottom:1px solid #e2eaf5; vertical-align:middle; line-height:1.45; color:#344d73; }
+.co-layout .co-gestion-compacta .admin-tabla tbody tr:hover { background:#f7faff; }
+.co-layout .co-gestion-compacta .co-tabla-avisos { min-width:1050px; table-layout:fixed; }
+.co-layout .co-gestion-compacta .co-tabla-avisos th { min-width:0; }
+.co-layout .co-gestion-compacta .co-tabla-avisos th:nth-child(1) { width:27%; }
+.co-layout .co-gestion-compacta .co-tabla-avisos th:nth-child(2) { width:10%; }
+.co-layout .co-gestion-compacta .co-tabla-avisos th:nth-child(3) { width:12%; }
+.co-layout .co-gestion-compacta .co-tabla-avisos th:nth-child(4),.co-layout .co-gestion-compacta .co-tabla-avisos th:nth-child(5) { width:14%; }
+.co-layout .co-gestion-compacta .co-tabla-avisos th:nth-child(6) { width:9%; }
+.co-layout .co-gestion-compacta .co-tabla-avisos th:nth-child(7) { width:14%; }
+.co-layout .co-gestion-compacta .co-aviso-texto-tabla { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; overflow-wrap:anywhere; line-height:1.5; }
+.co-layout .co-gestion-compacta .co-aviso-vigencia { font-size:12px; }
+.co-layout .co-gestion-compacta .co-chip-gestion { display:inline-block; padding:4px 9px; border-radius:6px; font-size:11px; font-weight:600; white-space:nowrap; line-height:1.4; }
+.co-layout .co-gestion-compacta .co-chip-permanente { background:#e7f0ff; color:#075ddd; }
+.co-layout .co-gestion-compacta .co-chip-temporal { background:#eee7ff; color:#6642bd; }
+.co-layout .co-gestion-compacta .co-chip-activo { background:#e0f2e8; color:#16704d; }
+.co-layout .co-gestion-compacta .co-chip-programado { background:#e4edff; color:#075cdb; }
+.co-layout .co-gestion-compacta .co-chip-finalizado { background:#e9edf3; color:#596a82; }
+.co-layout .co-gestion-compacta .co-aviso-acciones-tabla { display:flex; align-items:center; gap:8px; }
+.co-layout .co-gestion-compacta .admin-tabla .boton-secundario { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:32px; padding:6px 10px; border-radius:7px; font-size:11px; background:#fff; border-color:#dae5f5; white-space:nowrap; }
+.co-layout .co-gestion-compacta .admin-tabla .boton-secundario svg { width:14px; height:14px; }
+.co-layout .co-gestion-compacta .admin-tabla .co-aviso-mas-acciones { min-width:32px; font-size:17px; line-height:1; }
+.co-menu-aviso-gestion { position:fixed; inset:auto; margin:0; width:190px; padding:6px; border:1px solid #dce5f2; border-radius:9px; background:#fff; box-shadow:0 8px 24px rgb(19 43 79 / 18%); }
+.co-menu-aviso-gestion::backdrop { background:transparent; }
+.co-menu-aviso-gestion>button { width:100%; padding:10px; border:0; background:white; text-align:left; border-radius:5px; color:#b02136; font-size:13px; cursor:pointer; }
+.co-menu-aviso-gestion>button:hover { background:#fff1f3; }
+.co-menu-aviso-gestion>button:focus-visible { outline:2px solid #458eef; outline-offset:-2px; }
+.co-menu-aviso-gestion>button:disabled { opacity:.55; cursor:default; }
+.co-layout .co-gestion-compacta .planta-paginacion { margin:0; padding-top:18px; gap:10px; font-size:12px; }
+.co-layout .co-gestion-compacta .planta-paginacion button { min-height:34px; padding:7px 12px; font-size:12px; }
+.co-layout .co-gestion-compacta :is(.mensaje-error,.mensaje-exito) { padding:10px 14px; margin:10px 0 16px; font-size:13px; }
+@media(max-width:1150px) { .co-layout .co-gestion-compacta .co-gestion-barra { grid-template-columns:1fr auto; } .co-layout .co-gestion-compacta .co-gestion-buscador { grid-column:1 / -1; grid-row:2; } }
+@media(max-width:650px) { .co-layout .co-gestion-compacta .admin-contenido { padding:18px 16px; } .co-layout .co-gestion-compacta .admin-menu { gap:3px; } .co-layout .co-gestion-compacta .admin-menu button { padding:11px 12px; gap:9px; min-height:46px; font-size:12px; } .co-layout .co-gestion-compacta .admin-menu .co-gestion-actualizar { margin-left:0; } .co-layout .co-administracion:has(.co-gestion-compacta)>.co-page-header h1 { font-size:28px; } .co-layout .co-gestion-compacta .co-gestion-barra h2 { font-size:23px; } }
+@media print { .co-layout .co-gestion-compacta .co-tabla-avisos { min-width:0; } .co-menu-aviso-gestion { display:none; } }

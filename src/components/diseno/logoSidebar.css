@@ -1,0 +1,3 @@
+.co-layout .co-brand-logo { align-items:center; gap:14px; padding-bottom:24px; }
+.co-layout .co-brand-logo img { display:block; width:108px; height:108px; object-fit:contain; background:white; border-radius:10px; }
+@media(min-width:761px) and (max-width:1000px) { .co-layout .co-brand-logo { padding:0 0 24px; } .co-layout .co-brand-logo img { width:48px; height:48px; border-radius:7px; } }

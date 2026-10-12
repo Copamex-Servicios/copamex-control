@@ -1,0 +1,32 @@
+/* Consulta: comparte colores, proporciones y controles del sistema aprobado. */
+.co-consulta { --verde:var(--co-primary); --verde-oscuro:var(--co-text); --borde:var(--co-border); --texto-secundario:var(--co-muted); min-width:0; }
+.co-consulta :is(.vista-planta,.panel-reportes) { min-width:0; }
+.co-consulta .panel-informacion { padding:24px; border:1px solid var(--co-border); border-radius:14px; box-shadow:0 2px 6px #073b7a04; background:#fff; margin-bottom:24px; }
+.co-consulta h2 { font-size:23px; margin-bottom:10px; }
+.co-consulta h3 { font-size:18px; }
+.co-consulta :is(.ayuda-turno,.texto-secundario) { color:var(--co-muted); font-size:13px; }
+.co-consulta :is(.boton-primario,.boton-principal,.boton-secundario) { min-height:42px; border-radius:8px; padding:10px 16px; font-size:13px; font-weight:600; box-shadow:none; }
+.co-consulta :is(.boton-primario,.boton-principal) { background:var(--co-primary); color:#fff; border:1px solid var(--co-primary); }
+.co-consulta .boton-secundario { background:white; border:1px solid var(--co-border); color:var(--co-text); }
+.co-consulta :is(input,select,textarea) { min-height:44px; border:1px solid var(--co-border); border-radius:8px; padding:10px 12px; color:var(--co-text); background:#fff; max-width:100%; }
+.co-consulta label { font-size:13px; font-weight:600; }
+.co-consulta .planta-formulario { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)) auto; align-items:end; gap:16px; }
+.co-consulta .planta-formulario label { min-width:0; }
+.co-consulta .planta-metricas { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr)); gap:16px; margin:20px 0 28px; }
+.co-consulta .planta-metricas article { background:#fff; padding:20px; border:1px solid var(--co-border); border-top:3px solid var(--co-primary); border-radius:12px; box-shadow:none; }
+.co-consulta .planta-metricas article>span { color:var(--co-muted); font-size:12px; }
+.co-consulta .planta-metricas article strong { font-size:28px; }
+.co-consulta .planta-metrica-alerta { border-top-color:#dc2626!important; }
+.co-consulta .planta-tabla-scroll { max-width:100%; overflow-x:auto; }
+.co-consulta .planta-tabla { width:100%; border-collapse:collapse; font-size:13px; }
+.co-consulta .planta-tabla th { padding:12px 16px; color:var(--co-text); background:#edf3fb; }
+.co-consulta .planta-tabla td { padding:14px 16px; border-bottom:1px solid var(--co-border); }
+.co-consulta .planta-tabla tbody tr:hover { background:#f8fafd; }
+.co-consulta .rep-cambio { padding:16px; border:1px solid var(--co-border); border-radius:10px; margin-bottom:12px; background:#fff; }
+.co-consulta .rep-cambio summary { cursor:pointer; font-weight:600; font-size:13px; }
+.co-consulta .rep-cambio pre { white-space:pre-wrap; overflow-wrap:anywhere; }
+.co-consulta :is(.rep-tabs,.pestanas-modulos) { gap:8px; overflow-x:auto; padding:6px; border:1px solid var(--co-border); border-radius:10px; background:#edf3fb; }
+.co-consulta .rep-tabs button { border-radius:8px; font-size:13px; }
+@media(max-width:1200px) { .co-consulta .planta-formulario { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:600px) { .co-consulta .panel-informacion { padding:18px; } .co-consulta .planta-formulario { grid-template-columns:minmax(0,1fr); } .co-consulta .planta-encabezado { align-items:flex-start; flex-wrap:wrap; } .co-consulta .planta-paginacion { flex-wrap:wrap; } }
+@media print { .co-layout:has(.co-consulta) .co-sidebar,.co-layout:has(.co-consulta) .co-topbar { display:none; } .co-layout:has(.co-consulta) .co-workspace { margin:0; } .co-layout:has(.co-consulta) .co-main { padding:0; max-width:none; } .co-consulta .panel-informacion { box-shadow:none; } }

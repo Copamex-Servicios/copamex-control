@@ -1,0 +1,5 @@
+.co-layout .co-main:has(.panel-operativo) { padding-top:20px; }
+.co-calderas .titulo-operativo { margin-bottom:16px; }
+.co-calderas .co-calderas-summary { margin-top:16px; margin-bottom:12px; }
+.co-calderas .captura-operativa { scroll-margin-top:100px; }
+@media(max-width:760px) { .co-layout .co-main:has(.panel-operativo) { padding-top:16px; } }

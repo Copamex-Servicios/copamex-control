@@ -1,0 +1,38 @@
+﻿.co-layout .co-sidebar-compacta .co-brand-logo { gap:12px; padding-bottom:22px; }
+.co-layout .co-sidebar-compacta .co-brand-logo img { width:80px; height:80px; }
+.co-layout .co-sidebar-compacta .co-nav a { min-height:46px; padding:11px 14px; font-size:14px; }
+.co-layout .co-sidebar-compacta .co-nested-submenu { margin-left:14px; padding-left:10px; gap:2px; }
+.co-layout .co-sidebar-compacta .co-nested-submenu button { min-height:36px; padding:8px 10px; }
+.co-layout .co-sidebar-compacta>.co-nav { scrollbar-width:thin; scrollbar-color:#4c6b91 transparent; }
+.co-layout .co-sidebar-compacta .co-nav::-webkit-scrollbar { width:5px; }
+.co-layout .co-sidebar-compacta .co-nav::-webkit-scrollbar-thumb { background:#4c6b91; border-radius:8px; }
+.co-layout .co-sidebar-compacta .co-nav::-webkit-scrollbar-track { background:transparent; }
+.co-layout .co-sidebar-compacta .co-sidebar-account { margin-top:12px; padding-top:14px; gap:0; }
+.co-layout .co-sidebar-compacta .co-sidebar-user { width:100%; gap:10px; }
+.co-layout .co-sidebar-compacta .co-sidebar-user>div { flex:1; min-width:0; }
+.co-layout .co-sidebar-compacta .co-sidebar-user .co-avatar { width:36px; height:36px; flex-shrink:0; }
+.co-layout .co-sidebar-compacta .co-sidebar-user>.co-sidebar-logout { width:36px; min-width:36px; min-height:36px; height:36px; padding:8px; margin-left:auto; flex-shrink:0; justify-content:center; border-radius:9px; border:1px solid #ffffff30; background:#ffffff09; }
+.co-layout .co-sidebar-compacta .co-sidebar-user>.co-sidebar-logout:hover { background:#ffffff20; color:#fff; }
+.co-layout .co-sidebar-compacta .co-sidebar-user>.co-sidebar-logout svg { width:19px; height:19px; }
+.co-layout .co-sidebar-compacta .co-sidebar-user>.co-sidebar-logout:focus-visible { outline:2px solid #9cd3ff; outline-offset:3px; }
+.co-layout .co-sidebar-compacta .co-sidebar-user>.co-sidebar-logout:disabled { opacity:.5; }
+@media(min-width:761px) and (max-width:1000px) { .co-layout .co-sidebar-compacta .co-brand-logo img { width:48px; height:48px; } .co-layout .co-sidebar-compacta .co-nav a { padding:12px 0; } .co-layout .co-sidebar-compacta .co-nested-submenu { margin-left:0; padding-left:0; } .co-layout .co-sidebar-compacta .co-sidebar-user>.co-avatar { display:none; } .co-layout .co-sidebar-compacta .co-sidebar-user>.co-sidebar-logout { margin:0 auto; } }
+
+/* Iconos principales del menú */
+.co-layout .co-sidebar .co-nav a > svg:first-child {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+}
+.co-layout .co-sidebar-compacta .co-sidebar-user > .co-sidebar-logout {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  padding: 4px;
+}
+
+.co-layout .co-sidebar-compacta .co-sidebar-user > .co-sidebar-logout svg {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+}

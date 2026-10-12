@@ -1,0 +1,67 @@
+@font-face { font-family:'COPAMEX Inter'; src:url('./fuentes/inter-latin-wght-normal.woff2') format('woff2'); font-weight:100 900; font-style:normal; font-display:swap; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(340px,1.3fr); gap:14px; align-items:stretch; margin:0 0 20px; font-family:'COPAMEX Inter',sans-serif; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo * { font-family:inherit; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .co-encabezado-datos { display:contents; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo :is(.resumen-dia-tarjeta,.panel-turno) { padding:16px 18px; border:1px solid #dae6f6; border-radius:10px; box-shadow:0 3px 10px rgb(30 62 105 / 2%); background:#fff; min-width:0; min-height:218px; margin:0; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .resumen-dia-tarjeta:has(>.resumen-dia-vacio) { display:block; min-height:218px; padding:16px 18px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .resumen-dia-tarjeta>.co-dia-icono { display:none; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo :is(.resumen-dia-cabecera,.panel-turno>.cabecera-turno) { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:0; margin:0 0 14px; border:0; min-height:30px; flex-wrap:wrap; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo :is(.resumen-dia-cabecera h2,.panel-turno>.cabecera-turno h2) { display:flex; align-items:center; gap:10px; position:static; clip-path:none; overflow:visible; width:auto; height:auto; text-transform:none; font-size:15px; line-height:1.3; letter-spacing:0; color:#0e234a; font-weight:700; margin:0; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo :is(.resumen-dia-cabecera h2,.panel-turno>.cabecera-turno h2) svg { width:25px; height:25px; flex-shrink:0; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo :is(.boton-icono,.cabecera-turno>.boton-secundario) { width:auto; min-width:32px; height:32px; min-height:32px; padding:5px 8px; display:inline-flex; align-items:center; justify-content:center; gap:5px; background:#fff; border:1px solid #cbdcf6; border-radius:6px; color:#0757c9; font-size:11px; margin-left:auto; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .boton-icono svg { width:18px; height:18px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .cabecera-turno .co-refrescar-icono { font-size:20px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .resumen-dia-vacio { font-size:12px; color:#647998; margin:14px 0 0; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .resumen-dia-produccion { display:flex; flex-direction:column; gap:10px; max-height:156px; overflow-y:auto; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .resumen-dia-programa { padding:0; background:transparent; border:0; border-radius:0; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .resumen-dia-programa+.resumen-dia-programa { border-top:1px solid #e4ecf7; padding-top:10px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .resumen-dia-papel { display:flex; align-items:flex-start; gap:9px; margin-bottom:10px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .resumen-dia-papel strong { font-size:12px; color:#143768; line-height:1.45; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .resumen-dia-maquina { font-size:11px; padding:3px 7px; border-radius:5px; background:#eaf2ff; color:#183c70; font-weight:650; flex-shrink:0; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .resumen-dia-programa dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:0; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .resumen-dia-programa dl>div+div { border-left:1px solid #dbe6f6; padding-left:12px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .resumen-dia-programa dt { font-size:11px; color:#5a7499; margin:0 0 5px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .resumen-dia-programa dd { margin:0; font-size:19px; font-weight:700; color:#133362; overflow-wrap:anywhere; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .co-eventos-contenido { max-height:156px; overflow-y:auto; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .resumen-dia-evento { padding:10px 12px; background:#fffaf0; border:0; border-left:2px solid #efc57a; border-radius:6px; margin:0 0 8px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .resumen-dia-evento-fecha { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin:0 0 6px; font-size:11px; color:#355981; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .resumen-dia-hoy { background:#fceaca; border-radius:4px; font-size:10px; padding:2px 6px; color:#835c1e; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .resumen-dia-evento strong { font-size:13px; color:#14345f; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .resumen-dia-evento p { font-size:12px; margin:5px 0 0; color:#365375; overflow-wrap:anywhere; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .resumen-dia-otros { font-size:11px; color:#345882; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .resumen-dia-otros summary { cursor:pointer; margin:8px 0; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .turno-actual>h2 { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .turno-actual>.datos-turno { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px 12px; margin:0 0 12px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .turno-actual>.datos-turno>div { min-width:0; padding:0; background:none; border:0; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .turno-actual>.datos-turno>div:nth-child(3) { grid-column:1/-1; order:-1; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .turno-actual>.datos-turno dt { font-size:10px; font-weight:400; color:#617a9e; margin:0 0 5px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .turno-actual>.datos-turno dd { margin:0; color:#142f56; font-size:11px; line-height:1.4; font-weight:600; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .turno-actual>.datos-turno>div:nth-child(3) dd { white-space:nowrap; overflow:visible; text-overflow:clip; overflow-wrap:normal; word-break:normal; font-size:12px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .turno-actual>.datos-turno>div:nth-child(5) dd { font-size:10px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo :is(.boton-primario,.boton-secundario) { min-height:34px; display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:7px 10px; font-size:11px; border-radius:6px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .boton-primario { color:#fff; background:#0861df; border-color:#0861df; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .boton-secundario { background:#fff; color:#0757c9; border-color:#c3d6f3; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .turno-actual>.acciones-turno { display:flex; flex-wrap:wrap; gap:8px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo :is(.mensaje-error,.mensaje-exito,.ayuda-turno,.error-lateral) { font-size:11px; line-height:1.4; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .co-turno-estado { font-size:11px; padding:5px 8px; gap:6px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .panel-turno .formulario-turno:has(>.campos-turno) { display:flex; flex-direction:column; align-items:stretch; grid-template-columns:none; gap:10px; padding:0; border:0; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .panel-turno .formulario-turno>.campos-turno { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:auto; gap:10px; grid-column:auto; grid-row:auto; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .panel-turno .campos-turno>.campo-turno { grid-column:auto; grid-row:auto; padding:0; border:0; min-width:0; gap:5px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .panel-turno .campos-turno>.campo-turno:first-of-type { grid-column:1/-1; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .panel-turno .campos-turno label { font-size:11px; white-space:normal; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .panel-turno .campos-turno :is(input,select,output) { height:36px; min-height:36px; padding:7px 9px; border-radius:6px; font-size:11px; white-space:normal; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .panel-turno .campo-turno-ancho input { padding-left:30px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .panel-turno .campo-turno>.co-empleado-icono { left:8px; bottom:8px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .panel-turno .co-empleado-icono svg { width:18px; height:18px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .panel-turno .formulario-turno>.acciones-turno { display:flex; grid-column:auto; grid-row:auto; align-self:stretch; flex-direction:row; gap:7px; margin:0; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .panel-turno .formulario-turno>.acciones-turno button { width:auto; min-height:34px; font-size:11px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .panel-turno .formulario-turno>.co-confirmar-empleado { grid-column:auto; grid-row:auto; padding:10px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .co-confirmar-empleado strong { white-space:nowrap; font-size:12px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .gestion-turno { padding-top:12px; margin-top:12px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .gestion-turno h3 { font-size:14px; margin:0 0 10px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .gestion-turno p { font-size:11px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .gestion-turno textarea { min-height:65px; font-size:12px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo .operacion-pendiente { padding:12px; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo button:focus-visible,.co-layout .co-operativo-referencia .co-encabezado-operativo summary:focus-visible { outline:2px solid #277def; outline-offset:3px; }
+@media(max-width:1100px) { .co-layout .co-operativo-referencia .co-encabezado-operativo { grid-template-columns:minmax(0,1fr); } .co-layout .co-operativo-referencia .co-encabezado-operativo :is(.resumen-dia-tarjeta,.panel-turno),.co-layout .co-operativo-referencia .co-encabezado-operativo .resumen-dia-tarjeta:has(>.resumen-dia-vacio) { min-height:0; } }
+@media(max-width:480px) { .co-layout .co-operativo-referencia .co-encabezado-operativo { gap:10px; } .co-layout .co-operativo-referencia .co-encabezado-operativo :is(.resumen-dia-tarjeta,.panel-turno) { padding:14px; } .co-layout .co-operativo-referencia .co-encabezado-operativo .turno-actual>.datos-turno { grid-template-columns:repeat(2,minmax(0,1fr)); } .co-layout .co-operativo-referencia .co-encabezado-operativo .turno-actual>.datos-turno>div:nth-child(3) dd { font-size:11px; } }

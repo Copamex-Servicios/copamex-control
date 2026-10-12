@@ -1,0 +1,11 @@
+.co-layout .avisos-visibles { padding:10px 14px; margin-bottom:16px; border:1px solid #dce6f2; border-left:4px solid #8ba2c1; border-radius:10px; background:#f8fafd; color:#475569; box-shadow:0 2px 8px #061a4a08; top:8px; }
+.co-layout .avisos-visibles-activos,.co-layout .avisos-visibles-error { background:#fff4f4; border-color:#efb1b1; border-left-color:#dc2626; color:#991b1b; }
+.co-layout .avisos-visibles-cabecera { gap:12px; }
+.co-layout .avisos-visibles-cabecera h2 { font-size:14px; line-height:1.35; color:inherit; }
+.co-layout .avisos-visibles-cabecera .boton-secundario { min-height:32px; padding:5px 10px; font-size:12px; }
+.co-layout .avisos-visibles-lista { margin-top:6px; max-height:min(16vh,128px); }
+.co-layout .avisos-visibles-mensaje { font-size:14px; line-height:1.4; }
+.co-layout .avisos-visibles-mensaje + .avisos-visibles-mensaje { padding-top:6px; margin-top:6px; border-top-color:#efc5c5; }
+.co-layout .avisos-visibles-estado { margin-top:6px; font-size:12px; }
+@media(max-width:600px) { .co-layout .avisos-visibles { padding:9px 12px; } .co-layout .avisos-visibles-lista { max-height:14vh; } }
+@media print { .co-layout .avisos-visibles { position:static; } .co-layout .avisos-visibles-lista { max-height:none; overflow:visible; } }

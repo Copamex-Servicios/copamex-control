@@ -1,0 +1,12 @@
+.co-layout .co-admin-referencia { gap:8px; }
+.co-layout .co-admin-referencia .co-admin-tabs { margin-bottom:0; }
+.co-layout .co-main .co-admin-referencia .co-admin-tabs .co-catalogos-flecha { width:16px; height:16px; margin-left:4px; flex-shrink:0; transition:transform .32s ease; }
+.co-layout .co-admin-referencia .co-catalogos-flecha-abierta { transform:rotate(90deg); }
+.co-layout .co-admin-referencia .co-admin-despliegue { display:grid; grid-template-rows:0fr; opacity:0; transition:grid-template-rows .36s cubic-bezier(.22,.61,.36,1),opacity .24s ease; }
+.co-layout .co-admin-referencia .co-admin-despliegue-abierto { grid-template-rows:1fr; opacity:1; }
+.co-layout .co-admin-referencia .co-admin-despliegue-interior { min-height:0; overflow:hidden; }
+.co-layout .co-admin-referencia .co-admin-despliegue-interior>.admin-distribucion { margin-top:0; gap:12px; }
+.co-layout .co-admin-referencia .co-admin-despliegue-interior .admin-menu { margin-top:0; padding-top:4px; gap:4px; }
+.co-layout .co-admin-referencia .co-admin-despliegue-interior .admin-menu button { padding:8px 16px; }
+.co-gestion-compacta .co-admin-despliegue-interior { overflow:visible; }
+@media(prefers-reduced-motion:reduce) { .co-layout .co-admin-referencia .co-admin-despliegue,.co-layout .co-admin-referencia .co-catalogos-flecha { transition:none; } }

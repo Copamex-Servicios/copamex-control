@@ -1,0 +1,74 @@
+/* Referencia común de Calderas, PTAR y todos sus apartados. */
+.resumen-dia-tarjeta>.co-dia-icono,.campo-turno>.co-empleado-icono { display:none; }
+.co-layout .co-operativo-referencia .panel-informacion { padding:22px 24px; border-radius:12px; background:#fff; }
+.co-layout .co-operativo-referencia .resumen-dia { gap:12px; margin-bottom:20px; }
+.co-layout .co-operativo-referencia .resumen-dia-tarjeta { position:relative; border-radius:10px; padding:18px 20px; }
+.co-layout .co-operativo-referencia .resumen-dia-tarjeta:has(>.resumen-dia-vacio) { min-height:78px; padding-left:90px; }
+.co-layout .co-operativo-referencia .resumen-dia-tarjeta:has(>.resumen-dia-vacio)>.co-dia-icono { display:grid; place-items:center; position:absolute; left:18px; top:50%; transform:translateY(-50%); width:44px; height:44px; border:1px solid #e4edfa; background:#f3f7fd; border-radius:6px; color:#06469e; }
+.co-layout .co-operativo-referencia .co-dia-icono svg { width:25px; height:25px; }
+.co-layout .co-operativo-referencia .resumen-dia-cabecera h2 { display:flex; align-items:center; gap:10px; }
+.co-layout .co-operativo-referencia .resumen-dia-cabecera h2 svg { width:23px; height:23px; }
+.co-layout .co-operativo-referencia .resumen-dia-vacio { font-size:15px; color:#183e70; }
+.co-layout .co-operativo-referencia .resumen-dia .boton-icono { width:42px; height:42px; display:grid; place-items:center; font-size:25px; border:1px solid #c7dcfa; border-radius:7px; color:#0057d8; background:#fff; }
+.co-layout .co-operativo-referencia .panel-turno>.cabecera-turno { display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-start; gap:14px; border-bottom:1px solid #d5e2f6; padding-bottom:18px; margin-bottom:18px; }
+.co-layout .co-operativo-referencia .panel-turno>.cabecera-turno>button { margin-left:auto; }
+.co-layout .co-operativo-referencia .cabecera-turno h2 { font-size:25px; color:#081b3e; margin:0; display:flex; align-items:center; gap:14px; }
+.co-layout .co-operativo-referencia .cabecera-turno h2 svg { width:30px; height:30px; flex-shrink:0; }
+.co-layout .co-operativo-referencia .co-turno-estado { display:inline-flex; align-items:center; gap:10px; padding:8px 16px; font-size:13px; font-weight:650; background:#edf2fa; color:#0c2547; border-radius:24px; }
+.co-layout .co-operativo-referencia .co-turno-estado>span { width:11px; height:11px; border-radius:50%; background:#6684a8; }
+.co-layout .co-operativo-referencia .panel-turno .formulario-turno:has(>.campos-turno) { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); grid-template-rows:auto auto; gap:18px 16px; border:0; padding:0; align-items:end; }
+.co-layout .co-operativo-referencia .panel-turno .formulario-turno>.campos-turno { grid-column:1/-1; grid-row:1/span 2; display:grid; grid-template-columns:subgrid; grid-template-rows:subgrid; gap:18px 16px; padding:0; min-width:0; margin:0; border:0; }
+.co-layout .co-operativo-referencia .panel-turno .campos-turno>.campo-turno { grid-column:span 3; min-width:0; }
+.co-layout .co-operativo-referencia .panel-turno .campos-turno>.campo-turno-ancho { grid-column:1/span 5; grid-row:2; position:relative; }
+.co-layout .co-operativo-referencia .panel-turno .campos-turno label { font-size:14px; font-weight:600; color:#102a50; }
+.co-layout .co-operativo-referencia .panel-turno .campos-turno :is(input,select,output) { height:50px; min-height:50px; font-size:15px; padding:12px 16px; border-radius:7px; }
+.co-layout .co-operativo-referencia .panel-turno .campos-turno output { justify-content:space-between; background:#f4f7fc; }
+.co-layout .co-operativo-referencia .panel-turno .campos-turno output svg { width:21px; height:21px; flex-shrink:0; color:#3a6091; margin-left:8px; }
+.co-layout .co-operativo-referencia .panel-turno .campo-turno-ancho input { padding-left:48px; }
+.co-layout .co-operativo-referencia .panel-turno .campo-turno>.co-empleado-icono { display:grid; place-items:center; position:absolute; bottom:14px; left:16px; color:#42628d; pointer-events:none; }
+.co-layout .co-operativo-referencia .panel-turno .formulario-turno:has(>.campos-turno)>.acciones-turno { grid-column:6; grid-row:2; margin:0; flex-direction:column; align-self:end; }
+.co-layout .co-operativo-referencia .panel-turno .formulario-turno:has(>.campos-turno)>.acciones-turno button { width:100%; min-height:50px; padding:10px; white-space:nowrap; }
+.co-layout .co-operativo-referencia .panel-turno .formulario-turno>.co-confirmar-empleado { grid-column:1/-1; grid-row:3; margin-top:0; }
+.co-layout .co-operativo-referencia .cabecera-turno>.boton-secundario:not(:has(svg,.co-refrescar-icono))::before { content:'↻'; font-size:24px; line-height:1; }
+.co-layout .co-operativo-referencia :is(.historial-pozos,.historial-uf,.historial-calidad) { border-top:1px solid #d5e2f6; margin-top:20px; padding-top:20px; }
+.co-layout .co-operativo-referencia :is(.historial-pozos,.historial-uf,.historial-calidad)>h3 { margin:0 0 16px; font-size:22px; }
+.co-layout .co-operativo-referencia :is(.item-historial-pozos,.item-historial-uf,.item-historial-calidad) { border:1px solid #ccdef6; border-radius:10px; padding:14px 18px; margin-top:10px; background:#f8faff; }
+@media(min-width:761px) and (max-width:1500px) { .co-layout .co-operativo-referencia .panel-turno .campos-turno>.campo-turno-ancho { grid-column:1/span 4; } .co-layout .co-operativo-referencia .panel-turno .formulario-turno:has(>.campos-turno)>.acciones-turno { grid-column:5/span 2; } }
+@media(max-width:760px) {
+ .co-layout .co-operativo-referencia .panel-informacion { padding:18px 16px; }
+ .co-layout .co-operativo-referencia .cabecera-turno h2 { font-size:21px; }
+ .co-layout .co-operativo-referencia .panel-turno>.cabecera-turno>button { margin-left:0; }
+ .co-layout .co-operativo-referencia .panel-turno .formulario-turno:has(>.campos-turno) { display:flex; flex-direction:column; align-items:stretch; }
+ .co-layout .co-operativo-referencia .panel-turno .formulario-turno>.campos-turno { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:auto; gap:16px; }
+ .co-layout .co-operativo-referencia .panel-turno .campos-turno>.campo-turno { grid-column:1; grid-row:auto; }
+ .co-layout .co-operativo-referencia .panel-turno .formulario-turno>.co-confirmar-empleado { order:2; }
+ .co-layout .co-operativo-referencia .resumen-dia-tarjeta:has(>.resumen-dia-vacio) { padding-left:76px; }
+}
+
+
+/* Gestión del turno: fecha, empleado, tipo y acción en una fila. */
+@media(min-width:1101px){
+.co-layout .co-operativo-referencia .panel-turno{padding:20px 24px}
+.co-layout .co-operativo-referencia .panel-turno>.cabecera-turno{padding-bottom:16px;margin-bottom:18px;gap:14px}
+.co-layout .co-operativo-referencia .panel-turno>.cabecera-turno h2{font-size:23px;gap:12px}
+.co-layout .co-operativo-referencia .panel-turno .formulario-turno:has(>.campos-turno){display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(190px,.95fr);grid-template-rows:auto;gap:18px 20px;align-items:end}
+.co-layout .co-operativo-referencia .panel-turno .formulario-turno>.campos-turno{grid-column:1/span 3;grid-row:1;display:grid;grid-template-columns:subgrid;grid-template-rows:auto;gap:20px}
+.co-layout .co-operativo-referencia .panel-turno .campos-turno>.campo-turno{grid-column:auto;grid-row:1;gap:8px;border-right:1px solid #dce7f7;padding-right:18px}
+.co-layout .co-operativo-referencia .panel-turno .campos-turno>.campo-turno-ancho{grid-column:2;grid-row:1}
+.co-layout .co-operativo-referencia .panel-turno .campos-turno label{font-size:13px;white-space:nowrap}
+.co-layout .co-operativo-referencia .panel-turno .campos-turno :is(input,select,output){height:46px;min-height:46px;font-size:14px;padding:10px 12px;border-radius:8px}
+.co-layout .co-operativo-referencia .panel-turno .campos-turno output{white-space:nowrap;font-size:13px}
+.co-layout .co-operativo-referencia .panel-turno .campo-turno-ancho input{padding-left:42px}
+.co-layout .co-operativo-referencia .panel-turno .campo-turno>.co-empleado-icono{bottom:12px;left:12px}
+.co-layout .co-operativo-referencia .panel-turno .formulario-turno:has(>.campos-turno)>.acciones-turno{grid-column:4;grid-row:1;margin:0;align-self:end}
+.co-layout .co-operativo-referencia .panel-turno .formulario-turno:has(>.campos-turno)>.acciones-turno button{min-height:46px;font-size:13px;padding:10px 12px}
+.co-layout .co-operativo-referencia .panel-turno .formulario-turno>.co-confirmar-empleado{grid-column:1/-1;grid-row:auto}
+}
+@media(min-width:761px) and (max-width:1100px){
+.co-layout .co-operativo-referencia .panel-turno .formulario-turno:has(>.campos-turno){display:flex;flex-direction:column;align-items:stretch;gap:14px}
+.co-layout .co-operativo-referencia .panel-turno .formulario-turno>.campos-turno{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto;gap:16px}
+.co-layout .co-operativo-referencia .panel-turno .campos-turno>.campo-turno{grid-column:auto;grid-row:auto}
+.co-layout .co-operativo-referencia .panel-turno .campos-turno>.campo-turno-ancho{grid-column:auto;grid-row:auto}
+.co-layout .co-operativo-referencia .panel-turno .formulario-turno:has(>.campos-turno)>.acciones-turno{align-self:stretch;flex-direction:row;margin:0}
+.co-layout .co-operativo-referencia .panel-turno .formulario-turno:has(>.campos-turno)>.acciones-turno button{width:auto}
+}

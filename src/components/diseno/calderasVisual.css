@@ -1,0 +1,39 @@
+/* Calderas: misma identidad de Inicio, alcance aislado. */
+.co-layout .co-submenu-label { margin-top:22px; border-top:1px solid #ffffff20; padding-top:22px; }
+.co-layout .co-submenu button { display:flex; align-items:center; gap:13px; padding:12px 16px; min-height:46px; border:0; border-radius:8px; background:transparent; color:#dce8f7; text-align:left; font-size:13px; cursor:pointer; }
+.co-layout .co-submenu button:hover { background:#ffffff12; }
+.co-layout .co-submenu button[aria-pressed="true"] { background:#1258a5; color:#fff; box-shadow:inset 3px 0 #78b5ff; }
+.co-calderas { --verde:var(--co-primary); --verde-oscuro:var(--co-text); --texto-secundario:var(--co-muted); --borde:var(--co-border); }
+.co-calderas .panel-operativo { max-width:none; }
+.co-calderas .titulo-operativo { margin-bottom:28px; }
+.co-calderas .co-page-header { margin-bottom:0; }
+.co-calderas .reloj-jornada { border:1px solid var(--co-border); border-radius:12px; background:#fff; padding:12px 18px; color:var(--co-text); }
+.co-calderas .reloj-jornada strong { color:var(--co-text); }
+.co-calderas .rejilla-operativa { grid-template-columns:minmax(0,1fr); }
+.co-calderas .lateral-operativo { display:none; }
+.co-calderas .captura-operativa { min-width:0; }
+.co-calderas .co-calderas-summary { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:22px 0 16px; font-size:13px; color:var(--co-muted); }
+.co-calderas-summary>span { background:#edf3fb; padding:6px 12px; border-radius:20px; }
+.co-calderas-summary>strong { margin-left:auto; color:var(--co-text); font-size:18px; }
+.co-calderas .panel-informacion { background:#fff; border:1px solid var(--co-border); border-radius:14px; padding:24px; box-shadow:0 2px 6px #073b7a04; }
+.co-calderas .panel-informacion h2 { font-size:22px; font-weight:650; }
+.co-calderas .panel-informacion h3 { font-size:18px; }
+.co-calderas :is(.boton-primario,.boton-principal,.boton-secundario) { min-height:42px; border-radius:8px; padding:10px 16px; font-size:13px; font-weight:600; box-shadow:none; }
+.co-calderas :is(.boton-primario,.boton-principal) { border:1px solid var(--co-primary); background:var(--co-primary); color:#fff; }
+.co-calderas :is(.boton-primario,.boton-principal):hover { background:#084fb9; }
+.co-calderas .boton-secundario { background:white; border:1px solid var(--co-border); color:var(--co-text); }
+.co-calderas :is(input,select,textarea) { min-height:44px; border:1px solid var(--co-border); border-radius:8px; padding:10px 12px; color:var(--co-text); background:#fff; }
+.co-calderas label { font-size:13px; font-weight:600; }
+.co-calderas :is(.ayuda-turno,.texto-secundario) { font-size:13px; color:var(--co-muted); }
+.co-calderas .datos-turno dt { font-size:12px; color:var(--co-muted); }
+.co-calderas .datos-turno dd { font-size:15px; color:var(--co-text); }
+.co-calderas table { border-collapse:collapse; font-size:13px; }
+.co-calderas th { background:#edf3fb; padding:12px 16px; color:var(--co-text); }
+.co-calderas td { padding:14px 16px; border-bottom:1px solid var(--co-border); }
+.co-calderas .informacion-jornada { gap:18px; }
+.co-calderas .avisos-visibles { z-index:15; }
+.co-calderas .avisos-visibles h2 { color:inherit; }
+.co-calderas .avisos-visibles-mensaje { font-size:14px; }
+.co-calderas .contenido-modulo:focus-visible { outline:3px solid #68aaff; outline-offset:3px; }
+@media(min-width:761px) and (max-width:1000px) { .co-layout .co-submenu button { justify-content:center; padding:14px 0; } .co-layout .co-submenu button>span { display:none; } }
+@media(max-width:760px) { .co-calderas .titulo-operativo { align-items:flex-start; flex-wrap:wrap; gap:16px; } .co-calderas .panel-informacion { padding:18px; } .co-calderas-summary>strong { width:100%; margin-left:0; } .co-calderas .reloj-jornada { width:100%; } }

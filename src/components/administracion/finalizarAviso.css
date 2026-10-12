@@ -1,0 +1,4 @@
+.co-layout .admin-acciones-aviso { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.co-layout .admin-acciones-aviso .admin-finalizar-aviso { color:#b91c1c; border-color:#edb7b7; background:#fff5f5; }
+.co-layout .admin-acciones-aviso .admin-finalizar-aviso:hover:not(:disabled) { background:#ffe4e4; }
+.co-layout .admin-aviso-finalizado { font-size:12px; color:#65748a; padding:6px 9px; border-radius:6px; background:#edf1f6; }

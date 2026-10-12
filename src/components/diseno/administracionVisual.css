@@ -1,0 +1,33 @@
+/* Administración: extensión del sistema visual compartido. */
+.co-administracion .admin-panel { min-width:0; }
+.co-administracion .admin-panel>nav { gap:10px; margin:0 0 24px; padding:6px; background:#edf3fb; border:1px solid var(--co-border); border-radius:12px; }
+.co-administracion .admin-panel>nav button { flex:1 1 auto; }
+.co-administracion .admin-resumen { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin-top:20px; }
+.co-administracion .admin-resumen article { border:1px solid var(--co-border); border-radius:12px; padding:18px; background:#fff; box-shadow:none; }
+.co-administracion .admin-resumen article>span { color:var(--co-muted); font-size:12px; }
+.co-administracion .admin-resumen strong { color:var(--co-text); font-size:28px; }
+.co-administracion .admin-resumen small { font-size:12px; color:var(--co-muted); }
+.co-administracion .admin-distribucion { display:grid; grid-template-columns:200px minmax(0,1fr); gap:20px; align-items:start; }
+.co-administracion .admin-menu { background:#fff; border:1px solid var(--co-border); border-radius:12px; padding:8px; display:grid; gap:4px; }
+.co-administracion .admin-menu button { display:flex; justify-content:space-between; gap:12px; padding:12px; border:0; border-radius:8px; color:var(--co-muted); background:transparent; font-size:13px; text-align:left; cursor:pointer; }
+.co-administracion .admin-menu button:hover { background:#f3f7fc; color:var(--co-text); }
+.co-administracion .admin-menu button[aria-current="page"] { background:#eaf2ff; color:var(--co-primary); box-shadow:inset 3px 0 var(--co-primary); font-weight:600; }
+.co-administracion .admin-menu button>span:last-child { border-radius:12px; padding:0 7px; background:#edf3fb; color:var(--co-muted); }
+.co-administracion .admin-contenido { min-width:0; }
+.co-administracion .admin-editor { margin:20px 0; padding:20px; border:1px solid var(--co-border); border-radius:12px; background:#f8fafd; }
+.co-administracion .admin-campos { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; min-width:0; }
+.co-administracion .admin-campos label { min-width:0; }
+.co-administracion input:is([type="checkbox"],[type="radio"]) { width:18px; height:18px; min-height:0; padding:0; accent-color:var(--co-primary); }
+.co-administracion .admin-busqueda { display:grid; gap:8px; margin:20px 0 12px; }
+.co-administracion .admin-pendiente { background:#fff8e6; border:1px solid #ead5a2; border-left:4px solid #b67e13; border-radius:12px; padding:20px; margin:20px 0; color:#75500d; }
+.co-administracion .planta-tabla caption { text-align:left; color:var(--co-muted); font-size:12px; margin:12px 0; }
+.co-administracion .planta-resumen-captura { max-width:420px; overflow-wrap:anywhere; }
+.co-administracion .calidad-tarjetas { margin-top:20px; }
+.co-administracion .calidad-tarjeta { border-radius:14px; border-color:var(--co-border); padding:20px; }
+.co-administracion .calidad-tarjeta h3 { font-size:18px; }
+.co-administracion .calidad-parametro input { min-width:0; }
+.co-administracion .calidad-parametro button { white-space:normal; }
+.co-administracion .planta-encabezado { gap:16px; }
+@media(max-width:1200px) { .co-administracion .admin-resumen { grid-template-columns:repeat(2,minmax(0,1fr)); } .co-administracion .admin-distribucion { grid-template-columns:minmax(0,1fr); } .co-administracion .admin-menu { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media(max-width:760px) { .co-administracion .admin-menu { grid-template-columns:repeat(2,minmax(0,1fr)); } .co-administracion .planta-encabezado { flex-wrap:wrap; align-items:flex-start; } .co-administracion .admin-editor { padding:16px; } .co-administracion .admin-campos { grid-template-columns:minmax(0,1fr); } }
+@media(max-width:420px) { .co-administracion .admin-resumen,.co-administracion .admin-menu { grid-template-columns:minmax(0,1fr); } }
