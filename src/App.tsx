@@ -39,6 +39,7 @@ function App() {
           </Route>
 
           <Route element={<RutaProtegida roles={['admin']} />}>
+            <Route path="/calidad/limites" element={<Inicio vista="limites" />} />
             <Route path="/reportes" element={<Inicio vista="reportes" />} />
             <Route path="/administracion" element={<Inicio vista="administracion" />} />
           </Route>

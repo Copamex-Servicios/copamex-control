@@ -205,6 +205,9 @@ function lanzarFallo(fallo: unknown, mensaje: string, mutacion = false): never {
   const datos = fallo && typeof fallo === 'object' ? fallo as Record<string, unknown> : null
   const codigo = typeof datos?.code === 'string' ? datos.code : ''
   const texto = typeof datos?.message === 'string' ? datos.message : ''
+  if (mutacion && codigo === '23505' && /unique constraint "lecturas_pozos_turno_id_key"/.test(texto)) {
+    throw new ErrorPozos('Ya existe una lectura de Pozos para este turno. Actualiza Pozos para consultarla. Si no aparece, pide al administrador revisar las capturas anuladas; no se puede crear otra lectura en el mismo turno.', false)
+  }
   const rechazoConfirmado = /^[\dA-Z]{5}$/.test(codigo)
     || ['PGRST202', 'PGRST203', 'PGRST301', 'PGRST302'].includes(codigo)
   const propio = ['22023', '42501', '23505', '40001'].includes(codigo)

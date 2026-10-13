@@ -2,7 +2,7 @@ import { crearXlsxReporte } from './xlsxReporte'
 import type { CeldaReporte, HojaReporte } from './xlsxReporte'
 import { puedeExportarReporte, problemasReporte, resumirReporte } from './reportes'
 import type { ConsultaReporte } from './reportes'
-import { nombresTurno } from './planta'
+import { nombresModulo, nombresTurno } from './planta'
 import { fechaMexicoAdmin } from './administracion'
 import { medicionesPTAR } from './tiposPTAR'
 import { useAuthStore } from '../stores/authStore'
@@ -69,10 +69,41 @@ export function hojasReporte(r: ConsultaReporte): HojaReporte[] {
   ]))
   return hojas
 }
-export function descargarReporte(r: ConsultaReporte): void {
+// Vista operativa: tres hojas; el detalle técnico original permanece disponible.
+export function hojasReporteOperativo(r: ConsultaReporte): HojaReporte[] {
+  const tecnicas = hojasReporte(r), s = resumirReporte(r.actual, r.filtros)
+  const resumen = tecnicas[0]
+  const filasResumen = resumen.filas.map(f => f[0] === 'Auditoría' ? [...f.slice(0, 4), 'El historial de cambios se conserva en la opción Excel técnico.']
+    : f[0] === 'Origen' ? [...f.slice(0, 4), 'Capturas vigentes del período. Identificadores originales disponibles en Excel técnico.'] : f)
+  const columnas = ['Fecha operativa', 'Captura México', 'Área', 'Turno', 'Operador', 'Módulo', 'Punto / medición', 'Valor', 'Unidad', 'Límite mínimo aplicado', 'Límite máximo aplicado', 'Evaluación', 'Notas / texto']
+  const filas: CeldaReporte[][] = []
+  for (const e of s.capturas) {
+    const { turno: t, lectura: l, operadorNombre } = e.registro
+    const base: CeldaReporte[] = [fecha(t.fecha_operativa), horaMexico(l.capturado_en), t.area === 'calderas' ? 'Calderas' : 'PTAR', nombresTurno[t.turno], operadorNombre, nombresModulo[e.modulo]]
+    const agregar = (punto: string, valor: CeldaReporte, unidad: string | null = null, minimo: number | null = null, maximo: number | null = null, evaluacion: string | null = null, notas: string | null = null) => filas.push([...base, punto, valor, unidad, minimo, maximo, evaluacion, notas])
+    if (e.modulo === 'pozos') {
+      const v = e.registro.lectura
+      for (const [punto, valor] of [['Pozo 1 inicial', v.pozo1_ini], ['Pozo 1 final', v.pozo1_fin], ['Consumo Pozo 1', v.consumo_pozo1], ['Pozo 2 inicial', v.pozo2_ini], ['Pozo 2 final', v.pozo2_fin], ['Consumo Pozo 2', v.consumo_pozo2]] as const) agregar(punto, valor, 'm³', null, null, null, v.notas)
+    } else if (e.modulo === 'uf') {
+      const v = e.registro.lectura
+      for (const [punto, valor] of [['Alimentación inicial', v.alim_ini], ['Alimentación final', v.alim_fin], ['Alimentado', v.alimentado], ['Aceptación inicial', v.acep_ini], ['Aceptación final', v.acep_fin], ['Aceptado', v.aceptado], ['Rechazo', v.rechazo]] as const) agregar(punto, valor, 'm³', null, null, null, v.notas)
+      agregar('Rendimiento', v.rendimiento, '%', null, null, null, v.notas)
+    } else if (e.modulo === 'calidad') {
+      for (const v of e.registro.lectura.resultados) agregar(`${v.punto.nombre} · ${v.parametro.nombre}`, v.valor, v.parametro.unidad, v.limite_min_aplicado, v.limite_max_aplicado, v.fuera_norma === null ? 'Sin límites' : v.fuera_norma ? 'Fuera de límite' : 'Dentro de límite', e.registro.lectura.notas)
+    } else if (e.modulo === 'ptar') {
+      for (const m of medicionesPTAR) agregar(`${m.parametro} · ${m.punto}`, e.registro.lectura[m.campo], 'mg/L', null, null, null, e.registro.lectura.notas)
+    } else agregar('Nota del turno', null, null, null, null, null, e.registro.lectura.texto)
+  }
+  return [
+    { ...resumen, filas: filasResumen, titulo: 'COPAMEX · Resumen operativo' },
+    { ...tecnicas[1], graficas: true },
+    { nombre: 'Registros', titulo: 'COPAMEX · Registros del período', contexto: resumen.contexto + '; cada fila corresponde a una medición o nota; filtra por módulo o punto', columnas, filas },
+  ]
+}
+export function descargarReporte(r: ConsultaReporte, tecnico = false): void {
   const a = useAuthStore.getState()
   if (a.estado !== 'autenticado' || a.perfil?.activo !== true || a.perfil.id !== r.cuenta || a.sesion?.user.id !== r.cuenta || a.perfil.rol !== 'admin') throw new Error('La sesión cambió. Genera el reporte desde la cuenta actual.')
-  const bytes = crearXlsxReporte(hojasReporte(r)), buffer = new ArrayBuffer(bytes.byteLength); new Uint8Array(buffer).set(bytes)
+  const bytes = crearXlsxReporte(tecnico ? hojasReporte(r) : hojasReporteOperativo(r)), buffer = new ArrayBuffer(bytes.byteLength); new Uint8Array(buffer).set(bytes)
   const url = URL.createObjectURL(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }))
-  const enlace = document.createElement('a'); enlace.href = url; enlace.download = `COPAMEX_${r.filtros.desde}_${r.filtros.hasta}_${r.filtros.area}_${r.filtros.turno}.xlsx`; enlace.click(); setTimeout(() => URL.revokeObjectURL(url), 1000)
+  const enlace = document.createElement('a'); enlace.href = url; enlace.download = `COPAMEX_${r.filtros.desde}_${r.filtros.hasta}_${r.filtros.area}_${r.filtros.turno}${tecnico ? '_tecnico' : ''}.xlsx`; enlace.click(); setTimeout(() => URL.revokeObjectURL(url), 1000)
 }

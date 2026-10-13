@@ -32,7 +32,19 @@
   .co-layout .reportes-panel .rep-acciones > button { flex: 1 1 150px; }
 }
 @media print {
-  .co-layout .reportes-panel { gap: 12pt; }
+  .co-layout:has(.reportes-panel) .co-skip { display:none !important; }
+  .co-layout .reportes-panel { display:block; gap:0; }
+  .co-layout .reportes-panel>.panel-informacion { margin:0 0 10pt; padding:12pt; }
+  .co-layout .reportes-panel .rep-metricas { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8pt; margin:0 0 12pt; }
+  .co-layout .reportes-panel .rep-metricas article { padding:10pt; break-inside:avoid; }
+  .co-layout .reportes-panel .rep-metricas strong { font-size:16pt; }
+  .co-layout .reportes-panel .rep-metricas :is(span,small) { font-size:8pt; }
+  .co-layout .reportes-panel h2 { font-size:14pt; margin-bottom:9pt; break-after:avoid; }
+  .co-layout .reportes-panel .rep-hallazgos li { break-inside:avoid; margin:6pt 0; font-size:9pt; line-height:1.4; }
+  .co-layout .reportes-panel .rep-graficas { display:block; margin:0 0 10pt; }
+  .co-layout .reportes-panel .reporte-grafica { break-inside:avoid; padding:10pt; margin:0 0 10pt; }
+  .co-layout .reportes-panel .panel-informacion:has(.rep-hallazgos) { break-inside:avoid; }
+  .co-layout .reportes-panel .planta-tabla tr { break-inside:avoid; }
   .co-layout .reportes-panel .planta-tabla-scroll { overflow: visible; border: 0; }
   .co-layout .reportes-panel .planta-tabla { min-width: 0; font-size: 8pt; }
   .co-layout .reportes-panel .planta-tabla :is(th,td) { padding: 4pt; white-space: normal; }

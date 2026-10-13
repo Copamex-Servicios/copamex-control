@@ -9,8 +9,8 @@ import { useId, useRef, useState } from 'react'
 import { useAdministracion } from '../../hooks/useAdministracion'
 import { configuracionAdmin, fechaMexicoAdmin, seccionesAdmin } from '../../lib/administracion'
 import type { ConfigAdmin, DatosAdmin, FilaAdmin, TablaAdmin } from '../../lib/administracion'
-import { PanelLimitesCalidad } from './PanelLimitesCalidad'
 import { FormularioAdmin } from './FormularioAdmin'
+import { DashboardAdministracion } from './DashboardAdministracion'
 
 function etiqueta(c: ConfigAdmin, fila: FilaAdmin, campo: string, datos: DatosAdmin): string {
   const f = c.campos.find(e => e.clave === campo)!, valor = fila[campo]
@@ -25,6 +25,23 @@ function etiqueta(c: ConfigAdmin, fila: FilaAdmin, campo: string, datos: DatosAd
   return String(valor)
 }
 export function PanelAdministracion({ soloGestion = false }: { soloGestion?: boolean }) {
+  const [vista, setVista] = useState<'dashboard' | 'catalogos' | 'capturas'>('dashboard')
+  const [catalogosAbiertos, setCatalogosAbiertos] = useState(false)
+  if (soloGestion) return <CatalogosAdministracion soloGestion />
+  return <div className="admin-panel co-admin-referencia">
+    <nav className="acciones-turno co-admin-tabs" aria-label="Tipo de administración">
+      <button type="button" className={vista === 'dashboard' ? 'boton-principal' : 'boton-secundario'} aria-pressed={vista === 'dashboard'} onClick={() => setVista('dashboard')}><Icono nombre="planta" />Dashboard</button>
+      <button type="button" className={vista === 'catalogos' ? 'boton-principal' : 'boton-secundario'} aria-pressed={vista === 'catalogos'} onClick={() => { setCatalogosAbiertos(true); setVista('catalogos') }}><Icono nombre="bitacora" />Catálogos y avisos</button>
+      <button type="button" className={vista === 'capturas' ? 'boton-principal' : 'boton-secundario'} aria-pressed={vista === 'capturas'} onClick={() => setVista('capturas')}><Icono nombre="modulos" />Capturas</button>
+    </nav>
+    {vista === 'dashboard' && <DashboardAdministracion />}
+    {catalogosAbiertos && <div hidden={vista !== 'catalogos'}><CatalogosAdministracion /></div>}
+    {vista === 'capturas' && <PanelRevisionCapturas />}
+  </div>
+}
+
+// Se conserva montado tras la primera apertura para mantener borradores y guardados pendientes.
+function CatalogosAdministracion({ soloGestion = false }: { soloGestion?: boolean }) {
   const { cuenta, datos, cargando, guardando, pendiente, error, mensaje, guardar, reintentar, actualizar } = useAdministracion()
   const [finalizando, setFinalizando] = useState<string | null>(null)
   const [horaConsulta, setHoraConsulta] = useState(() => Date.now())
@@ -37,8 +54,6 @@ export function PanelAdministracion({ soloGestion = false }: { soloGestion?: boo
     catch (e) { setResultadoCierre({ error: true, texto: e instanceof Error ? e.message : 'No se confirmó el cierre. Actualiza y reintenta.' }) }
     finally { cierreActivo.current = false; setFinalizando(null) }
   }
-  const [vistaLimites, setVistaLimites] = useState(false)
-  const [vistaCapturas, setVistaCapturas] = useState(false)
   const [tabla, setTabla] = useState<TablaAdmin>(soloGestion ? 'avisos' : 'operadores')
   const [estadoOperadores, setEstadoOperadores] = useState('activos')
   const [cambiandoOperador, setCambiandoOperador] = useState(false)
@@ -61,10 +76,7 @@ export function PanelAdministracion({ soloGestion = false }: { soloGestion?: boo
   function abrir(original: FilaAdmin | null) { setEditor({ tabla, original, clave: crypto.randomUUID() }) }
   if (!cuenta) return null
   return <div className={soloGestion ? 'admin-panel co-gestion-compacta' : 'admin-panel co-admin-referencia'}>
-    {!soloGestion && <nav className="acciones-turno co-admin-tabs" aria-label="Tipo de administración"><button type="button" className={vistaLimites || vistaCapturas ? "boton-secundario" : "boton-principal"} aria-pressed={!vistaLimites && !vistaCapturas} onClick={() => { setVistaLimites(false); setVistaCapturas(false) }}><Icono nombre="bitacora" />Catálogos y avisos</button><button type="button" className={vistaLimites ? "boton-principal" : "boton-secundario"} aria-pressed={vistaLimites} onClick={() => { setVistaLimites(true); setVistaCapturas(false) }}><Icono nombre="reportes" />Límites de Calidad</button><button type="button" className={vistaCapturas ? "boton-principal" : "boton-secundario"} aria-pressed={vistaCapturas} onClick={() => { setVistaCapturas(true); setVistaLimites(false) }}><Icono nombre="modulos" />Capturas</button></nav>}
-    {vistaCapturas && <PanelRevisionCapturas key={cuenta} />}
-    {!soloGestion && <div hidden={!vistaLimites}><PanelLimitesCalidad key={cuenta} datos={datos} /></div>}
-    <div hidden={vistaLimites || vistaCapturas}>
+    <div>
 
     {error && <p className="mensaje-error" role="alert">{error}</p>}
     {resultadoCierre && <p className={resultadoCierre.error ? "mensaje-error" : "mensaje-exito"} role={resultadoCierre.error ? "alert" : "status"}>{resultadoCierre.texto}</p>}
