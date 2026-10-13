@@ -30,7 +30,8 @@ export function FormularioCalidad({ area, catalogos, original, deshabilitado, al
   const activo = useRef(false)
   const bloqueado = deshabilitado || enviando || confirmado
   const celdas = original ? original.resultados.map(r => ({ clave: claveResultadoCalidad(r.punto_id, r.parametro_id), punto: r.punto.nombre, parametro: r.parametro.nombre, unidad: r.parametro.unidad, puntoId: r.punto_id, parametroId: r.parametro_id, min: r.limite_min_aplicado, max: r.limite_max_aplicado }))
-    : catalogos.puntos.filter(p => p.activo && (p.area === null || p.area === area)).flatMap(p => catalogos.parametros.filter(q => q.activo && (area !== 'calderas'
+    : catalogos.puntos.filter(p => p.activo && (p.area === null || p.area === area)).flatMap(p => catalogos.parametros.filter(q => q.activo
+      && (q.nombre.trim().toLowerCase() !== 'turbidez' || p.nombre.trim().toUpperCase() === 'AIMSU') && (area !== 'calderas'
       || q.nombre.trim().toLowerCase() === 'color'
       || (p.nombre.trim().toUpperCase() === 'AIMSU' && q.nombre.trim().toLowerCase() === 'turbidez'))).map(q => ({
       clave: claveResultadoCalidad(p.id, q.id), punto: p.nombre, parametro: q.nombre, unidad: q.unidad, puntoId: p.id, parametroId: q.id, min: null as number | null, max: null as number | null,

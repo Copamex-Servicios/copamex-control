@@ -1,5 +1,6 @@
+import { GrupoMediciones } from '../operativo/GrupoMediciones'
 import { useId, useRef, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { FormEvent, ReactNode } from 'react'
 import { calcularConsumosPozos, ErrorPozos, validarCamposPozos } from '../../lib/pozos'
 import type { CamposPozos, ValoresPozos } from '../../lib/tiposPozos'
 
@@ -9,6 +10,7 @@ interface PropsFormularioPozos {
   modo?: 'capturar' | 'corregir'
   deshabilitado?: boolean
   alCancelar?: () => void
+  accionSecundaria?: ReactNode
 }
 
 // Expandir exponentes sin redondear: una lectura guardada como 1e-8
@@ -52,7 +54,7 @@ function consumoPrevio(inicial: string, final: string): string | null {
 // El padre debe usar una key distinta al cambiar de cuenta, turno o lectura.
 // Los valores iniciales se toman al montar; un refresco no reemplaza lo escrito.
 export function FormularioPozos({
-  alGuardar, valoresIniciales, modo = 'capturar', deshabilitado = false, alCancelar,
+  alGuardar, valoresIniciales, modo = 'capturar', deshabilitado = false, alCancelar, accionSecundaria,
 }: PropsFormularioPozos) {
   const id = useId()
   const [campos, setCampos] = useState<CamposPozos>(() => crearCampos(valoresIniciales))
@@ -104,30 +106,31 @@ export function FormularioPozos({
   ]
 
   return (
-    <form className="formulario-turno formulario-pozos" onSubmit={guardar} aria-busy={enviando}>
-      
-      
-
+    <form className="formulario-turno formulario-pozos formulario-mediciones" onSubmit={guardar} aria-busy={enviando} aria-describedby={error ? `${id}-error` : undefined}>
       <fieldset className="campos-turno" disabled={bloqueado}>
         <legend>{correccion ? 'Corregir lecturas de Pozos' : 'Lecturas de Pozos'}</legend>
-        {lecturas.map(({ campo, nombre, etiqueta }) => (
-          <div className="campo-turno" key={campo}>
-            <label htmlFor={`${id}-${nombre}`}>{etiqueta}</label>
-            <input id={`${id}-${nombre}`} name={nombre} type="text" inputMode="decimal"
-              autoComplete="off" required value={campos[campo]}
-             
-              onChange={(evento) => cambiar(campo, evento.target.value)} />
-          </div>
-        ))}
-        {consumos.map(({ pozo, inicial, final, valor }) => (
-          <div className="campo-turno" key={pozo}>
-            <label htmlFor={`${id}-consumo-${pozo}`}>Consumo del Pozo {pozo} (m³)</label>
-            <output id={`${id}-consumo-${pozo}`} htmlFor={`${id}-${inicial} ${id}-${final}`}>
-              {valor === null ? 'Completa las dos lecturas' : `${valor} m³`}
-            </output>
-          </div>
-        ))}
-        
+        <div className="mediciones-grupos">
+          {consumos.map(({ pozo, inicial, final, valor }, indice) => (
+            <GrupoMediciones key={pozo} titulo={`Pozo ${pozo}`}>
+              <div className="mediciones-entradas">
+                {lecturas.slice(indice * 2, indice * 2 + 2).map(({ campo, nombre, etiqueta }) => (
+                  <div className="campo-turno" key={campo}>
+                    <label htmlFor={`${id}-${nombre}`}>{etiqueta}</label>
+                    <input id={`${id}-${nombre}`} name={nombre} type="text" inputMode="decimal"
+                      autoComplete="off" required value={campos[campo]}
+                      onChange={(evento) => cambiar(campo, evento.target.value)} />
+                  </div>
+                ))}
+              </div>
+              <div className="campo-turno mediciones-resultado">
+                <label htmlFor={`${id}-consumo-${pozo}`}>Consumo del Pozo {pozo} (m³)</label>
+                <output id={`${id}-consumo-${pozo}`} htmlFor={`${id}-${inicial} ${id}-${final}`}>
+                  {valor === null ? 'Completa las dos lecturas' : `${valor} m³`}
+                </output>
+              </div>
+            </GrupoMediciones>
+          ))}
+        </div>
         <div className="campo-turno campo-turno-ancho">
           <label htmlFor={`${id}-notas`}>Notas (opcional)</label>
           <textarea id={`${id}-notas`} name="notas" rows={3} value={campos.notas}
@@ -135,9 +138,10 @@ export function FormularioPozos({
         </div>
       </fieldset>
 
-      {error && <p className="mensaje-error" role="alert">{error}</p>}
+      {error && <p id={`${id}-error`} className="mensaje-error" role="alert">{error}</p>}
       {confirmado && <p className="mensaje-exito" role="status">{correccion ? 'Corrección confirmada.' : 'Lectura guardada.'}</p>}
       <div className="acciones-turno">
+        {accionSecundaria}
         <button className="boton-primario" type="submit" disabled={bloqueado}>
           {enviando ? 'Guardando…' : correccion ? 'Guardar corrección' : 'Guardar lectura de Pozos'}
         </button>

@@ -1,3 +1,5 @@
+import { RefreshCw } from 'lucide-react'
+import './bitacoraVisual.css'
 import { Icono } from '../diseno/Icono'
 import { useState } from 'react'
 import { useBitacora } from '../../hooks/useBitacora'
@@ -36,9 +38,9 @@ function ContenidoBitacora({ datos, area, referencia }: { datos: ReturnType<type
       if (esNueva) setNumeroCaptura(n => n + 1)
     }
   }
-  return <section className="panel-informacion panel-bitacora" aria-label={`Bitácora de ${area === 'calderas' ? 'Calderas' : 'PTAR'}`}>
+  return <section className={`panel-informacion panel-bitacora${referencia ? ' bitacora-modulo' : ''}`} aria-label={`Bitácora de ${area === 'calderas' ? 'Calderas' : 'PTAR'}`}>
     <div className="cabecera-turno"><h2>{referencia && <Icono nombre="bitacora" />}Bitácora</h2><button className="boton-secundario" type="button"
-      disabled={guardando || estadoCarga === 'cargando'} onClick={() => { void actualizarBitacora() }}>{referencia && <span className="co-refrescar-icono" aria-hidden="true">↻</span>}Actualizar Bitácora</button></div>
+      disabled={guardando || estadoCarga === 'cargando'} onClick={() => { void actualizarBitacora() }}>{referencia && <RefreshCw className="bitacora-actualizar-icono" aria-hidden="true" />}Actualizar Bitácora</button></div>
     
     
     {mensajeAccion && <p className={confirmado ? 'mensaje-exito' : 'mensaje-error'} role={confirmado ? 'status' : 'alert'}>{mensajeAccion}</p>}
@@ -50,21 +52,21 @@ function ContenidoBitacora({ datos, area, referencia }: { datos: ReturnType<type
     </div>}
     {estadoCarga === 'cargando' && <p role="status">Consultando Bitácora…</p>}
     {estadoCarga === 'error' && <p className="mensaje-error" role="alert">{mensaje || 'No se pudo consultar Bitácora. Usa Actualizar Bitácora para reintentar.'}</p>}
-    {propio && turno && <div hidden={!listo || edicion !== null}>
+    {propio && turno && <div className="bitacora-captura" hidden={!listo || edicion !== null}>
       <h3>Nueva nota del turno</h3>
       <FormularioBitacora key={`${turno.id}:${numeroCaptura}`} alGuardar={guardar} deshabilitado={!puedeCrear || ocupado || edicion !== null} />
     </div>}
     {listo && rol === area && !propio && <p>{referencia ? 'Abre un turno para registrar nuevas notas.' : 'Para guardar notas nuevas necesitas tu turno del área abierto. Puedes consultar las notas anteriores.'}</p>}
-    {edicion && rol === area && <div className="gestion-turno">
+    {edicion && rol === area && <div className="gestion-turno bitacora-edicion">
       <h3>Corregir nota de {edicion.operadorNombre}</h3>
       {listo && !ocupado && !puedeCorregir(edicion.lectura) && <p className="mensaje-error" role="alert">La nota cambió. Cancela y vuelve a seleccionar la nota actualizada.</p>}
-      <FormularioBitacora key={edicion.lectura.id} original={edicion.lectura} alGuardar={corregir} deshabilitado={ocupado || !puedeCorregir(edicion.lectura)} />
-      <div className="acciones-turno"><button type="button" className="boton-secundario" disabled={ocupado}
-        onClick={() => { if (!ocupado) setEdicion(null) }}>Cancelar corrección</button></div>
+      <FormularioBitacora key={edicion.lectura.id} original={edicion.lectura} alGuardar={corregir} deshabilitado={ocupado || !puedeCorregir(edicion.lectura)}
+        accionSecundaria={<button type="button" className="boton-secundario" disabled={ocupado}
+        onClick={() => { if (!ocupado) setEdicion(null) }}>Cancelar corrección</button>} />
     </div>}
     {listo && <div className="historial-bitacora"><h3>Historial de Bitácora</h3>
       
-      {registros.length === 0 ? <p>No hay notas guardadas para consultar.</p> : registros.map(r =>
+      {registros.length === 0 ? <p className="bitacora-vacio">No hay notas guardadas para consultar.</p> : registros.map(r =>
         <LecturaBitacoraGuardada key={r.lectura.id} registro={r} referencia={referencia} deshabilitado={ocupado || edicion !== null}
           alCorregir={rol === area && edicion === null && puedeCorregir(r.lectura) ? () => {
             if (!ocupado && puedeCorregir(r.lectura)) setEdicion(structuredClone(r))

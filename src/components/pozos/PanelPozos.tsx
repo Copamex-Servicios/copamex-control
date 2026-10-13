@@ -1,3 +1,5 @@
+import { RefreshCw } from 'lucide-react'
+import '../operativo/medicionesVisual.css'
 import { Icono } from '../diseno/Icono'
 import { useState } from 'react'
 import { usePozos } from '../../hooks/usePozos'
@@ -8,6 +10,7 @@ import type { TipoTurno } from '../../lib/tiposTurno'
 import { FormularioPozos } from './FormularioPozos'
 import { formatearVolumenPozos } from '../../lib/formatoPozos'
 import { LecturaPozosGuardada } from './LecturaPozosGuardada'
+import { MonitorConcesionPozos } from './MonitorConcesionPozos'
 
 const nombresTurno: Record<TipoTurno, string> = {
   dia: 'Día', tarde: 'Tarde', noche: 'Noche',
@@ -24,6 +27,7 @@ interface PropsContenidoPozos {
 
 function ContenidoPozos({ datos }: PropsContenidoPozos) {
   const [edicion, setEdicion] = useState<RegistroPozos | null>(null)
+  const [revisionConcesion, setRevisionConcesion] = useState(0)
   const {
     cuentaId, rol, turno, lecturaActual, historial, estadoCarga, mensaje,
     guardando, solicitudPendiente, mensajeAccion, puedeCrear, puedeCorregir,
@@ -58,14 +62,15 @@ function ContenidoPozos({ datos }: PropsContenidoPozos) {
   }
 
   return (
-    <section className="panel-informacion panel-pozos" aria-label="Pozos de Calderas">
+    <section className="panel-informacion panel-pozos panel-mediciones" aria-label="Pozos de Calderas">
       <div className="cabecera-turno">
         <h2><Icono nombre="pozos" />Pozos</h2>
         <button className="boton-secundario" type="button" disabled={guardando || estadoCarga === 'cargando'}
-          onClick={() => { void actualizarPozos() }}>
-          Actualizar Pozos
+          onClick={() => { setRevisionConcesion(n => n + 1); void actualizarPozos() }}>
+          <RefreshCw className="mediciones-actualizar" aria-hidden="true" />Actualizar Pozos
         </button>
       </div>
+      <MonitorConcesionPozos revision={revisionConcesion} />
       
       
 
@@ -128,13 +133,11 @@ function ContenidoPozos({ datos }: PropsContenidoPozos) {
           )}
           <FormularioPozos key={`${cuentaId}:${edicion.lectura.id}:correccion`} modo="corregir"
             valoresIniciales={extraerValoresPozos(edicion.lectura)} alGuardar={guardarCorreccion}
-            deshabilitado={!puedeGuardarEdicion || ocupado} />
-          <div className="acciones-turno">
-            <button className="boton-secundario" type="button" disabled={ocupado}
+            deshabilitado={!puedeGuardarEdicion || ocupado}
+            accionSecundaria={<button className="boton-secundario" type="button" disabled={ocupado}
               onClick={() => { if (!ocupado) setEdicion(null) }}>
               Cancelar corrección
-            </button>
-          </div>
+            </button>} />
         </div>
       )}
 

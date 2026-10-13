@@ -1,5 +1,6 @@
+import { GrupoMediciones } from '../operativo/GrupoMediciones'
 import { useId, useRef, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { FormEvent, ReactNode } from 'react'
 import { calcularConsumosUF, calcularResultadosUF, ErrorUF, validarCamposUF } from '../../lib/uf'
 import type { CamposUF, ValoresUF } from '../../lib/tiposUF'
 
@@ -9,6 +10,7 @@ interface PropsFormularioUF {
   modo?: 'capturar' | 'corregir'
   deshabilitado?: boolean
   alCancelar?: () => void
+  accionSecundaria?: ReactNode
 }
 
 // Expandir exponentes sin redondear: una lectura guardada como 1e-8
@@ -52,7 +54,7 @@ function consumoPrevio(inicial: string, final: string): string | null {
 // El padre debe usar una key distinta al cambiar de cuenta, turno o lectura.
 // Los valores iniciales se toman al montar; un refresco no reemplaza lo escrito.
 export function FormularioUF({
-  alGuardar, valoresIniciales, modo = 'capturar', deshabilitado = false, alCancelar,
+  alGuardar, valoresIniciales, modo = 'capturar', deshabilitado = false, alCancelar, accionSecundaria,
 }: PropsFormularioUF) {
   const id = useId()
   const [campos, setCampos] = useState<CamposUF>(() => crearCampos(valoresIniciales))
@@ -106,40 +108,43 @@ export function FormularioUF({
   try { resultados = calcularResultadosUF(validarCamposUF(campos)) } catch { /* Faltan lecturas válidas. */ }
 
   return (
-    <form className="formulario-turno formulario-uf" onSubmit={guardar} aria-busy={enviando}>
-      
-      
-
+    <form className="formulario-turno formulario-uf formulario-mediciones" onSubmit={guardar} aria-busy={enviando} aria-describedby={error ? `${id}-error` : undefined}>
       <fieldset className="campos-turno" disabled={bloqueado}>
         <legend>{correccion ? 'Corregir lecturas de UF' : 'Lecturas de UF'}</legend>
-        {lecturas.map(({ campo, nombre, etiqueta }) => (
-          <div className="campo-turno" key={campo}>
-            <label htmlFor={`${id}-${nombre}`}>{etiqueta}</label>
-            <input id={`${id}-${nombre}`} name={nombre} type="text" inputMode="decimal"
-              autoComplete="off" required value={campos[campo]}
-             
-              onChange={(evento) => cambiar(campo, evento.target.value)} />
-          </div>
-        ))}
-        {consumos.map(({ medidor, etiqueta, inicial, final, valor }) => (
-          <div className="campo-turno" key={medidor}>
-            <label htmlFor={`${id}-consumo-${medidor}`}>{etiqueta} (m³)</label>
-            <output id={`${id}-consumo-${medidor}`} htmlFor={`${id}-${inicial} ${id}-${final}`}>
-              {valor === null ? 'Completa las dos lecturas' : `${valor} m³`}
-            </output>
-          </div>
-        ))}
-        <div className="campo-turno">
-          <label htmlFor={`${id}-rechazo`}>Rechazo (m³)</label>
-          <output id={`${id}-rechazo`}>{resultados ? `${resultados.rechazo} m³` : 'Completa las cuatro lecturas'}</output>
+        <div className="mediciones-grupos">
+          {consumos.map(({ medidor, etiqueta, inicial, final, valor }, indice) => (
+            <GrupoMediciones key={medidor} titulo={medidor === 1 ? 'Alimentación' : 'Aceptación'}>
+              <div className="mediciones-entradas">
+                {lecturas.slice(indice * 2, indice * 2 + 2).map(({ campo, nombre, etiqueta }) => (
+                  <div className="campo-turno" key={campo}>
+                    <label htmlFor={`${id}-${nombre}`}>{etiqueta}</label>
+                    <input id={`${id}-${nombre}`} name={nombre} type="text" inputMode="decimal"
+                      autoComplete="off" required value={campos[campo]}
+                      onChange={(evento) => cambiar(campo, evento.target.value)} />
+                  </div>
+                ))}
+              </div>
+              <div className="campo-turno mediciones-resultado">
+                <label htmlFor={`${id}-consumo-${medidor}`}>{etiqueta} (m³)</label>
+                <output id={`${id}-consumo-${medidor}`} htmlFor={`${id}-${inicial} ${id}-${final}`}>
+                  {valor === null ? 'Completa las dos lecturas' : `${valor} m³`}
+                </output>
+              </div>
+            </GrupoMediciones>
+          ))}
         </div>
-        <div className="campo-turno">
-          <label htmlFor={`${id}-rendimiento`}>Rendimiento (%)</label>
-          <output id={`${id}-rendimiento`}>{resultados === null ? 'Completa las cuatro lecturas'
-            : resultados.rendimiento === null ? 'Sin alimentación: no aplica'
-              : `${resultados.rendimiento.toLocaleString('es-MX', { maximumFractionDigits: 2 })} %`}</output>
+        <div className="mediciones-balance">
+          <div className="campo-turno">
+            <label htmlFor={`${id}-rechazo`}>Rechazo (m³)</label>
+            <output id={`${id}-rechazo`}>{resultados ? `${resultados.rechazo} m³` : 'Completa las cuatro lecturas'}</output>
+          </div>
+          <div className="campo-turno">
+            <label htmlFor={`${id}-rendimiento`}>Rendimiento (%)</label>
+            <output id={`${id}-rendimiento`}>{resultados === null ? 'Completa las cuatro lecturas'
+              : resultados.rendimiento === null ? 'Sin alimentación: no aplica'
+                : `${resultados.rendimiento.toLocaleString('es-MX', { maximumFractionDigits: 2 })} %`}</output>
+          </div>
         </div>
-        
         <div className="campo-turno campo-turno-ancho">
           <label htmlFor={`${id}-notas`}>Notas (opcional)</label>
           <textarea id={`${id}-notas`} name="notas" rows={3} value={campos.notas}
@@ -147,9 +152,10 @@ export function FormularioUF({
         </div>
       </fieldset>
 
-      {error && <p className="mensaje-error" role="alert">{error}</p>}
+      {error && <p id={`${id}-error`} className="mensaje-error" role="alert">{error}</p>}
       {confirmado && <p className="mensaje-exito" role="status">{correccion ? 'Corrección confirmada.' : 'Lectura guardada.'}</p>}
       <div className="acciones-turno">
+        {accionSecundaria}
         <button className="boton-primario" type="submit" disabled={bloqueado}>
           {enviando ? 'Guardando…' : correccion ? 'Guardar corrección' : 'Guardar lectura de UF'}
         </button>

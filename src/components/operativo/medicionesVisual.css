@@ -1,0 +1,85 @@
+/* Exclusivo de Pozos y UF: no afecta al encabezado ni a otros formularios. */
+.co-layout .co-operativo-referencia .panel-mediciones {
+  min-width: 0;
+  padding: 22px 24px;
+  border: 1px solid var(--co-border);
+  border-radius: 12px;
+  box-shadow: none;
+}
+.co-layout .panel-mediciones > .cabecera-turno {
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--co-border);
+}
+.co-layout .co-operativo-referencia .panel-mediciones > .cabecera-turno h2 { margin: 0; font-size: 24px; }
+.co-layout .panel-mediciones .mediciones-actualizar { width: 18px; height: 18px; flex-shrink: 0; }
+.co-layout .panel-mediciones :is(.captura-pozos,.captura-uf) { margin-top: 0; padding-top: 0; border-top: 0; }
+.co-layout .panel-mediciones :is(.captura-pozos,.captura-uf,.edicion-pozos,.edicion-uf) > h3 {
+  margin: 0 0 14px;
+  font-size: 18px;
+  line-height: 1.4;
+}
+.co-layout .panel-mediciones .formulario-mediciones { display: flex; flex-direction: column; gap: 16px; }
+.co-layout .panel-mediciones .formulario-mediciones > .campos-turno {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  border: 0;
+}
+.co-layout .panel-mediciones .formulario-mediciones > .campos-turno > legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.co-layout .panel-mediciones .mediciones-grupos { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+.co-layout .panel-mediciones .mediciones-grupo { min-width: 0; border: 1px solid var(--co-border); border-radius: 8px; overflow: hidden; }
+.co-layout .panel-mediciones .mediciones-grupo > h4 { margin: 0; padding: 12px 16px; font-size: 16px; color: var(--co-text); background: #eef4fc; }
+.co-layout .panel-mediciones .mediciones-grupo-contenido { display: grid; gap: 14px; padding: 16px; }
+.co-layout .panel-mediciones :is(.mediciones-entradas,.mediciones-balance) { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.co-layout .panel-mediciones .formulario-mediciones .campo-turno { min-width: 0; padding: 0; border: 0; gap: 8px; }
+.co-layout .panel-mediciones .formulario-mediciones label { font-size: 13px; line-height: 1.5; color: #334d70; white-space: normal; }
+.co-layout .panel-mediciones .formulario-mediciones :is(input,textarea,output) {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #cbd9eb;
+  border-radius: 8px;
+  background: white;
+  color: var(--co-text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.co-layout .panel-mediciones .formulario-mediciones output { display: block; height: auto; background: #f5f8fc; white-space: normal; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.co-layout .panel-mediciones .formulario-mediciones textarea { min-height: 80px; resize: vertical; }
+.co-layout .panel-mediciones .formulario-mediciones :is(input,textarea):focus-visible { outline: 2px solid var(--co-primary); outline-offset: 2px; }
+.co-layout .panel-mediciones .formulario-mediciones > .acciones-turno { margin: 0; justify-content: flex-end; gap: 12px; }
+.co-layout .panel-mediciones .formulario-mediciones > .acciones-turno:has(>button + button) { justify-content: space-between; }
+.co-layout .panel-mediciones :is(.boton-primario,.boton-secundario) { min-height: 42px; padding: 10px 16px; border-radius: 8px; font-size: 13px; box-shadow: none; }
+.co-layout .panel-mediciones :is(.historial-pozos,.historial-uf) { margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--co-border); }
+.co-layout .co-operativo-referencia .panel-mediciones :is(.historial-pozos,.historial-uf) > h3 { margin: 0 0 14px; font-size: 18px; }
+.co-layout .co-operativo-referencia .panel-mediciones :is(.item-historial-pozos,.item-historial-uf) { margin: 10px 0 0; padding: 0; border: 1px solid var(--co-border); border-radius: 8px; background: white; }
+.co-layout .panel-mediciones :is(.item-historial-pozos,.item-historial-uf) > summary { padding: 14px 16px; font-size: 14px; line-height: 1.5; color: var(--co-text); background: #f5f8fc; border-radius: 8px; cursor: pointer; overflow-wrap: anywhere; }
+.co-layout .panel-mediciones summary:focus-visible { outline: 2px solid var(--co-primary); outline-offset: 2px; }
+.co-layout .panel-mediciones :is(.lectura-pozos,.lectura-uf) { padding: 16px; min-width: 0; }
+.co-layout .co-operativo-referencia .panel-mediciones .datos-turno { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,170px),1fr)); gap: 12px 16px; }
+.co-layout .panel-mediciones .datos-turno dd { margin: 4px 0 0; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.co-layout .panel-mediciones .datos-turno dt { font-size: 12px; color: #526581; }
+.co-layout .panel-mediciones :is(.resumen-pozos,.resumen-uf) { gap: 14px; }
+.co-layout .panel-mediciones :is(.resumen-pozos,.resumen-uf) > section { padding: 14px; border: 1px solid var(--co-border); border-radius: 8px; background: #f7f9fc; }
+@media(max-width:1200px) {
+  .co-layout .panel-mediciones .mediciones-grupos { grid-template-columns: minmax(0,1fr); }
+}
+@media(max-width:760px) {
+  .co-layout .co-operativo-referencia .panel-mediciones { padding: 18px 16px; }
+  .co-layout .co-operativo-referencia .panel-mediciones > .cabecera-turno h2 { font-size: 22px; }
+  .co-layout .panel-mediciones :is(.mediciones-entradas,.mediciones-balance) { grid-template-columns: minmax(0,1fr); }
+  .co-layout .panel-mediciones .formulario-mediciones > .acciones-turno > button { width: 100%; }
+}

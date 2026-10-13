@@ -8,18 +8,18 @@
 .co-layout .ptar-referencia .ptar-cabecera-titulo { display:flex; align-items:center; gap:16px; }
 .co-layout .ptar-referencia .ptar-icono-modulo { display:grid; place-items:center; width:52px; height:52px; border-radius:10px; color:#0860d9; background:#e4efff; }
 .co-layout .ptar-referencia .ptar-icono-modulo svg { width:34px; height:34px; }
-.co-layout .ptar-referencia .ptar-cabecera h2 { font-size:26px; line-height:1.2; letter-spacing:-.4px; }
+.co-layout .ptar-referencia .ptar-cabecera h2 { font-size:24px; line-height:1.2; letter-spacing:-.4px; }
 .co-layout .ptar-referencia .ptar-cabecera p { margin-top:5px; font-size:14px; color:#4e6488; }
-.co-layout .ptar-referencia :is(.boton-primario,.boton-secundario) { display:inline-flex; align-items:center; justify-content:center; gap:9px; min-height:40px; padding:9px 16px; border-radius:7px; font-size:13px; line-height:1.3; font-weight:600; cursor:pointer; }
+.co-layout .ptar-referencia :is(.boton-primario,.boton-secundario) { display:inline-flex; align-items:center; justify-content:center; gap:9px; min-height:44px; padding:9px 16px; border-radius:7px; font-size:13px; line-height:1.3; font-weight:600; cursor:pointer; }
 .co-layout .ptar-referencia .boton-secundario { color:#0759c7; border:1px solid #94b9fa; background:#fff; }
 .co-layout .ptar-referencia .boton-primario { color:#fff; border:1px solid #0058db; background:#005de5; box-shadow:none; }
 .co-layout .ptar-referencia button:disabled { opacity:.55; cursor:not-allowed; }
 .co-layout .ptar-referencia button:not(:disabled):hover { filter:brightness(.96); }
 .co-layout .ptar-referencia :is(button,input,textarea):focus-visible { outline:2px solid #2479ed; outline-offset:3px; }
-.co-layout .ptar-referencia .ptar-tarjeta { background:#fff; padding:20px 22px; border:1px solid #dbe6f5; border-radius:13px; box-shadow:0 3px 12px rgb(27 60 100 / 2%); margin-bottom:16px; min-width:0; }
+.co-layout .ptar-referencia .ptar-tarjeta { background:#fff; padding:20px 22px; border:1px solid #dbe6f5; border-radius:12px; box-shadow:none; margin-bottom:16px; min-width:0; }
 .co-layout .ptar-referencia .ptar-seccion-titulo { display:flex; gap:13px; align-items:center; margin-bottom:18px; }
 .co-layout .ptar-referencia .ptar-seccion-titulo>svg { width:28px; height:28px; color:#0962dc; }
-.co-layout .ptar-referencia h3 { font-size:20px; line-height:1.25; }
+.co-layout .ptar-referencia h3 { font-size:18px; line-height:1.25; }
 .co-layout .ptar-referencia .ptar-seccion-titulo p { font-size:13px; color:#607394; margin-top:4px; }
 .co-layout .ptar-referencia .ptar-formulario { display:flex; flex-direction:column; gap:16px; }
 .co-layout .ptar-referencia .ptar-formulario>.ptar-campos { display:flex; flex-direction:column; gap:18px; padding:0; border:0; margin:0; min-width:0; }
@@ -36,13 +36,13 @@
 .co-layout .ptar-referencia .ptar-mediciones-campos { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px 18px; padding:17px 18px; }
 .co-layout .ptar-referencia .campo-turno { display:grid; min-width:0; gap:6px; align-content:start; }
 .co-layout .ptar-referencia .campo-turno label { font-size:13px; font-weight:600; line-height:1.4; white-space:normal; }
-.co-layout .ptar-referencia .campo-turno :is(input,textarea) { width:100%; min-width:0; min-height:40px; padding:9px 12px; border:1px solid #d0def3; border-radius:6px; background:#fff; color:#152f54; font:inherit; font-size:14px; box-sizing:border-box; }
-.co-layout .ptar-referencia .campo-turno input { height:40px; }
+.co-layout .ptar-referencia .campo-turno :is(input,textarea) { width:100%; min-width:0; min-height:44px; padding:9px 12px; border:1px solid #d0def3; border-radius:6px; background:#fff; color:#152f54; font:inherit; font-size:14px; box-sizing:border-box; }
+.co-layout .ptar-referencia .campo-turno input { height:44px; }
 .co-layout .ptar-referencia .campo-turno input::placeholder,.co-layout .ptar-referencia textarea::placeholder { color:#8596b2; font-size:12px; }
 .co-layout .ptar-referencia .ptar-notas-titulo { display:flex; gap:12px; align-items:center; }
 .co-layout .ptar-referencia .ptar-notas-titulo svg { color:#0867e3; width:25px; height:25px; }
 .co-layout .ptar-referencia .ptar-notas-titulo p { font-size:12px; color:#607394; margin-top:2px; }
-.co-layout .ptar-referencia .ptar-notas textarea { min-height:68px; height:68px; resize:vertical; }
+.co-layout .ptar-referencia .ptar-notas textarea { min-height:80px; height:80px; resize:vertical; }
 .co-layout .ptar-referencia .ptar-acciones { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
 .co-layout .ptar-referencia .ptar-acciones>.boton-primario { margin-left:auto; min-width:225px; }
 .co-layout .ptar-referencia .ptar-historial-cabecera { display:flex; justify-content:space-between; gap:16px; align-items:center; margin-bottom:12px; }
@@ -53,14 +53,14 @@
 .co-layout .ptar-referencia .ptar-tabla caption { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
 .co-layout .ptar-referencia .ptar-tabla :is(th,td) { padding:9px 11px; border-bottom:1px solid #e5edf7; text-align:left; vertical-align:top; }
 .co-layout .ptar-referencia .ptar-tabla th { background:#edf3fb; color:#142e56; font-weight:650; }
-.co-layout .ptar-referencia .ptar-tabla th span { display:block; font-size:10px; font-weight:400; color:#63789a; }
+.co-layout .ptar-referencia .ptar-tabla th span { display:block; font-size:11px; font-weight:400; color:#63789a; }
 .co-layout .ptar-referencia .ptar-tabla .ptar-numero { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .co-layout .ptar-referencia .ptar-tabla tbody tr:last-child td { border-bottom:0; }
 .co-layout .ptar-referencia .ptar-tabla tbody tr:hover { background:#f7faff; }
 .co-layout .ptar-referencia .ptar-fecha { white-space:nowrap; font-variant-numeric:tabular-nums; }
 .co-layout .ptar-referencia .ptar-nota-historial { min-width:180px; max-width:260px; white-space:pre-wrap; overflow-wrap:anywhere; }
 .co-layout .ptar-referencia .ptar-operador { min-width:130px; }
-.co-layout .ptar-referencia .ptar-corregir { min-height:30px; padding:5px 8px; font-size:12px; white-space:nowrap; }
+.co-layout .ptar-referencia .ptar-corregir { min-height:38px; padding:8px 10px; font-size:12px; white-space:nowrap; }
 .co-layout .ptar-referencia .ptar-corregir svg { width:14px; height:14px; }
 .co-layout .ptar-referencia .mensaje-error,.co-layout .ptar-referencia .mensaje-exito,.co-layout .ptar-referencia .operacion-pendiente { margin-bottom:16px; }
 .co-layout .ptar-referencia .ptar-correccion>h3 { margin-bottom:16px; }

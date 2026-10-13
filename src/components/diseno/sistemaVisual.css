@@ -1,5 +1,5 @@
 /* Sistema visual aislado: se aplica solo dentro del nuevo AppLayout. */
-.co-layout { --co-navy:#073b7a; --co-primary:#0b5ed7; --co-text:#061a4a; --co-muted:#64748b; --co-border:#dce6f2; --co-bg:#f4f7fb; font-family:"Segoe UI",Arial,sans-serif; color:var(--co-text); background:var(--co-bg); min-height:100dvh; line-height:1.5; font-size:15px; }
+.co-layout { --co-navy:#073b7a; --co-primary:#0b5ed7; --co-text:#061a4a; --co-muted:#64748b; --co-border:#dce6f2; --co-bg:#f4f7fb; font-family:var(--co-font); color:var(--co-text); background:var(--co-bg); min-height:100dvh; line-height:1.5; font-size:15px; }
 .co-layout :is(h1,h2,h3) { color:var(--co-text); }
 .co-layout :is(a,button,input,select,textarea,summary):focus-visible { outline:3px solid #68aaff; outline-offset:3px; }
 .co-layout a { text-decoration:none; }

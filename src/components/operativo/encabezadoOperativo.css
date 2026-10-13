@@ -1,5 +1,4 @@
-@font-face { font-family:'COPAMEX Inter'; src:url('./fuentes/inter-latin-wght-normal.woff2') format('woff2'); font-weight:100 900; font-style:normal; font-display:swap; }
-.co-layout .co-operativo-referencia .co-encabezado-operativo { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(340px,1.3fr); gap:14px; align-items:stretch; margin:0 0 20px; font-family:'COPAMEX Inter',sans-serif; }
+.co-layout .co-operativo-referencia .co-encabezado-operativo { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(340px,1.3fr); gap:14px; align-items:stretch; margin:0 0 20px; font-family:var(--co-font); }
 .co-layout .co-operativo-referencia .co-encabezado-operativo * { font-family:inherit; }
 .co-layout .co-operativo-referencia .co-encabezado-operativo .co-encabezado-datos { display:contents; }
 .co-layout .co-operativo-referencia .co-encabezado-operativo :is(.resumen-dia-tarjeta,.panel-turno) { padding:16px 18px; border:1px solid #dae6f6; border-radius:10px; box-shadow:0 3px 10px rgb(30 62 105 / 2%); background:#fff; min-width:0; min-height:260px; margin:0; }

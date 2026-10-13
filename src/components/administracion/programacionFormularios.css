@@ -11,9 +11,9 @@
 .co-layout .co-programacion-formulario .admin-campos .admin-casilla { display:flex; flex-direction:row; align-items:center; align-self:end; min-height:42px; gap:8px; }
 .co-layout .co-programacion-formulario .admin-casilla input { width:17px; height:17px; }
 .co-layout .co-programacion-formulario .co-programacion-acciones { display:flex; justify-content:flex-end; gap:10px; margin-top:16px; }
-.co-layout .co-programacion-formulario :is(.boton-principal,.boton-secundario) { min-height:38px; padding:8px 15px; display:inline-flex; align-items:center; justify-content:center; gap:7px; font-size:12px; border-radius:8px; }
-.co-layout .co-programacion-formulario .co-programacion-acciones .boton-principal { order:-1; background:#095fe1; border-color:#095fe1; color:#fff; }
+.co-layout .co-programacion-formulario :is(.boton-principal,.boton-secundario) { min-height:42px; padding:10px 15px; display:inline-flex; align-items:center; justify-content:center; gap:7px; font-size:12px; border-radius:8px; }
+.co-layout .co-programacion-formulario .co-programacion-acciones .boton-principal { order:1; background:#095fe1; border-color:#095fe1; color:#fff; }
 .co-layout .co-programacion-formulario input::placeholder { color:#8392aa; font-size:12px; }
 .co-layout .co-programacion-formulario :is(input,select,button):focus-visible { outline:2px solid #2b7deb; outline-offset:2px; }
 @media(max-width:1150px) { .co-layout .co-programacion-calendario .admin-campos { grid-template-columns:repeat(2,minmax(0,1fr)); } .co-layout .co-programacion-calendario .admin-campos label:last-child { grid-column:1/-1; } }
-@media(max-width:550px) { .co-layout .admin-editor.co-programacion-formulario { padding:16px; } .co-layout .co-programacion-formulario .admin-campos { grid-template-columns:minmax(0,1fr); } .co-layout .co-programacion-formulario .planta-encabezado { flex-wrap:wrap; } .co-layout .co-programacion-formulario .co-programacion-acciones { flex-wrap:wrap; } }
+@media(max-width:550px) { .co-layout .admin-editor.co-programacion-formulario { padding:16px; } .co-layout .co-programacion-formulario .admin-campos { grid-template-columns:minmax(0,1fr); } .co-layout .co-programacion-formulario .planta-encabezado { flex-wrap:wrap; } .co-layout .co-programacion-formulario .co-programacion-acciones { flex-wrap:wrap; } .co-layout .co-programacion-formulario .co-programacion-acciones button { flex:1 1 140px; } }

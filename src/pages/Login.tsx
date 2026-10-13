@@ -1,6 +1,6 @@
 import { AccesoLayout } from '../components/diseno/AccesoLayout'
 import { useEffect, useRef, useState } from 'react'
-import { precargarIconos } from '../components/diseno/Icono'
+import { precargarIconos } from '../components/diseno/recursosIconos'
 import type { FormEvent } from 'react'
 import type { RolUsuario } from '../lib/tiposAuth'
 import { Navigate, useLocation } from 'react-router-dom'

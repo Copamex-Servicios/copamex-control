@@ -20,9 +20,11 @@ export function usePlanta(filtros: FiltrosPlanta) {
       const a = useAuthStore.getState()
       return vigente && a.estado === 'autenticado' && a.perfil?.activo === true && a.perfil.id === cuenta && a.sesion?.user.id === cuenta
     }
-    async function cargar() {
+    let ultimaConsulta = 0
+    async function cargar(repetirSiOcupado = true) {
       if (!valida()) return
-      if (trabajando) { pendiente = true; return }
+      if (trabajando) { if (repetirSiOcupado) pendiente = true; return }
+      pendiente = false
       trabajando = true
       establecer(v => v.clave === clave ? { ...v, cargando: true } : { clave, datos: null, cargando: true, error: false, actualizado: null, conectado: false })
       try {
@@ -31,16 +33,26 @@ export function usePlanta(filtros: FiltrosPlanta) {
       } catch {
         if (valida()) establecer(v => ({ ...v, cargando: false, error: true }))
       } finally {
+        ultimaConsulta = Date.now()
         trabajando = false
-        if (pendiente && valida()) { pendiente = false; void cargar() }
+        if (pendiente && valida() && document.visibilityState === 'visible') { pendiente = false; void cargar() }
       }
     }
     const actualizar = () => { void cargar() }
     const cambio = () => {
       if (debounce) clearTimeout(debounce)
-      debounce = setTimeout(actualizar, 400)
+      debounce = setTimeout(() => {
+        debounce = null
+        if (document.visibilityState === 'visible') actualizar()
+        else pendiente = true
+      }, 400)
     }
-    const despertar = () => { if (document.visibilityState === 'visible') actualizar() }
+    // Foco y visibilidad suelen llegar juntos; una consulta en curso ya los atiende.
+    const despertar = () => {
+      if (document.visibilityState === 'visible' && (pendiente || Date.now() - ultimaConsulta >= 1000)) {
+        void cargar(false)
+      }
+    }
     solicitar.current = actualizar
     void cargar()
     const channel = supabase.channel(`planta:${cuenta}:${crypto.randomUUID()}`)
@@ -52,12 +64,12 @@ export function usePlanta(filtros: FiltrosPlanta) {
       if (status === 'SUBSCRIBED' && valida()) cambio()
     })
     const intervalo = setInterval(despertar, 30000)
-    window.addEventListener('focus', despertar); window.addEventListener('online', actualizar)
+    window.addEventListener('focus', despertar); window.addEventListener('online', despertar)
     document.addEventListener('visibilitychange', despertar)
     return () => {
       vigente = false; signal.abort(); solicitar.current = () => {}
       if (debounce) clearTimeout(debounce)
-      clearInterval(intervalo); window.removeEventListener('focus', despertar); window.removeEventListener('online', actualizar)
+      clearInterval(intervalo); window.removeEventListener('focus', despertar); window.removeEventListener('online', despertar)
       document.removeEventListener('visibilitychange', despertar)
       void supabase.removeChannel(channel)
     }

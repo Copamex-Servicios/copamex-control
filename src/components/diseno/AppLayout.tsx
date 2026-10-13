@@ -1,6 +1,6 @@
 import './sidebarCompacto.css'
 import { AvisosEntrada } from '../operativo/AvisosEntrada'
-import { useId, useRef } from 'react'
+import { Suspense, useId, useRef } from 'react'
 import type { ReactNode } from 'react'
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
@@ -21,6 +21,6 @@ export function AppLayout({ accesos, nombre, rol, titulo, cerrando, alSalir, chi
       <Button className="co-drawer-close" aria-label="Cerrar navegación" onClick={() => dialogo.current?.close()}><Icono nombre="cerrar" /></Button>
       <Sidebar accesos={accesos} submenu={submenu} nombre={nombre} rol={rol} cerrando={cerrando} alSalir={alSalir} alNavegar={() => dialogo.current?.close()} />
     </dialog>
-    <div className={titulo === 'Inicio' ? 'co-workspace co-workspace-inicio' : 'co-workspace'}><div className="co-scene" aria-hidden="true"><img src={import.meta.env.BASE_URL + 'fondocpx.jpg'} alt="" /></div><Topbar titulo={titulo} alAbrirMenu={() => dialogo.current?.showModal()} /><AvisosEntrada /><main id={id} tabIndex={-1} className="co-main">{children}</main></div>
+    <div className={titulo === 'Inicio' ? 'co-workspace co-workspace-inicio' : 'co-workspace'}><div className="co-scene" aria-hidden="true"><img src={import.meta.env.BASE_URL + 'fondocpx.jpg'} alt="" /></div><Topbar titulo={titulo} alAbrirMenu={() => dialogo.current?.showModal()} /><AvisosEntrada /><main id={id} tabIndex={-1} className="co-main"><Suspense fallback={<p className="co-module-loading" role="status">Cargando módulo…</p>}>{children}</Suspense></main></div>
   </div>
 }

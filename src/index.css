@@ -1,5 +1,8 @@
+@font-face { font-family:'COPAMEX Inter'; src:url('./components/operativo/fuentes/inter-latin-wght-normal.woff2') format('woff2'); font-weight:100 900; font-style:normal; font-display:swap; }
+
 :root {
-  font-family: "Segoe UI", Arial, sans-serif;
+  --co-font: 'COPAMEX Inter', sans-serif;
+  font-family: var(--co-font);
   font-size: 16px;
   line-height: 1.5;
   color: #20372b;
@@ -1050,3 +1053,5 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .formulario-calidad .calidad-tarjeta .mensaje-error,.formulario-calidad .calidad-tarjeta .mensaje-exito { background:transparent; border:0; padding:0; margin:6px 0; font-size:.85rem; }
 .formulario-calidad input.calidad-fuera { border-color:#dc2626; background:#fff3f3; color:#b91c1c; }
 .formulario-calidad input.calidad-normal { border-color:#16a34a; background:#f4fff8; }
+
+.co-module-loading { margin: 0; padding: 24px; color: var(--co-muted, #64748b); }

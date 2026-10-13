@@ -1,4 +1,3 @@
-import { ConsultaCalidad } from '../components/calidad/ConsultaCalidad'
 import '../components/diseno/administracionVisual.css'
 import { PageHeader } from '../components/diseno/Elementos'
 import '../components/diseno/consultaVisual.css'
@@ -7,14 +6,16 @@ import '../components/diseno/calderasVisual.css'
 import { AppLayout } from '../components/diseno/AppLayout'
 import { InicioDashboard } from '../components/diseno/InicioDashboard'
 import type { AccesoVisual } from '../components/diseno/tipos'
-import { useRef, useState } from 'react'
+import { lazy, useRef, useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { PanelReportes } from '../components/reportes/PanelReportes'
-import { PanelAdministracion } from '../components/administracion/PanelAdministracion'
-import { PanelPlanta } from '../components/planta/PanelPlanta'
-import { PanelOperativo } from '../components/operativo/PanelOperativo'
 import type { RolUsuario } from '../lib/tiposAuth'
+
+const ConsultaCalidad = lazy(() => import('../components/calidad/ConsultaCalidad').then(modulo => ({ default: modulo.ConsultaCalidad })))
+const PanelReportes = lazy(() => import('../components/reportes/PanelReportes').then(modulo => ({ default: modulo.PanelReportes })))
+const PanelAdministracion = lazy(() => import('../components/administracion/PanelAdministracion').then(modulo => ({ default: modulo.PanelAdministracion })))
+const PanelPlanta = lazy(() => import('../components/planta/PanelPlanta').then(modulo => ({ default: modulo.PanelPlanta })))
+const PanelOperativo = lazy(() => import('../components/operativo/PanelOperativo').then(modulo => ({ default: modulo.PanelOperativo })))
 
 type VistaInicio = 'inicio' | 'calderas' | 'ptar' | 'planta' | 'administracion' | 'reportes' | 'calidad' | 'gestion'
 

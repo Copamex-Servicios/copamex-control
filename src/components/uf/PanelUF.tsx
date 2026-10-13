@@ -1,3 +1,5 @@
+import { RefreshCw } from 'lucide-react'
+import '../operativo/medicionesVisual.css'
 import { Icono } from '../diseno/Icono'
 import { useState } from 'react'
 import { useUF } from '../../hooks/useUF'
@@ -58,12 +60,12 @@ function ContenidoUF({ datos }: PropsContenidoUF) {
   }
 
   return (
-    <section className="panel-informacion panel-uf" aria-label="UF de Calderas">
+    <section className="panel-informacion panel-uf panel-mediciones" aria-label="UF de Calderas">
       <div className="cabecera-turno">
         <h2><Icono nombre="uf" />Ultrafiltración</h2>
         <button className="boton-secundario" type="button" disabled={guardando || estadoCarga === 'cargando'}
           onClick={() => { void actualizarUF() }}>
-          Actualizar UF
+          <RefreshCw className="mediciones-actualizar" aria-hidden="true" />Actualizar UF
         </button>
       </div>
       
@@ -128,13 +130,11 @@ function ContenidoUF({ datos }: PropsContenidoUF) {
           )}
           <FormularioUF key={`${cuentaId}:${edicion.lectura.id}:correccion`} modo="corregir"
             valoresIniciales={extraerValoresUF(edicion.lectura)} alGuardar={guardarCorreccion}
-            deshabilitado={!puedeGuardarEdicion || ocupado} />
-          <div className="acciones-turno">
-            <button className="boton-secundario" type="button" disabled={ocupado}
+            deshabilitado={!puedeGuardarEdicion || ocupado}
+            accionSecundaria={<button className="boton-secundario" type="button" disabled={ocupado}
               onClick={() => { if (!ocupado) setEdicion(null) }}>
               Cancelar corrección
-            </button>
-          </div>
+            </button>} />
         </div>
       )}
 

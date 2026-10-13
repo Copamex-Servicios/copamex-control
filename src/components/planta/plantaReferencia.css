@@ -1,16 +1,18 @@
 /* Estilos exclusivos de Planta: la tabla es el contenido principal. */
 .co-layout .co-main:has(.co-planta-referencia) { padding-top:20px; }
 .co-layout .co-planta-referencia .co-page-header { margin-bottom:22px; gap:18px; align-items:center; }
-.co-layout .co-planta-referencia .co-page-header h1 { margin:0 0 4px; font-size:34px; line-height:1.15; }
+.co-layout .co-planta-referencia .co-page-header h1 { margin:0 0 4px; font-size:30px; line-height:1.15; }
 .co-layout .co-planta-referencia .co-page-header p { margin:0; font-size:14px; line-height:1.45; color:#536b91; }
 .co-layout .co-planta-referencia .co-page-icon { width:58px; height:58px; border-radius:14px; }
 .co-layout .co-planta-referencia .co-page-icon svg { width:30px; height:30px; }
-.co-layout .co-planta-referencia .vista-planta { gap:20px; }
-.co-layout .co-planta-referencia .panel-informacion { margin:0; padding:22px 24px; border:1px solid #dce8f8; border-radius:16px; box-shadow:0 5px 18px rgb(26 64 112 / 3%); background:#fff; }
+.co-layout .co-planta-referencia .vista-planta { gap:20px; min-width:0; grid-template-columns:minmax(0,1fr); }
+.co-layout .co-planta-referencia .vista-planta > * { min-width:0; }
+.co-layout .co-planta-referencia .planta-tabla-scroll:focus-visible { outline:2px solid #458eef; outline-offset:2px; }
+.co-layout .co-planta-referencia .panel-informacion { margin:0; padding:22px 24px; border:1px solid #dce8f8; border-radius:12px; box-shadow:none; background:#fff; }
 .co-layout .co-planta-referencia .planta-encabezado { align-items:center; gap:12px; margin-bottom:16px; }
-.co-layout .co-planta-referencia h2 { margin:0; font-size:23px; line-height:1.25; letter-spacing:-.4px; }
+.co-layout .co-planta-referencia h2 { margin:0; font-size:20px; line-height:1.25; letter-spacing:-.4px; }
 .co-layout .co-planta-referencia .planta-filtros h2 { font-size:20px; }
-.co-layout .co-planta-referencia .planta-filtros .planta-encabezado>.boton-secundario { min-height:32px; padding:5px 11px; font-size:12px; }
+.co-layout .co-planta-referencia .planta-filtros .planta-encabezado>.boton-secundario { min-height:40px; padding:8px 12px; font-size:12px; }
 .co-layout .co-planta-referencia .planta-formulario { grid-template-columns:repeat(4,minmax(0,1fr)) 146px; gap:18px; align-items:end; }
 .co-layout .co-planta-referencia :is(.planta-formulario,.planta-busqueda) label { display:grid; gap:6px; font-size:12px; min-width:0; }
 .co-layout .co-planta-referencia :is(input,select) { min-height:42px; height:42px; padding:9px 12px; border:1px solid #d1def2; border-radius:8px; font-size:13px; }
@@ -23,26 +25,27 @@
 .co-layout .co-planta-referencia .estado-seccion { padding:5px 12px; border-radius:20px; font-size:12px; background:#e9f1ff; color:#0864df; white-space:nowrap; }
 .co-layout .co-planta-referencia .ayuda-turno { margin:14px 0 12px; font-size:12px; color:#607599; }
 .co-layout .co-planta-referencia .planta-tabla-scroll { border-radius:7px; }
-.co-layout .co-planta-referencia .planta-tabla { table-layout:fixed; font-size:12px; min-width:900px; }
+.co-layout .co-planta-referencia .planta-tabla { table-layout:fixed; font-size:13px; min-width:900px; }
 .co-layout .co-planta-referencia .planta-tabla caption { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 .co-layout .co-planta-referencia .planta-tabla th { padding:13px 16px; font-size:12px; background:#edf3fb; border-bottom:1px solid #dce6f4; }
 .co-layout .co-planta-referencia .planta-tabla td { padding:10px 16px; vertical-align:middle; line-height:1.45; overflow-wrap:anywhere; }
 .co-layout .co-planta-referencia .planta-tabla th:nth-child(1) { width:17%; }
 .co-layout .co-planta-referencia .planta-tabla th:nth-child(2) { width:12%; }
-.co-layout .co-planta-referencia .planta-tabla th:nth-child(3) { width:12%; }
+.co-layout .co-planta-referencia .planta-tabla th:nth-child(3) { width:18%; }
 .co-layout .co-planta-referencia .planta-tabla th:nth-child(4) { width:12%; }
-.co-layout .co-planta-referencia .planta-tabla th:nth-child(5) { width:39%; }
-.co-layout .co-planta-referencia .planta-tabla th:nth-child(6) { width:8%; }
+.co-layout .co-planta-referencia .planta-tabla th:nth-child(5) { width:31%; }
+.co-layout .co-planta-referencia .planta-tabla th:nth-child(6) { width:10%; }
 .co-layout .co-planta-referencia .planta-tabla td small { margin-top:2px; font-size:11px; color:#6a7e9f; }
 .co-layout .co-planta-referencia .planta-resumen-captura { min-width:0; max-width:none; }
 .co-layout .co-planta-referencia .planta-modulo { padding:4px 8px; font-size:11px; }
-.co-layout .co-planta-referencia .planta-tabla .boton-secundario { min-height:32px; padding:6px 12px; font-size:12px; color:#0864df; border-color:#cedff8; }
+.co-layout .co-planta-referencia .planta-tabla .boton-secundario { min-height:40px; padding:8px 12px; font-size:12px; color:#0864df; border-color:#cedff8; }
 .co-layout .co-planta-referencia .planta-detalle td { padding:20px; }
 .co-layout .co-planta-referencia .planta-paginacion { padding-top:16px; gap:12px; font-size:12px; }
-.co-layout .co-planta-referencia .planta-paginacion button { min-height:34px; padding:7px 12px; font-size:12px; }
+.co-layout .co-planta-referencia .planta-paginacion button { min-height:40px; padding:8px 12px; font-size:12px; }
 .co-layout .co-planta-referencia .planta-turnos-adicionales>summary { cursor:pointer; font-size:15px; font-weight:600; color:#24446e; }
 .co-layout .co-planta-referencia .planta-turnos-adicionales[open]>summary { margin-bottom:18px; }
 .co-layout .co-planta-referencia .planta-turnos-adicionales>summary:focus-visible { outline:2px solid #458eef; outline-offset:4px; }
 @media(max-width:1250px) { .co-layout .co-planta-referencia .planta-formulario { grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; } .co-layout .co-planta-referencia .planta-formulario>.boton-principal { justify-self:start; min-width:146px; } }
-@media(max-width:650px) { .co-layout .co-planta-referencia .panel-informacion { padding:18px 16px; } .co-layout .co-planta-referencia :is(.planta-formulario,.planta-busqueda) { grid-template-columns:minmax(0,1fr); } .co-layout .co-planta-referencia .planta-formulario>.boton-principal { width:100%; } .co-layout .co-planta-referencia .co-page-header h1 { font-size:29px; } .co-layout .co-planta-referencia .planta-estado>span:last-child { margin-left:0; flex-basis:100%; } }
+@media(max-width:650px) { .co-layout .co-planta-referencia .panel-informacion { padding:18px 16px; } .co-layout .co-planta-referencia :is(.planta-formulario,.planta-busqueda) { grid-template-columns:minmax(0,1fr); } .co-layout .co-planta-referencia .planta-formulario>.boton-principal { width:100%; }
+ .co-layout .co-planta-referencia .planta-tabla :is(th,td) { padding:10px 12px; } .co-layout .co-planta-referencia .co-page-header h1 { font-size:29px; } .co-layout .co-planta-referencia .planta-estado>span:last-child { margin-left:0; flex-basis:100%; } }
 @media print { .co-layout .co-planta-referencia .planta-tabla { min-width:0; font-size:8pt; } .co-layout .co-planta-referencia .planta-tabla :is(th,td) { padding:5pt; } .co-layout .co-planta-referencia .planta-tabla-scroll { overflow:visible; } }

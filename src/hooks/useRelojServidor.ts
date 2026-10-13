@@ -48,7 +48,8 @@ export function useRelojServidor(): Omit<VistaReloj, 'cuentaId'> {
       const actual = ++revision
       const peticion = new AbortController()
       control = peticion
-      setVista({ cuentaId, fecha: null, hora: null, estado: 'cargando' })
+      setVista(anterior => anterior.cuentaId === cuentaId && anterior.estado === 'listo'
+        ? anterior : { cuentaId, fecha: null, hora: null, estado: 'cargando' })
       let limite: number | null = null
       let alCancelar: (() => void) | null = null
       const espera = new Promise<never>((_resolver, rechazar) => {
@@ -99,7 +100,6 @@ export function useRelojServidor(): Omit<VistaReloj, 'cuentaId'> {
         alVolver()
       } else {
         cancelar()
-        setVista({ cuentaId, fecha: null, hora: null, estado: 'cargando' })
       }
     }
 

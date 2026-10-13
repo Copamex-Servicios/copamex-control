@@ -1,0 +1,200 @@
+/* Alcance exclusivo del panel de Bitácora de Calderas y PTAR. */
+.co-layout .panel-bitacora.bitacora-modulo {
+  min-width: 0;
+  padding: 22px 24px;
+  border: 1px solid var(--co-border);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: none;
+}
+
+.co-layout .bitacora-modulo.panel-bitacora > .cabecera-turno {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--co-border);
+}
+
+.co-layout .bitacora-modulo.panel-bitacora > .cabecera-turno h2 {
+  margin: 0;
+  gap: 12px;
+  font-size: 24px;
+  line-height: 1.3;
+  letter-spacing: -.3px;
+}
+
+.co-layout .bitacora-modulo.panel-bitacora :is(.boton-primario, .boton-secundario) {
+  min-height: 42px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  box-shadow: none;
+}
+
+.co-layout .bitacora-modulo.panel-bitacora .bitacora-actualizar-icono {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+
+.co-layout .bitacora-modulo.panel-bitacora :is(.bitacora-captura, .bitacora-edicion) > h3,
+.co-layout .bitacora-modulo.panel-bitacora .historial-bitacora > h3 {
+  margin: 0 0 14px;
+  color: var(--co-text);
+  font-size: 18px;
+  font-weight: 650;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.co-layout .bitacora-modulo.panel-bitacora .formulario-bitacora {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+}
+
+.co-layout .bitacora-modulo.panel-bitacora .formulario-bitacora .campo-turno {
+  width: 100%;
+  min-width: 0;
+  gap: 8px;
+}
+
+.co-layout .bitacora-modulo.panel-bitacora .formulario-bitacora label {
+  color: #334d70;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.co-layout .bitacora-modulo.panel-bitacora .formulario-bitacora textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 128px;
+  padding: 12px 14px;
+  border: 1px solid #cbd9eb;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--co-text);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.co-layout .bitacora-modulo.panel-bitacora .formulario-bitacora textarea:focus {
+  border-color: var(--co-primary);
+}
+
+.co-layout .bitacora-modulo.panel-bitacora .formulario-bitacora textarea[aria-invalid="true"] {
+  border-color: #b42318;
+}
+
+.co-layout .bitacora-modulo.panel-bitacora .formulario-bitacora > .acciones-turno {
+  justify-content: flex-end;
+  margin: 0;
+  gap: 10px;
+}
+
+.co-layout .bitacora-modulo.panel-bitacora .formulario-bitacora > .acciones-turno:has(> button + button) {
+  justify-content: space-between;
+}
+
+.co-layout .bitacora-modulo.panel-bitacora .bitacora-edicion {
+  padding: 16px;
+  border: 1px solid var(--co-border);
+  border-radius: 8px;
+  background: #f7f9fc;
+}
+
+.co-layout .bitacora-modulo.panel-bitacora .historial-bitacora {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--co-border);
+}
+
+.co-layout .bitacora-modulo.panel-bitacora .nota-bitacora {
+  margin: 12px 0 0;
+  padding: 16px 18px;
+  border: 1px solid var(--co-border);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: none;
+}
+
+.co-layout .bitacora-modulo.panel-bitacora .bitacora-nota-identidad {
+  display: flex;
+  align-items: baseline;
+  gap: 8px 12px;
+  flex-wrap: wrap;
+}
+
+.co-layout .bitacora-modulo.panel-bitacora .bitacora-nota-identidad h4 {
+  margin: 0;
+  color: var(--co-text);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.co-layout .bitacora-modulo.panel-bitacora .bitacora-nota-turno {
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #eef3fa;
+  color: #345780;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.co-layout .bitacora-modulo.panel-bitacora .bitacora-nota-fechas {
+  display: flex;
+  gap: 4px 18px;
+  flex-wrap: wrap;
+  margin: 6px 0 0;
+  color: #526581;
+  font-size: 12px;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+}
+
+.co-layout .bitacora-modulo.panel-bitacora .nota-bitacora .texto-bitacora {
+  margin: 12px 0 0;
+  color: #203b5f;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.co-layout .bitacora-modulo.panel-bitacora .nota-bitacora > button {
+  margin-top: 12px;
+}
+
+.co-layout .bitacora-modulo.panel-bitacora .bitacora-vacio {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 6px;
+  background: #f5f8fc;
+  color: #526581;
+  font-size: 14px;
+}
+
+.co-layout .bitacora-modulo.panel-bitacora .operacion-pendiente {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border: 1px solid #e7c888;
+  border-radius: 8px;
+  background: #fffaf0;
+}
+
+@media (max-width: 760px) {
+  .co-layout .bitacora-modulo.panel-bitacora { padding: 18px 16px; }
+  .co-layout .bitacora-modulo.panel-bitacora > .cabecera-turno { align-items: flex-start; }
+  .co-layout .bitacora-modulo.panel-bitacora > .cabecera-turno h2 { font-size: 22px; }
+  .co-layout .bitacora-modulo.panel-bitacora .nota-bitacora { padding: 14px; }
+  .co-layout .bitacora-modulo.panel-bitacora .formulario-bitacora > .acciones-turno > button { width: 100%; }
+}
