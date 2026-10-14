@@ -5,7 +5,7 @@ import { PageHeader } from '../diseno/Elementos'
 import { useEffect, useId, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import { ConsultaTurno } from '../turno/ConsultaTurno'
-import { PanelBitacora } from '../bitacora/PanelBitacora'
+import { PanelBitacoraPTAR } from '../bitacora/PanelBitacoraPTAR'
 import { PanelBitacoraCalderas } from '../bitacora/PanelBitacoraCalderas'
 import { PanelPozos } from '../pozos/PanelPozos'
 import { PanelUF } from '../uf/PanelUF'
@@ -130,7 +130,7 @@ export function PanelOperativo({ area, rol, seleccionExterna, alSeleccionar }: {
 
         {opciones.map(a => <div key={a.id} id={`${id}-panel-${a.id}`} role={seleccionExterna !== undefined ? 'region' : 'tabpanel'} aria-label={seleccionExterna !== undefined ? a.nombre : undefined} aria-labelledby={seleccionExterna !== undefined ? undefined : `${id}-tab-${a.id}`}
           hidden={actual.id !== a.id} tabIndex={0} className="contenido-modulo">
-          {a.id === 'bitacora' && (area === 'calderas' ? <PanelBitacoraCalderas /> : <PanelBitacora area={area} referencia />)}
+          {a.id === 'bitacora' && (area === 'calderas' ? <PanelBitacoraCalderas /> : <PanelBitacoraPTAR />)}
           {a.id === 'pozos' && <PanelPozos />}
           {a.id === 'uf' && <PanelUF />}
           {a.id === 'calidad' && <PanelCalidad area={area} horaServidor={reloj.hora} />}
