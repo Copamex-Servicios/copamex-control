@@ -4,15 +4,14 @@ import { Icono } from '../diseno/Icono'
 import { useState } from 'react'
 import { useBitacora } from '../../hooks/useBitacora'
 import type { AreaOperativa } from '../../lib/tiposTurno'
-import type { CamposBitacora, RegistroBitacora } from '../../lib/tiposBitacora'
+import type { CamposBitacora } from '../../lib/tiposBitacora'
 import { FormularioBitacora } from './FormularioBitacora'
 import { LecturaBitacoraGuardada } from './LecturaBitacoraGuardada'
 
 function ContenidoBitacora({ datos, area, referencia }: { datos: ReturnType<typeof useBitacora>; area: AreaOperativa; referencia: boolean }) {
-  const [edicion, setEdicion] = useState<RegistroBitacora | null>(null)
   const [numeroCaptura, setNumeroCaptura] = useState(0)
   const { rol, cuentaId, turno, historial, lecturaActual, estadoCarga, mensaje, mensajeAccion,
-    solicitudPendiente, guardando, puedeCrear, puedeCorregir, guardarBitacora, corregirBitacora,
+    solicitudPendiente, guardando, puedeCrear, guardarBitacora,
     actualizarBitacora, reintentarGuardadoBitacora } = datos
   const listo = estadoCarga === 'listo', ocupado = guardando || !!solicitudPendiente
   const propio = rol === area && turno?.iniciado_por === cuentaId
@@ -24,17 +23,10 @@ function ContenidoBitacora({ datos, area, referencia }: { datos: ReturnType<type
     if (resultado) setNumeroCaptura(n => n + 1)
     return resultado
   }
-  async function corregir(campos: CamposBitacora) {
-    if (!edicion || !puedeCorregir(edicion.lectura) || ocupado) return false
-    const resultado = await corregirBitacora(campos, edicion.lectura)
-    if (resultado) setEdicion(null)
-    return resultado
-  }
   async function reintentar() {
     if (guardando || !solicitudPendiente) return
     const esNueva = solicitudPendiente.solicitud.original === null
     if (await reintentarGuardadoBitacora()) {
-      setEdicion(null)
       if (esNueva) setNumeroCaptura(n => n + 1)
     }
   }
@@ -52,25 +44,15 @@ function ContenidoBitacora({ datos, area, referencia }: { datos: ReturnType<type
     </div>}
     {estadoCarga === 'cargando' && <p role="status">Consultando Bitácora…</p>}
     {estadoCarga === 'error' && <p className="mensaje-error" role="alert">{mensaje || 'No se pudo consultar Bitácora. Usa Actualizar Bitácora para reintentar.'}</p>}
-    {propio && turno && <div className="bitacora-captura" hidden={!listo || edicion !== null}>
+    {propio && turno && <div className="bitacora-captura" hidden={!listo}>
       <h3>Nueva nota del turno</h3>
-      <FormularioBitacora key={`${turno.id}:${numeroCaptura}`} alGuardar={guardar} deshabilitado={!puedeCrear || ocupado || edicion !== null} />
+      <FormularioBitacora key={`${turno.id}:${numeroCaptura}`} alGuardar={guardar} deshabilitado={!puedeCrear || ocupado} />
     </div>}
     {listo && rol === area && !propio && <p>{referencia ? 'Abre un turno para registrar nuevas notas.' : 'Para guardar notas nuevas necesitas tu turno del área abierto. Puedes consultar las notas anteriores.'}</p>}
-    {edicion && rol === area && <div className="gestion-turno bitacora-edicion">
-      <h3>Corregir nota de {edicion.operadorNombre}</h3>
-      {listo && !ocupado && !puedeCorregir(edicion.lectura) && <p className="mensaje-error" role="alert">La nota cambió. Cancela y vuelve a seleccionar la nota actualizada.</p>}
-      <FormularioBitacora key={edicion.lectura.id} original={edicion.lectura} alGuardar={corregir} deshabilitado={ocupado || !puedeCorregir(edicion.lectura)}
-        accionSecundaria={<button type="button" className="boton-secundario" disabled={ocupado}
-        onClick={() => { if (!ocupado) setEdicion(null) }}>Cancelar corrección</button>} />
-    </div>}
     {listo && <div className="historial-bitacora"><h3>Historial de Bitácora</h3>
       
       {registros.length === 0 ? <p className="bitacora-vacio">No hay notas guardadas para consultar.</p> : registros.map(r =>
-        <LecturaBitacoraGuardada key={r.lectura.id} registro={r} referencia={referencia} deshabilitado={ocupado || edicion !== null}
-          alCorregir={rol === area && edicion === null && puedeCorregir(r.lectura) ? () => {
-            if (!ocupado && puedeCorregir(r.lectura)) setEdicion(structuredClone(r))
-          } : undefined} />)}
+        <LecturaBitacoraGuardada key={r.lectura.id} registro={r} referencia={referencia} deshabilitado={ocupado} />)}
     </div>}
   </section>
 }

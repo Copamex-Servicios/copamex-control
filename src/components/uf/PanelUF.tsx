@@ -1,11 +1,7 @@
 import { RefreshCw } from 'lucide-react'
 import '../operativo/medicionesVisual.css'
 import { Icono } from '../diseno/Icono'
-import { useState } from 'react'
 import { useUF } from '../../hooks/useUF'
-import { extraerValoresUF } from '../../lib/uf'
-import type { RegistroUF } from '../../lib/uf'
-import type { CamposUF } from '../../lib/tiposUF'
 import type { TipoTurno } from '../../lib/tiposTurno'
 import { FormularioUF } from './FormularioUF'
 import { formatearVolumenUF } from '../../lib/formatoUF'
@@ -25,38 +21,22 @@ interface PropsContenidoUF {
 }
 
 function ContenidoUF({ datos }: PropsContenidoUF) {
-  const [edicion, setEdicion] = useState<RegistroUF | null>(null)
   const {
     cuentaId, rol, turno, lecturaActual, historial, estadoCarga, mensaje,
-    guardando, solicitudPendiente, mensajeAccion, puedeCrear, puedeCorregir,
-    guardarUF, corregirUF, reintentarGuardadoUF, actualizarUF,
+    guardando, solicitudPendiente, mensajeAccion, puedeCrear,
+    guardarUF, reintentarGuardadoUF, actualizarUF,
   } = datos
   const listo = estadoCarga === 'listo'
   const ocupado = guardando || solicitudPendiente !== null
   const actual = lecturaActual ?? historial.find((registro) => registro.lectura.turno_id === turno?.id) ?? null
   const turnoPropio = rol === 'calderas' && turno !== null && turno.iniciado_por === cuentaId
   const anteriores = actual ? historial.filter((registro) => registro.lectura.id !== actual.lectura.id) : historial
-  const puedeGuardarEdicion = edicion !== null && puedeCorregir(edicion.lectura)
   const confirmado = mensajeAccion === 'Lectura de UF guardada.'
     || mensajeAccion === 'Corrección de UF confirmada.'
 
-  function abrirCorreccion(registro: RegistroUF): void {
-    if (edicion === null && !ocupado && puedeCorregir(registro.lectura)) {
-      // Copiar el original consultado; una actualización no debe sustituir el snapshot.
-      setEdicion({ ...registro, lectura: { ...registro.lectura }, turno: { ...registro.turno } })
-    }
-  }
-
-  async function guardarCorreccion(campos: CamposUF): Promise<boolean> {
-    if (!edicion || !puedeGuardarEdicion || ocupado) return false
-    const guardado = await corregirUF(campos, edicion.lectura)
-    if (guardado) setEdicion(null)
-    return guardado
-  }
-
   async function reintentar(): Promise<void> {
     if (guardando || !solicitudPendiente) return
-    if (await reintentarGuardadoUF()) setEdicion(null)
+    await reintentarGuardadoUF()
   }
 
   return (
@@ -108,39 +88,21 @@ function ContenidoUF({ datos }: PropsContenidoUF) {
 
       {/* Conservar esta instancia al recargar UF del mismo turno para mantener el borrador. */}
       {turnoPropio && turno && (
-        <div className="captura-uf" hidden={!listo || actual !== null || edicion !== null}>
+        <div className="captura-uf" hidden={!listo || actual !== null}>
           <h3>Nueva lectura del turno de {nombresTurno[turno.turno]}</h3>
           {!puedeCrear && !ocupado && listo && actual === null && (
             <p className="ayuda-turno">Confirma la operación del turno antes de guardar una lectura nueva.</p>
           )}
           <FormularioUF key={`${cuentaId}:${turno.id}:captura`} alGuardar={guardarUF}
-            deshabilitado={!listo || !puedeCrear || ocupado || actual !== null || edicion !== null} />
+            deshabilitado={!listo || !puedeCrear || ocupado || actual !== null} />
         </div>
       )}
       {listo && rol === 'calderas' && !turnoPropio && (
         <p className="texto-secundario">Para una lectura nueva se necesita tu turno de Calderas abierto. Puedes consultar las lecturas anteriores.</p>
       )}
 
-      {edicion && rol === 'calderas' && (
-        <div className="gestion-turno edicion-uf">
-          <h3>Corrección de la lectura seleccionada</h3>
-          <p className="texto-secundario">Turno de {nombresTurno[edicion.turno.turno]} · {fechaOperativa(edicion.turno.fecha_operativa)} · {edicion.operadorNombre}</p>
-          {listo && !ocupado && !puedeGuardarEdicion && (
-            <p className="mensaje-error" role="alert">La lectura cambió o ya no está disponible. Cancela esta corrección y vuelve a seleccionar la lectura actualizada.</p>
-          )}
-          <FormularioUF key={`${cuentaId}:${edicion.lectura.id}:correccion`} modo="corregir"
-            valoresIniciales={extraerValoresUF(edicion.lectura)} alGuardar={guardarCorreccion}
-            deshabilitado={!puedeGuardarEdicion || ocupado}
-            accionSecundaria={<button className="boton-secundario" type="button" disabled={ocupado}
-              onClick={() => { if (!ocupado) setEdicion(null) }}>
-              Cancelar corrección
-            </button>} />
-        </div>
-      )}
-
       {listo && actual && (
-        <LecturaUFGuardada registro={actual} deshabilitado={ocupado || edicion !== null}
-          alCorregir={rol === 'calderas' && puedeCorregir(actual.lectura) ? () => abrirCorreccion(actual) : undefined} />
+        <LecturaUFGuardada registro={actual} deshabilitado={ocupado} />
       )}
       {listo && (
         <div className="historial-uf">
@@ -151,8 +113,7 @@ function ContenidoUF({ datos }: PropsContenidoUF) {
           ) : anteriores.map((registro) => (
             <details className="item-historial-uf" key={registro.lectura.id}>
               <summary>{fechaOperativa(registro.turno.fecha_operativa)} · {nombresTurno[registro.turno.turno]} · {registro.operadorNombre}</summary>
-              <LecturaUFGuardada registro={registro} deshabilitado={ocupado || edicion !== null}
-                alCorregir={rol === 'calderas' && puedeCorregir(registro.lectura) ? () => abrirCorreccion(registro) : undefined} />
+              <LecturaUFGuardada registro={registro} deshabilitado={ocupado} />
             </details>
           ))}
         </div>
