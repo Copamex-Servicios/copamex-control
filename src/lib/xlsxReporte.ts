@@ -1,7 +1,7 @@
 // XLSX nativo: celdas tipadas, formatos, filtros y gráficos.
 // No interpreta el texto de los operadores como fórmulas ni carga bibliotecas externas.
 export type CeldaReporte = string | number | boolean | Date | null
-export interface HojaReporte { nombre: string; titulo: string; contexto: string; columnas: string[]; filas: CeldaReporte[][]; graficas?: boolean }
+export interface HojaReporte { nombre: string; titulo: string; contexto: string; columnas: string[]; filas: CeldaReporte[][]; graficas?: boolean; congelar?: boolean }
 const xml = (s: string) => Array.from(s).filter(c => c.charCodeAt(0) >= 32 || [9, 10, 13].includes(c.charCodeAt(0))).join('').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
 const enc = new TextEncoder()
 export function columnaExcel(n: number): string { let s = ''; for (let i = n + 1; i > 0; i = Math.floor((i - 1) / 26)) s = String.fromCharCode(65 + (i - 1) % 26) + s; return s }
@@ -70,7 +70,7 @@ export function crearXlsxReporte(hojas: HojaReporte[]): Uint8Array {
     const ultima = Math.max(5, h.filas.length + 5), cols = h.columnas.map((c, j) => `<col min="${j + 1}" max="${j + 1}" width="${anchoColumna(c)}" customWidth="1"/>`).join('')
     const dibujo = (h.graficas || h.nombre === 'Graficas') && hojas.some(x => x.nombre === 'Diario') ? '<drawing r:id="rId1"/>' : ''
     const finTitulo = columnaExcel(Math.min(4, h.columnas.length - 1))
-    archivos.push([`xl/worksheets/sheet${i + 1}.xml`, `<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="${ns}" xmlns:r="${rel}"><dimension ref="A1:${columnaExcel(h.columnas.length - 1)}${ultima}"/><sheetViews><sheetView workbookViewId="0" showGridLines="0"></sheetView></sheetViews><sheetFormatPr defaultRowHeight="18"/><cols>${cols}</cols><sheetData>${rows.join('')}</sheetData>${h.nombre === 'Graficas' ? '' : `<autoFilter ref="A5:${columnaExcel(h.columnas.length - 1)}${ultima}"/>`}<mergeCells count="2"><mergeCell ref="A2:${finTitulo}2"/><mergeCell ref="A3:${finTitulo}3"/></mergeCells><printOptions horizontalCentered="0"/><pageMargins left="0.25" right="0.25" top="0.5" bottom="0.5" header="0.2" footer="0.2"/><pageSetup orientation="landscape" paperSize="9" fitToWidth="1" fitToHeight="0"/>${dibujo}</worksheet>`])
+    archivos.push([`xl/worksheets/sheet${i + 1}.xml`, `<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="${ns}" xmlns:r="${rel}"><dimension ref="A1:${columnaExcel(h.columnas.length - 1)}${ultima}"/><sheetViews><sheetView workbookViewId="0" showGridLines="0">${h.congelar ? '<pane ySplit="5" topLeftCell="A6" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft" activeCell="A6" sqref="A6"/>' : ''}</sheetView></sheetViews><sheetFormatPr defaultRowHeight="18"/><cols>${cols}</cols><sheetData>${rows.join('')}</sheetData>${h.nombre === 'Graficas' ? '' : `<autoFilter ref="A5:${columnaExcel(h.columnas.length - 1)}${ultima}"/>`}<mergeCells count="2"><mergeCell ref="A2:${finTitulo}2"/><mergeCell ref="A3:${finTitulo}3"/></mergeCells><printOptions horizontalCentered="0"/><pageMargins left="0.25" right="0.25" top="0.5" bottom="0.5" header="0.2" footer="0.2"/><pageSetup orientation="landscape" paperSize="9" fitToWidth="1" fitToHeight="0"/>${dibujo}</worksheet>`])
     tipos.push(`<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`)
     relaciones.push(`<Relationship Id="rId${i + 1}" Type="${rel}/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`)
   })

@@ -6,6 +6,7 @@ import { nombresModulo, nombresTurno } from './planta'
 import { fechaMexicoAdmin } from './administracion'
 import { medicionesPTAR } from './tiposPTAR'
 import { useAuthStore } from '../stores/authStore'
+import { nombreAreaReporte, resumenEjecutivoReporte } from './resumenEjecutivoReporte'
 
 const volumen = (v: string | null): CeldaReporte => v === null ? null : String(Number(v)) === v && Number.isFinite(Number(v)) ? Number(v) : v
 const fecha = (s: string) => new Date(`${s}T00:00:00Z`)
@@ -69,35 +70,30 @@ export function hojasReporte(r: ConsultaReporte): HojaReporte[] {
   ]))
   return hojas
 }
-// Vista operativa: tres hojas; el detalle técnico original permanece disponible.
+// Vista operativa: una fila por captura; el Excel técnico conserva mediciones y auditoría.
 export function hojasReporteOperativo(r: ConsultaReporte): HojaReporte[] {
-  const tecnicas = hojasReporte(r), s = resumirReporte(r.actual, r.filtros)
-  const resumen = tecnicas[0]
-  const filasResumen = resumen.filas.map(f => f[0] === 'Auditoría' ? [...f.slice(0, 4), 'El historial de cambios se conserva en la opción Excel técnico.']
-    : f[0] === 'Origen' ? [...f.slice(0, 4), 'Capturas vigentes del período. Identificadores originales disponibles en Excel técnico.'] : f)
-  const columnas = ['Fecha operativa', 'Captura México', 'Área', 'Turno', 'Operador', 'Módulo', 'Punto / medición', 'Valor', 'Unidad', 'Límite mínimo aplicado', 'Límite máximo aplicado', 'Evaluación', 'Notas / texto']
-  const filas: CeldaReporte[][] = []
-  for (const e of s.capturas) {
-    const { turno: t, lectura: l, operadorNombre } = e.registro
-    const base: CeldaReporte[] = [fecha(t.fecha_operativa), horaMexico(l.capturado_en), t.area === 'calderas' ? 'Calderas' : 'PTAR', nombresTurno[t.turno], operadorNombre, nombresModulo[e.modulo]]
-    const agregar = (punto: string, valor: CeldaReporte, unidad: string | null = null, minimo: number | null = null, maximo: number | null = null, evaluacion: string | null = null, notas: string | null = null) => filas.push([...base, punto, valor, unidad, minimo, maximo, evaluacion, notas])
-    if (e.modulo === 'pozos') {
-      const v = e.registro.lectura
-      for (const [punto, valor] of [['Pozo 1 inicial', v.pozo1_ini], ['Pozo 1 final', v.pozo1_fin], ['Consumo Pozo 1', v.consumo_pozo1], ['Pozo 2 inicial', v.pozo2_ini], ['Pozo 2 final', v.pozo2_fin], ['Consumo Pozo 2', v.consumo_pozo2]] as const) agregar(punto, valor, 'm³', null, null, null, v.notas)
-    } else if (e.modulo === 'uf') {
-      const v = e.registro.lectura
-      for (const [punto, valor] of [['Alimentación inicial', v.alim_ini], ['Alimentación final', v.alim_fin], ['Alimentado', v.alimentado], ['Aceptación inicial', v.acep_ini], ['Aceptación final', v.acep_fin], ['Aceptado', v.aceptado], ['Rechazo', v.rechazo]] as const) agregar(punto, valor, 'm³', null, null, null, v.notas)
-      agregar('Rendimiento', v.rendimiento, '%', null, null, null, v.notas)
-    } else if (e.modulo === 'calidad') {
-      for (const v of e.registro.lectura.resultados) agregar(`${v.punto.nombre} · ${v.parametro.nombre}`, v.valor, v.parametro.unidad, v.limite_min_aplicado, v.limite_max_aplicado, v.fuera_norma === null ? 'Sin límites' : v.fuera_norma ? 'Fuera de límite' : 'Dentro de límite', e.registro.lectura.notas)
-    } else if (e.modulo === 'ptar') {
-      for (const m of medicionesPTAR) agregar(`${m.parametro} · ${m.punto}`, e.registro.lectura[m.campo], 'mg/L', null, null, null, e.registro.lectura.notas)
-    } else agregar('Nota del turno', null, null, null, null, null, e.registro.lectura.texto)
+  const s = resumenEjecutivoReporte(r)
+  const contexto = `Período: ${r.filtros.desde} al ${r.filtros.hasta}; área: ${nombreAreaReporte(r.filtros.area)}; turno: ${r.filtros.turno === 'todos' ? 'Todos' : nombresTurno[r.filtros.turno]}; consulta: ${fechaMexicoAdmin(r.finConsulta)} (México)`
+  const resumen: CeldaReporte[][] = []
+  const agregarTotales = (grupo: string, turnos: number, capturas: number, tecnicos: number | null) => {
+    resumen.push([grupo, 'Turnos registrados', turnos, 'turnos', 'Abiertos y cerrados en el período.'],
+      [grupo, 'Capturas vigentes', capturas, 'capturas', 'Una captura por registro operativo; cada muestra de calidad cuenta una vez.'])
+    if (tecnicos !== null) resumen.push([grupo, 'Reportes técnicos registrados', tecnicos, 'reportes', 'Bitácoras técnicas de Calderas y PTAR, separadas de las capturas operativas.'])
   }
+  agregarTotales('Total', s.turnos, s.totalCapturas, s.totalTecnicos)
+  for (const a of s.porArea) agregarTotales(nombreAreaReporte(a.area), a.turnos, a.capturas, a.tecnicos)
+  for (const d of s.operacion) resumen.push([nombreAreaReporte(d.area), d.indicador, typeof d.valor === 'string' ? volumen(d.valor) : d.valor, d.unidad, null])
+  for (const nota of s.notas) resumen.push(['Alcance', 'Indicador omitido', null, null, nota])
+  resumen.push(['Alcance', 'Población', null, null, 'Capturas vigentes de Pozos, UF, Calidad y Proceso PTAR. Las observaciones antiguas de Bitácora no se consultan en este módulo.'],
+    ['Alcance', 'Historial de cambios', r.auditoria === 'completa' ? 'Disponible en Trazabilidad' : 'No solicitado', null, 'Los indicadores usan los valores vigentes. El historial se consulta en Reportes → Trazabilidad; no se incluye en este archivo.'])
   return [
-    { ...resumen, filas: filasResumen, titulo: 'COPAMEX · Resumen operativo' },
-    { ...tecnicas[1], graficas: true },
-    { nombre: 'Registros', titulo: 'COPAMEX · Registros del período', contexto: resumen.contexto + '; cada fila corresponde a una medición o nota; filtra por módulo o punto', columnas, filas },
+    { nombre: 'Resumen', titulo: 'COPAMEX · Resumen operativo', contexto, columnas: ['Grupo / área', 'Indicador', 'Valor', 'Unidad', 'Observaciones'], filas: resumen, congelar: true },
+    { nombre: 'Diario', titulo: 'COPAMEX · Actividad por fecha, área y turno', contexto: contexto + '; fecha operativa del turno, incluso después de medianoche; vacío indica una medición o total técnico no disponible',
+      columnas: ['Fecha operativa', 'Área', 'Turno', 'Turnos registrados', 'Capturas vigentes', 'Reportes técnicos', 'Lecturas Pozos', 'Lecturas UF', 'Muestras Calidad', 'Lecturas Proceso PTAR', 'Consumo Pozo 1 m³', 'Consumo Pozo 2 m³', 'UF alimentado m³', 'UF aceptado m³'],
+      filas: s.diario.map(d => [fecha(d.fecha), nombreAreaReporte(d.area), nombresTurno[d.turno], d.turnos, d.capturas.length, d.tecnicos, d.porModulo.pozos, d.porModulo.uf, d.porModulo.calidad, d.porModulo.ptar, volumen(d.pozo1), volumen(d.pozo2), volumen(d.alimentado), volumen(d.aceptado)]), congelar: true },
+    { nombre: 'Registros', titulo: 'COPAMEX · Capturas operativas vigentes', contexto: contexto + '; una fila por captura operativa; los reportes técnicos se contabilizan por separado en Resumen y Diario; detalle e historial disponibles en COPAMEX',
+      columnas: ['Captura México (fecha y hora)', 'Fecha operativa', 'Área', 'Turno', 'Operador', 'Módulo', 'Estado del registro', 'Observaciones'],
+      filas: s.capturas.map(e => { const { lectura: l, turno: t, operadorNombre } = e.registro; return [horaMexico(l.capturado_en), fecha(t.fecha_operativa), nombreAreaReporte(t.area), nombresTurno[t.turno], operadorNombre, e.modulo === 'ptar' ? 'Proceso PTAR' : e.modulo === 'calidad' ? 'Calidad de agua' : nombresModulo[e.modulo], l.eliminado_en === null ? 'Vigente' : 'Anulada', e.modulo === 'bitacora' ? e.registro.lectura.texto : e.registro.lectura.notas] }), congelar: true },
   ]
 }
 export function descargarReporte(r: ConsultaReporte, tecnico = false): void {

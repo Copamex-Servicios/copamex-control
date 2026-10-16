@@ -1,4 +1,4 @@
-import { CalendarDays, Factory, RotateCcw, Save } from 'lucide-react'
+import { RotateCcw, Save } from 'lucide-react'
 import './programacionFormularios.css'
 import { useAuth } from '../../hooks/useAuth'
 import { resolverPapel } from '../../lib/administracion'
@@ -46,7 +46,7 @@ export function FormularioAdmin({ config: c, datos, original, bloqueado, guardar
     setError(null)
   }
   return <form className={programacion ? `admin-editor co-programacion-formulario ${produccion ? 'co-programacion-produccion' : 'co-programacion-calendario'}` : 'admin-editor'} onSubmit={e => { e.preventDefault(); void enviar() }}>
-    <div className="planta-encabezado"><h3>{programacion ? <>{produccion ? <Factory aria-hidden="true" /> : <CalendarDays aria-hidden="true" />}{original ? 'Editar ' + c.singular : produccion ? 'Programación de producción diaria' : 'Programación de calendario'}</> : <>{original ? 'Editar' : 'Nuevo'} {c.singular}</>}</h3><button type="button" className="boton-secundario" onClick={cancelar} disabled={bloqueado || preparando}>Cancelar</button></div>
+    <div className="planta-encabezado"><h3>{programacion ? <>{original ? 'Editar ' + c.singular : produccion ? 'Programación de producción diaria' : 'Programación de calendario'}</> : <>{original ? 'Editar' : 'Nuevo'} {c.singular}</>}</h3><button type="button" className="boton-secundario" onClick={cancelar} disabled={bloqueado || preparando}>Cancelar</button></div>
     
     <fieldset disabled={bloqueado || preparando} className="admin-campos">
       {c.campos.map(f => {

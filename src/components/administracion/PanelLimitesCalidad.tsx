@@ -75,7 +75,7 @@ export function PanelLimitesCalidad({ datos }: { datos: DatosAdmin | null }) {
  }
  if (!cuenta || perfil?.rol !== 'admin') return null
  return <section className="panel-informacion admin-contenido co-limites-referencia">
-  <header className="co-limites-encabezado"><div><h2>Límites de Calidad</h2><p>Administra los límites de calidad del sistema.</p></div>
+  <header className="co-limites-encabezado"><div><h2>Límites de Calidad</h2></div>
    <div className="co-limites-acciones"><button type="button" className="boton-secundario" disabled={cargando || bloqueado} onClick={actualizar}><span aria-hidden="true">↻</span>Actualizar límites</button>
    <button type="button" className="boton-principal" disabled={!!editor || bloqueado || cargando || !!error || !disponible} onClick={abrir}><span aria-hidden="true">✎</span>Editar límites</button></div>
   </header>

@@ -1,14 +1,22 @@
 import './plantaReferencia.css'
+import { ReportesTecnicosPlanta } from './ReportesTecnicosPlanta'
 import { useMemo, useState } from 'react'
 import { usePlanta } from '../../hooks/usePlanta'
 import { capturasPlanta, filtrarCapturas, filtrosInicialesPlanta, modulosPlanta, nombresModulo, nombresTurno, resumenCaptura, validarFiltrosPlanta } from '../../lib/planta'
 import type { FiltrosPlanta, ModuloPlanta } from '../../lib/planta'
 import { DetallePlanta } from './DetallePlanta'
+import { useAuth } from '../../hooks/useAuth'
+import { PanelSupervisionPlanta } from './PanelSupervisionPlanta'
 
 const fecha = (v: string) => v.split('-').reverse().join('/')
 const instante = (v: string) => new Intl.DateTimeFormat('es-MX', { timeZone: 'America/Mexico_City', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v))
 const nombreArea = (v: string) => v === 'calderas' ? 'Calderas' : 'PTAR'
 export function PanelPlanta() {
+  const { perfil } = useAuth()
+  return perfil?.rol === 'admin' ? <PanelSupervisionPlanta /> : <ConsultaPlantaOperativa />
+}
+
+function ConsultaPlantaOperativa() {
   const [filtros, setFiltros] = useState<FiltrosPlanta>(() => filtrosInicialesPlanta())
   const [edicion, setEdicion] = useState(filtros)
   const [errorFiltro, setErrorFiltro] = useState<string | null>(null)
@@ -46,9 +54,11 @@ export function PanelPlanta() {
     {problemas.length > 0 && <p className="mensaje-error" role="alert">Consulta parcial: no se pudo cargar {problemas.join(', ')}. Pulsa Actualizar para reintentar.</p>}
     {incompletas.length > 0 && <p className="planta-aviso" role="status">Consulta limitada en {incompletas.join(', ')} (hasta 1,000 capturas por módulo). Reduce el período para consultar todos los registros.</p>}
 
+    <ReportesTecnicosPlanta />
+
     <section className="panel-informacion" aria-labelledby="historial-planta">
       <div className="planta-encabezado"><div><h2 id="historial-planta">Actividad y registros</h2></div><span className="estado-seccion">Solo consulta</span></div>
-      <div className="planta-busqueda"><label>Módulo<select value={modulo} onChange={e => { setModulo(e.target.value as ModuloPlanta | 'todos'); setPagina(1); setDetalle(null) }}><option value="todos">Todos los módulos</option>{modulosPlanta.map(m => <option key={m} value={m}>{nombresModulo[m]}</option>)}</select></label><label>Buscar operador o contenido<input type="search" placeholder="Operador, punto de muestreo, nota…" value={busqueda} onChange={e => { setBusqueda(e.target.value); setPagina(1); setDetalle(null) }} /></label></div>
+      <div className="planta-busqueda"><label>Módulo<select value={modulo} onChange={e => { setModulo(e.target.value as ModuloPlanta | 'todos'); setPagina(1); setDetalle(null) }}><option value="todos">Todos los módulos</option>{modulosPlanta.map(m => <option key={m} value={m}>{nombresModulo[m]}</option>)}</select></label><label>Buscar operador o contenido<input type="search" placeholder="Operador o captura técnica…" value={busqueda} onChange={e => { setBusqueda(e.target.value); setPagina(1); setDetalle(null) }} /></label></div>
       <p className="ayuda-turno" aria-live="polite">{visibles.length} registros encontrados</p>
       <div className="planta-tabla-scroll" tabIndex={0} role="region" aria-label="Registros de Planta, tabla desplazable"><table className="planta-tabla"><caption>Capturas ordenadas de la más reciente a la más antigua. Horarios de México.</caption><thead><tr><th scope="col">Fecha y hora</th><th scope="col">Área / turno</th><th scope="col">Operador</th><th scope="col">Módulo</th><th scope="col">Resumen</th><th scope="col">Detalle</th></tr></thead><tbody>
         {filas.map(e => {
@@ -62,7 +72,7 @@ export function PanelPlanta() {
 
     <details className="panel-informacion planta-turnos-adicionales"><summary>Turnos del período</summary>
       <div className="planta-turnos">{datos?.turnos.elementos.map(({ turno: t, operadorNombre }) => {
-        const modulos = t.area === 'calderas' ? ['bitacora', 'pozos', 'uf', 'calidad'] as const : ['bitacora', 'ptar', 'calidad'] as const
+        const modulos = t.area === 'calderas' ? ['pozos', 'uf', 'calidad'] as const : ['ptar', 'calidad'] as const
         return <article className="planta-turno" key={t.id}><div className="planta-encabezado"><strong>{nombreArea(t.area)} · {nombresTurno[t.turno]}</strong><span className={`planta-etiqueta ${t.finalizado_en ? '' : 'abierto'}`}>{t.finalizado_en ? 'Cerrado' : 'Abierto'}</span></div><h3>{operadorNombre}</h3><p>{fecha(t.fecha_operativa)}</p><p className="ayuda-turno">Inicio: {instante(t.iniciado_en)}<br />Cierre: {t.finalizado_en ? instante(t.finalizado_en) : 'En curso'}</p><div className="planta-conteos">{modulos.map(m => <span key={m}>{nombresModulo[m]} <b>{datos.fuentes[m].error ? '?' : `${capturas.filter(c => c.modulo === m && c.registro.turno.id === t.id).length}${datos.fuentes[m].incompleta ? '+' : ''}`}</b></span>)}</div>{t.notas_cierre && <p className="notas-turno">Nota de cierre: {t.notas_cierre}</p>}</article>
       })}</div>
       {!datos?.turnos.elementos.length && <p>{datos?.turnos.error ? 'No se pudieron consultar los turnos.' : datos ? 'No hay turnos en este período.' : 'Consultando turnos…'}</p>}

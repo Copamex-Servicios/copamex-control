@@ -3,9 +3,12 @@ import { useAuthStore } from '../stores/authStore'
 import { capturasPlanta, consultarPlanta, modulosPlanta, nombresModulo, validarFiltrosPlanta } from './planta'
 import type { CapturaPlanta, DatosPlanta, FiltrosPlanta, ModuloPlanta } from './planta'
 import { medicionesPTAR } from './tiposPTAR'
+import { consultarResumenesTecnicosPlanta } from './reportesTecnicosPlanta'
+import type { AreaOperativa } from './tiposTurno'
 
 export interface CambioReporte { id: string; creado_en: string; usuario: string | null; accion: string; tabla: string; registro_id: string; antes: Record<string, unknown> | null; despues: Record<string, unknown> | null }
-export interface ConsultaReporte { filtros: FiltrosPlanta; anterior: FiltrosPlanta; actual: DatosPlanta; previo: DatosPlanta; inicioConsulta: string; finConsulta: string; cambios: CambioReporte[]; auditoria: 'no-solicitada' | 'completa' | 'incompleta' | 'error'; cuenta: string }
+export type ResumenTecnicoReporte = Awaited<ReturnType<typeof consultarResumenesTecnicosPlanta>>['filas'][number] & { area: AreaOperativa }
+export interface ConsultaReporte { filtros: FiltrosPlanta; anterior: FiltrosPlanta; actual: DatosPlanta; previo: DatosPlanta; inicioConsulta: string; finConsulta: string; cambios: CambioReporte[]; auditoria: 'no-solicitada' | 'completa' | 'incompleta' | 'error'; cuenta: string; tecnicos?: Partial<Record<AreaOperativa, { filas: ResumenTecnicoReporte[]; error: boolean }>> }
 export interface DiarioReporte { fecha: string; turnos: number; capturas: number; pozo1: string | null; pozo2: string | null; alimentado: string | null; aceptado: string | null; rechazo: string | null; rendimiento: number | null; evaluados: number; fuera: number; sinLimites: number }
 export interface GrupoCalidad { clave: string; punto: string; parametro: string; unidad: string | null; n: number; evaluados: number; fuera: number; sinLimites: number; minimo: number; maximo: number; ultimo: number; limiteMinUltimo: number | null; limiteMaxUltimo: number | null; capturas: Extract<CapturaPlanta, { modulo: 'calidad' }>[] }
 export interface ResumenReporte { capturas: CapturaPlanta[]; diario: DiarioReporte[]; cerrados: number; abiertos: number; pozo1: string | null; pozo2: string | null; totalPozos: string | null; alimentado: string | null; aceptado: string | null; rechazo: string | null; rendimiento: number | null; ufBalanceNegativo: number; evaluados: number; fuera: number; sinLimites: number; calidad: GrupoCalidad[]; ptar: { campo: string; parametro: string; punto: string; n: number; minimo: number | null; maximo: number | null; promedio: number | null; ultimo: number | null }[] }
@@ -72,11 +75,41 @@ async function cambiosReporte(cuenta: string, d: DatosPlanta, signal: AbortSigna
 export async function consultarReporte(cuenta: string, filtros: FiltrosPlanta, auditoria: boolean, signal: AbortSignal): Promise<ConsultaReporte> {
   exigirCuenta(cuenta); validarFiltrosPlanta(filtros); signal.throwIfAborted()
   const anterior = periodoAnterior(filtros), inicioConsulta = new Date().toISOString()
-  const [actual, previo] = await Promise.all([consultarPlanta(filtros, signal), consultarPlanta(anterior, signal)])
+  const [actual, previo, tecnicos] = await Promise.all([consultarPlanta(filtros, signal), consultarPlanta(anterior, signal), consultarTecnicosReporte(cuenta, filtros, signal)])
   signal.throwIfAborted(); exigirCuenta(cuenta)
   const cambios = auditoria ? await cambiosReporte(cuenta, actual, signal) : { cambios: [], estado: 'no-solicitada' as const }
   signal.throwIfAborted(); exigirCuenta(cuenta)
-  return { cuenta, filtros: { ...filtros }, anterior, actual, previo, inicioConsulta, finConsulta: new Date().toISOString(), cambios: cambios.cambios, auditoria: cambios.estado }
+  return { cuenta, filtros: { ...filtros }, anterior, actual, previo, tecnicos, inicioConsulta, finConsulta: new Date().toISOString(), cambios: cambios.cambios, auditoria: cambios.estado }
+}
+async function consultarTecnicosReporte(cuenta: string, filtros: FiltrosPlanta, signal: AbortSignal): Promise<ConsultaReporte['tecnicos']> {
+  const areas: AreaOperativa[] = filtros.area === 'todas' ? ['calderas', 'ptar'] : [filtros.area]
+  const entradas = await Promise.all(areas.map(async area => {
+    const control = new AbortController(), cancelar = () => control.abort()
+    signal.addEventListener('abort', cancelar, { once: true })
+    const limite = setTimeout(cancelar, 20000)
+    try {
+      const filas: ResumenTecnicoReporte[] = [], vistos = new Set<string>()
+      for (let pagina = 0; ; pagina++) {
+        signal.throwIfAborted(); control.signal.throwIfAborted(); exigirCuenta(cuenta)
+        const r = await consultarResumenesTecnicosPlanta(area, filtros, pagina, control.signal)
+        for (const fila of r.filas) {
+          if (vistos.has(fila.id)) throw new Error('El historial técnico cambió durante la consulta.')
+          vistos.add(fila.id); filas.push({ ...fila, area })
+        }
+        if (!r.hayMas) return [area, { filas, error: false }] as const
+        if (!r.filas.length) throw new Error('Historial técnico incompleto.')
+      }
+    } catch {
+      signal.throwIfAborted(); exigirCuenta(cuenta)
+      return [area, { filas: [], error: true }] as const
+    } finally { clearTimeout(limite); signal.removeEventListener('abort', cancelar) }
+  }))
+  return Object.fromEntries(entradas)
+}
+
+export function exigirExportacionReporte(r: ConsultaReporte): void {
+  exigirCuenta(r.cuenta)
+  if (!puedeExportarReporte(r)) throw new Error('La consulta o su auditoría están incompletas. Vuelve a generar el reporte antes de exportar.')
 }
 export function resumirReporte(d: DatosPlanta, f: FiltrosPlanta): ResumenReporte {
   const capturas = capturasPlanta(d), pozos = capturas.filter(e => e.modulo === 'pozos'), uf = capturas.filter(e => e.modulo === 'uf'), calidad = capturas.filter(e => e.modulo === 'calidad'), ptar = capturas.filter(e => e.modulo === 'ptar')

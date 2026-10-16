@@ -5,11 +5,11 @@ import { fechaHoraPTAR, formatearNumeroPTAR } from '../../lib/formatoPTAR'
 interface Props {
   registros: RegistroPTAR[]
   deshabilitado: boolean
-  puedeCorregir: (registro: RegistroPTAR) => boolean
-  alCorregir: (registro: RegistroPTAR) => void
+  puedeCorregir?: (registro: RegistroPTAR) => boolean
+  alCorregir?: (registro: RegistroPTAR) => void
 }
-export function TablaHistorialPTAR({ registros, deshabilitado, puedeCorregir, alCorregir }: Props) {
-  const hayAcciones = registros.some(puedeCorregir)
+export function TablaHistorialPTAR({ registros, deshabilitado, puedeCorregir = () => false, alCorregir }: Props) {
+  const hayAcciones = !!alCorregir && registros.some(puedeCorregir)
   return <div className="ptar-tabla-contenedor" role="region" aria-label="Historial de lecturas PTAR, tabla desplazable" tabIndex={0}>
     <table className="ptar-tabla">
       <caption>Mediciones PTAR (mg/L). Fechas y horas de México.</caption>
@@ -24,7 +24,7 @@ export function TablaHistorialPTAR({ registros, deshabilitado, puedeCorregir, al
           <td>{turno.turno === 'dia' ? 'Día' : turno.turno === 'tarde' ? 'Tarde' : 'Noche'}</td>
           {medicionesPTAR.map(({campo}) => <td key={campo} className="ptar-numero">{lectura[campo] === null ? 'Sin medición' : formatearNumeroPTAR(lectura[campo])}</td>)}
           <td className="ptar-nota-historial">{lectura.notas || 'Sin notas.'}</td><td className="ptar-operador">{operadorNombre}</td>
-          {hayAcciones && <td>{puedeCorregir(registro) && <button type="button" className="boton-secundario ptar-corregir" disabled={deshabilitado} onClick={() => alCorregir(registro)}><Pencil aria-hidden="true" />Corregir lectura</button>}</td>}
+          {hayAcciones && <td>{puedeCorregir(registro) && <button type="button" className="boton-secundario ptar-corregir" disabled={deshabilitado} onClick={() => alCorregir?.(registro)}><Pencil aria-hidden="true" />Corregir lectura</button>}</td>}
         </tr>
       })}</tbody>
     </table>

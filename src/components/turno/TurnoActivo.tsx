@@ -97,7 +97,7 @@ export function TurnoActivo({
             </button>
           )}
           {puedeCerrar && (
-            <button className="boton-secundario" type="button" disabled={bloqueado}
+            <button className={puedeCambiar ? 'boton-secundario' : 'boton-primario'} type="button" disabled={bloqueado}
               onClick={() => { if (!bloqueado) setAccion('cerrar') }}>
               Cerrar turno
             </button>
@@ -117,7 +117,7 @@ export function TurnoActivo({
         <form className="formulario-turno gestion-turno" onSubmit={cerrar} aria-busy={cerrando}>
           <h3>Cierre de turno</h3>
           <p className="texto-secundario" id={`${id}-ayuda-cierre`}>
-            El cierre se registrará al guardar. Si entra otro operador, usa Cambiar de turno para cerrar este e iniciar el siguiente juntos.
+            El cierre se registrará al guardar.{puedeCambiar && ' Si entra otro operador, usa Cambiar de turno para cerrar este e iniciar el siguiente juntos.'}
           </p>
           <div className="campo-turno">
             <label htmlFor={`${id}-notas`}>Notas de cierre (opcional)</label>

@@ -72,7 +72,7 @@ export function FormularioCalidad({ area, catalogos, original, deshabilitado, al
     <fieldset className="calidad-campos" disabled={bloqueado}>
       <legend>{original ? 'Corregir muestra' : 'Nueva muestra de Calidad'}</legend>
       <div className="calidad-captura-cabecera">
-        <div><h3>{original ? 'Corregir análisis de calidades de agua' : 'Análisis de calidades de agua'}</h3><p>Llena los valores correspondientes a la hora de lectura.</p></div>
+        <div><h3>{original ? 'Corregir análisis de calidades de agua' : 'Análisis de calidades de agua'}</h3></div>
         <div className="calidad-hora"><span>Hora de muestra (México)</span><output>{original ? original.hora_muestra.slice(0,5) : horaServidor ?? '—'}</output><Clock aria-hidden="true" /><small>{original ? 'Hora original registrada' : 'Hora del servidor · Se registra al guardar'}</small></div>
       </div>
       {celdas.length === 0 && <p>No hay puntos o parámetros activos disponibles para esta área.</p>}

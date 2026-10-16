@@ -1,11 +1,7 @@
 import { RefreshCw } from 'lucide-react'
 import '../operativo/medicionesVisual.css'
-import { Icono } from '../diseno/Icono'
 import { useState } from 'react'
 import { usePozos } from '../../hooks/usePozos'
-import { extraerValoresPozos } from '../../lib/pozos'
-import type { RegistroPozos } from '../../lib/pozos'
-import type { CamposPozos } from '../../lib/tiposPozos'
 import type { TipoTurno } from '../../lib/tiposTurno'
 import { FormularioPozos } from './FormularioPozos'
 import { formatearVolumenPozos } from '../../lib/formatoPozos'
@@ -26,45 +22,29 @@ interface PropsContenidoPozos {
 }
 
 function ContenidoPozos({ datos }: PropsContenidoPozos) {
-  const [edicion, setEdicion] = useState<RegistroPozos | null>(null)
   const [revisionConcesion, setRevisionConcesion] = useState(0)
   const {
     cuentaId, rol, turno, lecturaActual, historial, estadoCarga, mensaje,
-    guardando, solicitudPendiente, mensajeAccion, puedeCrear, puedeCorregir,
-    guardarPozos, corregirPozos, reintentarGuardadoPozos, actualizarPozos,
+    guardando, solicitudPendiente, mensajeAccion, puedeCrear,
+    guardarPozos, reintentarGuardadoPozos, actualizarPozos,
   } = datos
   const listo = estadoCarga === 'listo'
   const ocupado = guardando || solicitudPendiente !== null
   const actual = lecturaActual ?? historial.find((registro) => registro.lectura.turno_id === turno?.id) ?? null
   const turnoPropio = rol === 'calderas' && turno !== null && turno.iniciado_por === cuentaId
   const anteriores = actual ? historial.filter((registro) => registro.lectura.id !== actual.lectura.id) : historial
-  const puedeGuardarEdicion = edicion !== null && puedeCorregir(edicion.lectura)
   const confirmado = mensajeAccion === 'Lectura de Pozos guardada.'
     || mensajeAccion === 'Corrección de Pozos confirmada.'
 
-  function abrirCorreccion(registro: RegistroPozos): void {
-    if (edicion === null && !ocupado && puedeCorregir(registro.lectura)) {
-      // Copiar el original consultado; una actualización no debe sustituir el snapshot.
-      setEdicion({ ...registro, lectura: { ...registro.lectura }, turno: { ...registro.turno } })
-    }
-  }
-
-  async function guardarCorreccion(campos: CamposPozos): Promise<boolean> {
-    if (!edicion || !puedeGuardarEdicion || ocupado) return false
-    const guardado = await corregirPozos(campos, edicion.lectura)
-    if (guardado) setEdicion(null)
-    return guardado
-  }
-
   async function reintentar(): Promise<void> {
     if (guardando || !solicitudPendiente) return
-    if (await reintentarGuardadoPozos()) setEdicion(null)
+    await reintentarGuardadoPozos()
   }
 
   return (
     <section className="panel-informacion panel-pozos panel-mediciones" aria-label="Pozos de Calderas">
       <div className="cabecera-turno">
-        <h2><Icono nombre="pozos" />Pozos</h2>
+        <h2>Pozos</h2>
         <button className="boton-secundario" type="button" disabled={guardando || estadoCarga === 'cargando'}
           onClick={() => { setRevisionConcesion(n => n + 1); void actualizarPozos() }}>
           <RefreshCw className="mediciones-actualizar" aria-hidden="true" />Actualizar Pozos
@@ -111,39 +91,21 @@ function ContenidoPozos({ datos }: PropsContenidoPozos) {
 
       {/* Conservar esta instancia al recargar Pozos del mismo turno para mantener el borrador. */}
       {turnoPropio && turno && (
-        <div className="captura-pozos" hidden={!listo || actual !== null || edicion !== null}>
+        <div className="captura-pozos" hidden={!listo || actual !== null}>
           <h3>Nueva lectura del turno de {nombresTurno[turno.turno]}</h3>
           {!puedeCrear && !ocupado && listo && actual === null && (
             <p className="ayuda-turno">Confirma la operación del turno antes de guardar una lectura nueva.</p>
           )}
           <FormularioPozos key={`${cuentaId}:${turno.id}:captura`} alGuardar={guardarPozos}
-            deshabilitado={!listo || !puedeCrear || ocupado || actual !== null || edicion !== null} />
+            deshabilitado={!listo || !puedeCrear || ocupado || actual !== null} />
         </div>
       )}
       {listo && rol === 'calderas' && !turnoPropio && (
         <p className="texto-secundario">Para una lectura nueva se necesita tu turno de Calderas abierto. Puedes consultar las lecturas anteriores.</p>
       )}
 
-      {edicion && rol === 'calderas' && (
-        <div className="gestion-turno edicion-pozos">
-          <h3>Corrección de la lectura seleccionada</h3>
-          <p className="texto-secundario">Turno de {nombresTurno[edicion.turno.turno]} · {fechaOperativa(edicion.turno.fecha_operativa)} · {edicion.operadorNombre}</p>
-          {listo && !ocupado && !puedeGuardarEdicion && (
-            <p className="mensaje-error" role="alert">La lectura cambió o ya no está disponible. Cancela esta corrección y vuelve a seleccionar la lectura actualizada.</p>
-          )}
-          <FormularioPozos key={`${cuentaId}:${edicion.lectura.id}:correccion`} modo="corregir"
-            valoresIniciales={extraerValoresPozos(edicion.lectura)} alGuardar={guardarCorreccion}
-            deshabilitado={!puedeGuardarEdicion || ocupado}
-            accionSecundaria={<button className="boton-secundario" type="button" disabled={ocupado}
-              onClick={() => { if (!ocupado) setEdicion(null) }}>
-              Cancelar corrección
-            </button>} />
-        </div>
-      )}
-
       {listo && actual && (
-        <LecturaPozosGuardada registro={actual} deshabilitado={ocupado || edicion !== null}
-          alCorregir={rol === 'calderas' && puedeCorregir(actual.lectura) ? () => abrirCorreccion(actual) : undefined} />
+        <LecturaPozosGuardada registro={actual} deshabilitado={ocupado} />
       )}
       {listo && (
         <div className="historial-pozos">
@@ -154,8 +116,7 @@ function ContenidoPozos({ datos }: PropsContenidoPozos) {
           ) : anteriores.map((registro) => (
             <details className="item-historial-pozos" key={registro.lectura.id}>
               <summary>{fechaOperativa(registro.turno.fecha_operativa)} · {nombresTurno[registro.turno.turno]} · {registro.operadorNombre}</summary>
-              <LecturaPozosGuardada registro={registro} deshabilitado={ocupado || edicion !== null}
-                alCorregir={rol === 'calderas' && puedeCorregir(registro.lectura) ? () => abrirCorreccion(registro) : undefined} />
+              <LecturaPozosGuardada registro={registro} deshabilitado={ocupado} />
             </details>
           ))}
         </div>
