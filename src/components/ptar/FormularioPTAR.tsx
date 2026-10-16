@@ -1,4 +1,4 @@
-import { Droplet, Waves, FileText, Save, Trash2 } from 'lucide-react'
+import { Save, Trash2 } from 'lucide-react'
 import { useId, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { ErrorPTAR, validarCamposPTAR } from '../../lib/ptar'
@@ -44,8 +44,7 @@ export function FormularioPTAR({ original, deshabilitado, alGuardar }: Props) {
       <div className="ptar-paneles">
         {(['DQO', 'SST'] as const).map(parametro => <section className={`ptar-mediciones ptar-mediciones-${parametro.toLowerCase()}`} key={parametro} aria-labelledby={`${id}-${parametro}`}>
           <div className="ptar-mediciones-cabecera">
-            {parametro === 'DQO' ? <Droplet aria-hidden="true" /> : <Waves aria-hidden="true" />}
-            <div><h4 id={`${id}-${parametro}`}>{parametro} (mg/L)</h4><p>Registra las mediciones de {parametro} en los distintos puntos.</p></div>
+            <div><h4 id={`${id}-${parametro}`}>{parametro} (mg/L)</h4></div>
           </div>
           <div className="ptar-mediciones-campos">
             {medicionesPTAR.filter(m => m.parametro === parametro).map(({campo,parametro,punto}) => <div className="campo-turno" key={campo}>
@@ -57,7 +56,7 @@ export function FormularioPTAR({ original, deshabilitado, alGuardar }: Props) {
         </section>)}
       </div>
       <div className="campo-turno ptar-notas">
-        <div className="ptar-notas-titulo"><FileText aria-hidden="true" /><div><label htmlFor={`${id}-notas`}>Notas (opcional)</label><p>Agrega observaciones del turno, incidencias o cualquier detalle relevante.</p></div></div>
+        <div className="ptar-notas-titulo"><div><label htmlFor={`${id}-notas`}>Notas (opcional)</label></div></div>
         <textarea id={`${id}-notas`} name="notas" rows={2} placeholder="Escribe tus notas aquí…" value={campos.notas} onChange={e => cambiar('notas',e.target.value)} />
       </div>
     </fieldset>

@@ -23,6 +23,7 @@ export type EstadoAgitadorPTAR = '' | 'Servicio' | 'Reserva' | 'Mantenimiento'
 export const destinosDescargaPTAR = ['Tanque 11', 'Tanques 5 y 6'] as const
 export type DestinoDescargaPTAR = '' | typeof destinosDescargaPTAR[number]
 export interface BorradorBitacoraPTAR {
+  reporteRelevante: string
   estadoAgitador: EstadoAgitadorPTAR
   destinoDescarga: DestinoDescargaPTAR
   mediciones: Record<CampoBitacoraPTAR, string>
@@ -32,6 +33,7 @@ export interface BorradorBitacoraPTAR {
 }
 export function borradorBitacoraPTAR(): BorradorBitacoraPTAR {
   return {
+    reporteRelevante: '',
     mediciones: Object.fromEntries(medicionesBitacoraPTAR.map(m => [m.campo, ''])) as BorradorBitacoraPTAR['mediciones'],
     bombas: { '9': '', '13': '', '9310': '' },
     prensas: { Essity: '', Nalco: '' },

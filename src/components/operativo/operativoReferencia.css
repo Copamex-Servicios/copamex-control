@@ -3,7 +3,7 @@
 .co-layout .co-operativo-referencia .panel-informacion { padding:22px 24px; border-radius:12px; background:#fff; }
 .co-layout .co-operativo-referencia .resumen-dia { gap:12px; margin-bottom:20px; }
 .co-layout .co-operativo-referencia .resumen-dia-tarjeta { position:relative; border-radius:10px; padding:18px 20px; }
-.co-layout .co-operativo-referencia .resumen-dia-tarjeta:has(>.resumen-dia-vacio) { min-height:78px; padding-left:90px; }
+.co-layout .co-operativo-referencia .resumen-dia-tarjeta:has(>.resumen-dia-vacio) { min-height:78px; padding-left:20px; }
 .co-layout .co-operativo-referencia .resumen-dia-tarjeta:has(>.resumen-dia-vacio)>.co-dia-icono { display:grid; place-items:center; position:absolute; left:18px; top:50%; transform:translateY(-50%); width:44px; height:44px; border:1px solid #e4edfa; background:#f3f7fd; border-radius:6px; color:#06469e; }
 .co-layout .co-operativo-referencia .co-dia-icono svg { width:25px; height:25px; }
 .co-layout .co-operativo-referencia .resumen-dia-cabecera h2 { display:flex; align-items:center; gap:10px; }
@@ -42,7 +42,7 @@
  .co-layout .co-operativo-referencia .panel-turno .formulario-turno>.campos-turno { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:auto; gap:16px; }
  .co-layout .co-operativo-referencia .panel-turno .campos-turno>.campo-turno { grid-column:1; grid-row:auto; }
  .co-layout .co-operativo-referencia .panel-turno .formulario-turno>.co-confirmar-empleado { order:2; }
- .co-layout .co-operativo-referencia .resumen-dia-tarjeta:has(>.resumen-dia-vacio) { padding-left:76px; }
+ .co-layout .co-operativo-referencia .resumen-dia-tarjeta:has(>.resumen-dia-vacio) { padding-left:20px; }
 }
 
 

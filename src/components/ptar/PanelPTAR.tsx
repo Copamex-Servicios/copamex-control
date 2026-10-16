@@ -1,4 +1,4 @@
-import { ClipboardList, History, RefreshCw, Waves } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import './ptarReferencia.css'
 import { useState } from 'react'
 import { medicionesPTAR } from '../../lib/tiposPTAR'
@@ -33,7 +33,7 @@ function ContenidoPTAR({ datos }: { datos: ReturnType<typeof usePTAR> }) {
   }
   return <section className="ptar-referencia" aria-label="Lecturas PTAR">
     <header className="ptar-cabecera">
-      <div className="ptar-cabecera-titulo"><span className="ptar-icono-modulo"><Waves aria-hidden="true" /></span><div><h2>Lecturas PTAR</h2><p>Registro de mediciones operativas del turno</p></div></div>
+      <div className="ptar-cabecera-titulo"><div><h2>Lecturas PTAR</h2></div></div>
       <button className="boton-secundario" type="button" disabled={actualizando} onClick={() => { void actualizarPTAR() }}><RefreshCw aria-hidden="true" />Actualizar lecturas PTAR</button>
     </header>
     {mensajeAccion && <p className={confirmado ? 'mensaje-exito' : 'mensaje-error'} role={confirmado ? 'status' : 'alert'}>{mensajeAccion}</p>}
@@ -47,12 +47,12 @@ function ContenidoPTAR({ datos }: { datos: ReturnType<typeof usePTAR> }) {
     {estadoCarga === 'cargando' && <p role="status">Consultando Lecturas PTAR…</p>}
     {estadoCarga === 'error' && <p className="mensaje-error" role="alert">{mensaje || 'No se pudo consultar Lecturas PTAR. Usa Actualizar Lecturas PTAR para reintentar.'}</p>}
     {propio && turno && <div className="ptar-tarjeta ptar-captura" hidden={!listo}>
-      <div className="ptar-seccion-titulo"><ClipboardList aria-hidden="true" /><div><h3>Nueva lectura del turno</h3><p>Registra las mediciones de DQO y SST del turno actual.</p></div></div>
+      <div className="ptar-seccion-titulo"><div><h3>Nueva lectura del turno</h3></div></div>
       <FormularioPTAR key={`${turno.id}:${numeroCaptura}`} alGuardar={guardar} deshabilitado={!puedeCrear || ocupado} />
     </div>}
     {listo && rol === area && !propio && <p>Para guardar lecturas nuevas necesitas tu turno del área abierto. Puedes consultar las lecturas anteriores.</p>}
     {listo && <div className="ptar-tarjeta ptar-historial">
-      <div className="ptar-historial-cabecera"><div className="ptar-seccion-titulo"><History aria-hidden="true" /><div><h3>Historial de lecturas PTAR</h3><p>Últimos registros de mediciones operativas.</p></div></div>
+      <div className="ptar-historial-cabecera"><div className="ptar-seccion-titulo"><div><h3>Historial de lecturas PTAR</h3></div></div>
         <button className="boton-secundario" type="button" disabled={actualizando} onClick={() => { void actualizarPTAR() }}><RefreshCw aria-hidden="true" />Actualizar</button>
       </div>
       {registros.length === 0 ? <p>No hay lecturas guardadas para consultar.</p> : <TablaHistorialPTAR registros={registros} deshabilitado={ocupado}

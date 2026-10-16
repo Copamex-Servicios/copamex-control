@@ -51,17 +51,7 @@
 .co-layout .bpt-panel .bpt-control { display:block; position:relative; min-width:0; }
 .co-layout .bpt-panel .bpt-campo .bpt-con-unidad input { padding-right:78px; }
 .co-layout .bpt-panel .bpt-unidad { position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#526581; font-size:13px; font-weight:400; pointer-events:none; }
-/* El título y Actualizar comparten una fila solo en Observaciones de PTAR. */
-.co-layout .bpt-panel .bpt-observaciones { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:12px; }
-.co-layout .bpt-panel .bpt-observaciones>.bpt-titulo-seccion { grid-column:1; grid-row:1; margin:0; }
-.co-layout .bpt-panel .bpt-observaciones>.panel-bitacora.bitacora-modulo { display:contents; }
-.co-layout .bpt-panel .bpt-observaciones>.panel-bitacora> * { grid-column:1 / -1; min-width:0; }
-.co-layout .bpt-panel .bpt-observaciones>.panel-bitacora>.cabecera-turno { grid-column:2; grid-row:1; margin:0; }
-@container bpt-form (max-width:540px) {
-  .co-layout .bpt-panel .bpt-observaciones { grid-template-columns:minmax(0,1fr); gap:10px; }
-  .co-layout .bpt-panel .bpt-observaciones>.panel-bitacora>.cabecera-turno { grid-column:1; grid-row:2; justify-content:flex-start; }
-}
-
+/* Consulta de reportes técnicos de PTAR. */
 /* Franja compacta de descarga; conserva los radios nativos y su selección única. */
 .co-layout .bpt-panel .bpt-descarga { min-width:0; margin:0; padding:9px 12px; border:1px solid #e2eaf4; border-radius:8px; background:#f3f6fb; }
 .co-layout .bpt-panel .bpt-descarga legend { float:left; margin:0 20px 0 0; padding:0; color:#334d70; font-size:13px; font-weight:600; line-height:28px; }
@@ -75,3 +65,29 @@
 @container bpt-form (max-width:540px) {
   .co-layout .bpt-panel .bpt-descarga legend { float:none; margin:0 0 3px; }
 }
+
+/* Historial técnico integrado en la Bitácora; no afecta otros módulos. */
+.co-layout .bpt-panel .bpt-historial-tecnico { margin:0 0 22px; min-width:0; }
+.co-layout .bpt-panel .bpt-historial-cabecera { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+.co-layout .bpt-panel .bpt-historial-cabecera h4 { margin:0; color:var(--co-text); font-size:16px; }
+.co-layout .bpt-panel .bpt-filtros-tecnicos { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-bottom:14px; }
+.co-layout .bpt-panel .bpt-reporte-historico { margin:0 0 10px; border:1px solid var(--co-border); border-radius:8px; min-width:0; }
+.co-layout .bpt-panel .bpt-reporte-historico summary { padding:12px 14px; cursor:pointer; color:var(--co-text); }
+.co-layout .bpt-panel .bpt-reporte-historico summary>span { display:inline-flex; flex-direction:column; gap:4px; max-width:calc(100% - 24px); vertical-align:top; overflow-wrap:anywhere; }
+.co-layout .bpt-panel .bpt-reporte-historico summary strong { font-size:14px; }
+.co-layout .bpt-panel .bpt-reporte-historico summary span span { color:#526581; font-size:13px; }
+.co-layout .bpt-panel .bpt-reporte-historico summary:focus-visible { outline:2px solid var(--co-primary); outline-offset:2px; }
+.co-layout .bpt-panel .bpt-detalle-tecnico { padding:0 14px 14px; }
+.co-layout .bpt-panel .bpt-detalle-grupo { padding:12px 0; border-top:1px solid #e7eef6; }
+.co-layout .bpt-panel .bpt-detalle-grupo h5 { margin:0 0 10px; font-size:14px; color:var(--co-text); }
+.co-layout .bpt-panel .bpt-valores { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px 18px; margin:0; }
+.co-layout .bpt-panel .bpt-valores dt { color:#526581; font-size:12px; }
+.co-layout .bpt-panel .bpt-valores dd { margin:4px 0 0; color:var(--co-text); font-size:14px; white-space:pre-wrap; overflow-wrap:anywhere; }
+.co-layout .bpt-panel .bpt-paginacion-tecnica { display:flex; align-items:center; justify-content:flex-end; gap:12px; flex-wrap:wrap; margin:12px 0; font-size:13px; }
+@media(max-width:600px) {
+  .co-layout .bpt-panel .bpt-filtros-tecnicos { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .co-layout .bpt-panel .bpt-valores { grid-template-columns:minmax(0,1fr); }
+}
+
+.co-layout .bpt-panel .bpt-acciones:has(> [hidden]) { justify-content: flex-end; }
+.co-layout .bpt-panel .bpt-acciones:has(> [hidden]):not(:has(> button)) { padding-top: 0; gap: 0; }

@@ -1,0 +1,82 @@
+﻿/* Administrator Planta only. */
+.co-layout .planta-admin { display:grid; grid-template-columns:minmax(0,1fr); gap:16px; min-width:0; }
+.co-layout .planta-admin [hidden] { display:none!important; }
+.co-layout .planta-admin :is([role="tabpanel"],.supervision-resumen,.supervision-resumen>*,.supervision-detalle-reporte) { min-width:0; }
+.co-layout .planta-admin :is(h2,h3) { color:var(--co-navy); }
+.co-layout .planta-admin h2 { font-size:18px; }
+.co-layout .planta-admin .supervision-selector h2 { margin:0 0 16px; }
+.co-layout .planta-admin label { display:grid; gap:6px; min-width:0; font-size:12px; color:var(--co-text); }
+.co-layout .planta-admin :is(input,select) { min-width:0; width:100%; box-sizing:border-box; }
+.co-layout .planta-admin .supervision-periodo { display:grid; grid-template-columns:1.1fr 1fr 1fr .9fr auto; gap:14px; align-items:end; }
+.co-layout .planta-admin .supervision-solo-area { grid-template-columns:minmax(180px,260px); }
+.co-layout .planta-admin .supervision-tabs { display:flex; gap:4px; border-bottom:1px solid var(--co-border); }
+.co-layout .planta-admin .supervision-tabs button { flex:1; min-width:0; border:0; border-radius:8px 8px 0 0; background:#edf3fb; color:var(--co-muted); padding:14px 10px; font:inherit; font-size:14px; cursor:pointer; }
+.co-layout .planta-admin .supervision-tabs button[aria-selected="true"] { color:var(--co-primary); font-weight:650; background:#fff; box-shadow:inset 0 -3px var(--co-primary); }
+.co-layout .planta-admin .supervision-tabs button:focus-visible { outline:2px solid var(--co-primary); outline-offset:-3px; }
+.co-layout .planta-admin .supervision-resumen { display:grid; grid-template-columns:minmax(0,1fr); gap:16px; }
+.co-layout .planta-admin .supervision-conteos { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin:0; }
+.co-layout .planta-admin .supervision-conteos>div { padding:20px 24px; border:1px solid var(--co-border); border-radius:10px; background:#fff; min-width:0; position:relative; }
+.co-layout .planta-admin .supervision-conteos>div::before { content:''; position:absolute; inset:16px auto 16px 12px; width:2px; border-radius:2px; background:var(--co-primary); }
+.co-layout .planta-admin .supervision-conteos dt { font-size:13px; color:var(--co-muted); }
+.co-layout .planta-admin .supervision-conteos dd { margin:6px 0 0; color:var(--co-navy); font-size:26px; font-weight:650; overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+.co-layout .planta-admin .planta-encabezado { margin-bottom:14px; gap:12px; }
+.co-layout .planta-admin .planta-tabla { min-width:680px; table-layout:auto; }
+.co-layout .planta-admin .planta-tabla :is(th,td) { width:auto!important; padding:10px 12px; }
+.co-layout .planta-admin .planta-tabla td { vertical-align:middle; }
+.co-layout .planta-admin .supervision-tabla-resumen { min-width:610px; }
+.co-layout .planta-admin .supervision-tabla-resumen tbody th { background:transparent; color:var(--co-navy); border-bottom:1px solid var(--co-border); }
+.co-layout .planta-admin .planta-tabla .boton-secundario { min-height:32px; padding:6px 14px; }
+.co-layout .planta-admin .supervision-tabla-tecnicos td:last-child { width:80px!important; }
+.co-layout .planta-admin .planta-paginacion { display:flex; justify-content:flex-end; align-items:center; gap:10px; flex-wrap:wrap; margin-top:16px; font-size:12px; }
+.co-layout .planta-admin .planta-paginacion>span:first-child:not(:last-child) { margin-right:auto; }
+.co-layout .planta-admin .supervision-detalle-reporte { margin-top:18px; padding-top:18px; border-top:1px solid var(--co-border); }
+.co-layout .planta-admin .supervision-detalle-reporte .planta-encabezado p { font-size:12px; color:var(--co-muted); margin:6px 0 0; }
+.co-layout .planta-admin .supervision-monitor .monitor-concesion header { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:start; margin-bottom:16px; }
+.co-layout .planta-admin .supervision-monitor h3 { margin:0 0 6px; font-size:18px; }
+.co-layout .planta-admin .supervision-monitor header span { font-size:12px; color:var(--co-muted); }
+.co-layout .planta-admin .supervision-monitor-actualizado { margin-left:auto; }
+.co-layout .planta-admin .supervision-monitor .monitor-concesion-datos { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.co-layout .planta-admin .supervision-monitor .monitor-concesion-datos>div { display:grid; gap:6px; padding:12px 16px; background:#f4f7fc; border:1px solid var(--co-border); border-radius:7px; }
+.co-layout .planta-admin .supervision-monitor .monitor-concesion-datos span { font-size:12px; color:var(--co-muted); }
+.co-layout .planta-admin .supervision-monitor .monitor-concesion-datos strong { color:var(--co-navy); font-size:22px; overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+.co-layout .planta-admin .supervision-monitor progress { display:block; width:100%; height:10px; margin:14px 0 10px; appearance:none; border:0; border-radius:6px; overflow:hidden; background:#e1e8f2; }
+.co-layout .planta-admin .supervision-monitor progress::-webkit-progress-bar { background:#e1e8f2; }
+.co-layout .planta-admin .supervision-monitor progress::-webkit-progress-value { background:var(--co-primary); }
+.co-layout .planta-admin .supervision-monitor progress::-moz-progress-bar { background:var(--co-primary); }
+.co-layout .planta-admin .supervision-monitor .monitor-concesion-pie { display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; font-size:12px; }
+.co-layout .planta-admin .supervision-monitor :is(.monitor-concesion-exceso,.monitor-concesion-error) { color:#a32f2f; }
+.co-layout .planta-admin .admin-campos { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:12px 0; border:0; padding:0; min-width:0; align-items:end; }
+.co-layout .planta-admin .admin-campos.supervision-filtros-registros { grid-template-columns:repeat(2,minmax(110px,1fr)) minmax(140px,1.15fr) minmax(90px,.8fr) minmax(100px,.9fr) minmax(170px,1.6fr) auto; gap:10px; margin:0 0 18px; }
+.co-layout .planta-admin .supervision-filtros-registros .boton-principal { width:auto; min-height:42px; padding:10px 20px; }
+.co-layout .planta-admin textarea { width:100%; max-width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--co-border); border-radius:8px; font:inherit; font-size:13px; resize:vertical; }
+.co-layout .planta-admin :is(.admin-editor,.revision-historial) { margin:18px 0; padding:16px; border:1px solid var(--co-border); border-radius:8px; background:#f7faff; min-width:0; }
+.co-layout .planta-admin .revision-texto { white-space:pre-wrap; overflow-wrap:anywhere; }
+.co-layout .planta-admin .supervision-acciones-detalle { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+.co-layout .planta-admin .admin-pendiente { margin:14px 0; padding:12px; border:1px solid var(--co-border); border-radius:8px; }
+.co-layout .planta-admin .supervision-registros>.planta-tabla-scroll>.planta-tabla { min-width:780px; }
+.co-layout .planta-admin .supervision-registros>.planta-tabla-scroll>.planta-tabla td:nth-child(4) { max-width:360px; }
+.co-layout .planta-admin .supervision-estado { display:inline-block; padding:4px 10px; border-radius:20px; font-size:11px; white-space:nowrap; background:#e2f4ec; color:#195b46; }
+.co-layout .planta-admin .supervision-anulado { background:#edf0f5; color:#53647a; }
+@media(max-width:1250px) { .co-layout .planta-admin .admin-campos.supervision-filtros-registros { grid-template-columns:repeat(3,minmax(0,1fr)) auto; } }
+@media(max-width:900px) {
+ .co-layout .planta-admin .supervision-periodo { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .co-layout .planta-admin .supervision-periodo>button { justify-self:start; }
+ .co-layout .planta-admin .supervision-conteos dd { font-size:22px; }
+}
+@media(max-width:600px) {
+ .co-layout .planta-admin .supervision-tabs button { padding:12px 5px; font-size:12px; }
+ .co-layout .planta-admin :is(.supervision-periodo,.admin-campos,.admin-campos.supervision-filtros-registros) { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .co-layout .planta-admin .supervision-conteos { grid-template-columns:minmax(0,1fr); gap:8px; }
+ .co-layout .planta-admin .supervision-conteos>div { padding:14px 22px; display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+ .co-layout .planta-admin .supervision-conteos dd { margin:0; font-size:21px; }
+ .co-layout .planta-admin .supervision-monitor .monitor-concesion-datos { grid-template-columns:minmax(0,1fr); gap:8px; }
+ .co-layout .planta-admin .supervision-monitor .monitor-concesion-datos>div { grid-template-columns:minmax(0,1fr) auto; align-items:center; padding:10px; }
+ .co-layout .planta-admin .supervision-monitor .monitor-concesion-datos strong { font-size:18px; }
+ .co-layout .planta-admin .supervision-monitor-actualizado { margin-left:0; }
+}
+@media(max-width:360px) { .co-layout .planta-admin :is(.supervision-periodo,.admin-campos,.admin-campos.supervision-filtros-registros) { grid-template-columns:minmax(0,1fr); } }
+.co-layout .planta-admin .supervision-selector:has(.supervision-solo-area) { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; }
+.co-layout .planta-admin .supervision-selector:has(.supervision-solo-area) h2 { margin:0; }
+.co-layout .planta-admin .supervision-solo-area { width:260px; max-width:100%; }
+.co-layout .planta-admin .planta-resumen-captura { margin:3px 0 0; }
+.co-layout .planta-admin .supervision-tabla-resumen tbody th { white-space:nowrap; }

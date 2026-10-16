@@ -56,7 +56,7 @@ export function usePlanta(filtros: FiltrosPlanta) {
     solicitar.current = actualizar
     void cargar()
     const channel = supabase.channel(`planta:${cuenta}:${crypto.randomUUID()}`)
-    for (const tabla of ['turnos_operativos', 'operadores', 'bitacora', 'lecturas_pozos', 'lecturas_uf', 'lecturas_ptar', 'muestras_calidad', 'resultados_calidad', 'puntos_muestreo', 'parametros_calidad']) {
+    for (const tabla of ['turnos_operativos', 'operadores', 'lecturas_pozos', 'lecturas_uf', 'lecturas_ptar', 'muestras_calidad', 'resultados_calidad', 'puntos_muestreo', 'parametros_calidad']) {
       channel.on('postgres_changes', { event: '*', schema: 'public', table: tabla }, cambio)
     }
     channel.subscribe(status => {

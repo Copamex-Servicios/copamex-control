@@ -1,6 +1,5 @@
 import { RefreshCw } from 'lucide-react'
 import '../operativo/medicionesVisual.css'
-import { Icono } from '../diseno/Icono'
 import { useState } from 'react'
 import { usePozos } from '../../hooks/usePozos'
 import type { TipoTurno } from '../../lib/tiposTurno'
@@ -45,7 +44,7 @@ function ContenidoPozos({ datos }: PropsContenidoPozos) {
   return (
     <section className="panel-informacion panel-pozos panel-mediciones" aria-label="Pozos de Calderas">
       <div className="cabecera-turno">
-        <h2><Icono nombre="pozos" />Pozos</h2>
+        <h2>Pozos</h2>
         <button className="boton-secundario" type="button" disabled={guardando || estadoCarga === 'cargando'}
           onClick={() => { setRevisionConcesion(n => n + 1); void actualizarPozos() }}>
           <RefreshCw className="mediciones-actualizar" aria-hidden="true" />Actualizar Pozos

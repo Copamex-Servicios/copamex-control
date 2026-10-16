@@ -1,0 +1,63 @@
+/* Shared presentation for saved technical reports. */
+.co-layout :is(.bc-panel,.bpt-panel) .planta-reporte-detalle { container:planta-reporte / inline-size; min-width:0; }
+.co-layout .planta-reporte-detalle .pcr-metadatos { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:4px 16px; padding:0 2px 10px; color:var(--co-muted); font-size:11px; line-height:1.5; }
+.co-layout .planta-reporte-detalle .pcr-metadatos p { margin:0; }
+.co-layout .planta-reporte-detalle .pcr-metadatos>span { font-weight:600; white-space:nowrap; }
+.co-layout .planta-reporte-detalle .pcr-formato-anterior { margin:0 0 10px; padding:8px 10px; border-radius:6px; background:#f1f5fb; color:var(--co-muted); font-size:12px; line-height:1.5; }
+.co-layout .planta-reporte-detalle .pcr-secciones { display:grid; gap:10px; padding:10px; border-radius:8px; background:#f5f8fd; min-width:0; }
+.co-layout .planta-reporte-detalle .pcr-seccion { min-width:0; margin:0; padding:11px 12px; border:1px solid var(--co-border); border-radius:8px; background:#fff; }
+.co-layout .planta-reporte-detalle .pcr-seccion>h5 { margin:0 0 10px; padding:0 0 7px; border-bottom:1px solid #edf2f9; color:var(--co-navy,#073b7a); font-size:14px; font-weight:700; line-height:1.35; letter-spacing:-.15px; }
+.co-layout .planta-reporte-detalle .pcr-narrativa { margin:0; padding:9px 11px; border-radius:6px; background:#f0f5fc; color:var(--co-text); font-size:13px; font-weight:500; line-height:1.6; white-space:pre-wrap; overflow-wrap:anywhere; }
+.co-layout .planta-reporte-detalle :is(.pcr-datos,.pcr-equipos,.pcr-pila-datos) { display:grid; grid-template-columns:minmax(0,1fr); gap:12px 0; margin:0; padding:0; }
+.co-layout .planta-reporte-detalle .pcr-dato { min-width:0; padding:0 10px; border-inline-start:1px solid #e5edf8; }
+.co-layout .planta-reporte-detalle dt { color:var(--co-muted); font-size:11px; font-weight:400; line-height:1.45; overflow-wrap:anywhere; }
+.co-layout .planta-reporte-detalle .pcr-dato dd { margin:5px 0 0; color:var(--co-text); font-size:13px; font-weight:600; line-height:1.5; white-space:pre-wrap; overflow-wrap:anywhere; }
+.co-layout .planta-reporte-detalle .pcr-unidad { font-size:.9em; font-weight:500; white-space:nowrap; }
+.co-layout .planta-reporte-detalle .pcr-vacio { color:var(--co-muted); font-weight:400; }
+.co-layout .planta-reporte-detalle .pcr-dato dd.pcr-vacio { color:var(--co-muted); font-weight:400; }
+.co-layout .planta-reporte-detalle .pcr-estado { display:inline-block; max-width:100%; box-sizing:border-box; padding:3px 9px; border-radius:20px; color:#46607d; background:#eef2f7; font-size:11px; font-weight:600; line-height:1.4; overflow-wrap:anywhere; vertical-align:middle; }
+.co-layout .planta-reporte-detalle .pcr-estado--servicio { color:#08634d; background:#e0f3eb; }
+.co-layout .planta-reporte-detalle .pcr-estado--reserva { color:#1c5294; background:#e8f0ff; }
+.co-layout .planta-reporte-detalle .pcr-estado--mantenimiento { color:#825416; background:#fff2d4; }
+.co-layout .planta-reporte-detalle .pcr-equipos { gap:10px; }
+.co-layout .planta-reporte-detalle .pcr-equipo { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:7px 8px; align-items:center; min-width:0; padding:9px 10px; border:1px solid #e8eef7; border-radius:6px; }
+.co-layout .planta-reporte-detalle .pcr-equipo>dt { color:var(--co-text); font-size:12px; font-weight:600; }
+.co-layout .planta-reporte-detalle .pcr-equipo>dd { display:contents; }
+.co-layout .planta-reporte-detalle .pcr-equipo>dd>.pcr-vacio { font-size:11px; }
+.co-layout .planta-reporte-detalle .pcr-presion-equipo { grid-column:1 / -1; display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:3px 8px; padding-top:6px; border-top:1px solid #edf2f9; color:var(--co-muted); font-size:11px; }
+.co-layout .planta-reporte-detalle .pcr-presion-equipo strong { color:var(--co-text); font-size:12px; font-weight:600; overflow-wrap:anywhere; }
+.co-layout .planta-reporte-detalle .pcr-presion-equipo strong.pcr-vacio { color:var(--co-muted); font-weight:400; }
+.co-layout .planta-reporte-detalle .pcr-pilas { display:grid; grid-template-columns:minmax(0,1fr); gap:10px; }
+.co-layout .planta-reporte-detalle .pcr-pila { min-width:0; padding:9px; border:1px solid #e4ecf7; border-radius:6px; }
+.co-layout .planta-reporte-detalle .pcr-pila h6 { margin:0 0 8px; color:var(--co-navy,#073b7a); font-size:12px; font-weight:650; line-height:1.4; }
+.co-layout .planta-reporte-detalle .pcr-pila-datos { grid-template-columns:repeat(3,minmax(0,1fr)); gap:0; overflow:hidden; border:1px solid #edf2f9; border-radius:5px; }
+.co-layout .planta-reporte-detalle .pcr-pila-datos .pcr-dato { padding:0; }
+.co-layout .planta-reporte-detalle .pcr-pila-datos .pcr-dato:first-child { border-inline-start:0; }
+.co-layout .planta-reporte-detalle .pcr-pila-datos dt { padding:5px 3px; background:#f0f5fc; text-align:center; font-size:10px; }
+.co-layout .planta-reporte-detalle .pcr-pila-datos dd { margin:0; padding:6px 3px; text-align:center; font-size:12px; }
+@container planta-reporte (min-width:440px) {
+  .co-layout .planta-reporte-detalle :is(.pcr-datos,.pcr-equipos) { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@container planta-reporte (min-width:660px) {
+  .co-layout .planta-reporte-detalle :is(.pcr-mediciones,.pcr-compresores,.pcr-agua) { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .co-layout .planta-reporte-detalle .pcr-pilas { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@container planta-reporte (min-width:1000px) {
+  .co-layout .planta-reporte-detalle .pcr-equipos { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  .co-layout .planta-reporte-detalle .pcr-mediciones { grid-template-columns:repeat(6,minmax(0,1fr)); }
+  .co-layout .planta-reporte-detalle .pcr-ultrafiltracion { grid-template-columns:1fr 1fr 1fr 1.5fr; }
+  .co-layout .planta-reporte-detalle :is(.pcr-compresores,.pcr-agua) { grid-template-columns:repeat(5,minmax(0,1fr)); }
+  .co-layout .planta-reporte-detalle .pcr-pilas { grid-template-columns:repeat(4,minmax(0,1fr)); }
+}
+@container planta-reporte (max-width:439px) {
+  .co-layout .planta-reporte-detalle .pcr-secciones { padding:6px; gap:8px; }
+  .co-layout .planta-reporte-detalle .pcr-seccion { padding:10px; }
+}
+
+.co-layout .planta-reporte-detalle .pcr-ancho { grid-column:1 / -1; }
+@container planta-reporte (min-width:660px) {
+  .co-layout .planta-reporte-detalle .pcr-ptar-datos { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
+@container planta-reporte (min-width:1000px) {
+  .co-layout .planta-reporte-detalle .pcr-ptar-datos { grid-template-columns:repeat(4,minmax(0,1fr)); }
+}

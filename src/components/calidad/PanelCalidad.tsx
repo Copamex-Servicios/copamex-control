@@ -1,4 +1,4 @@
-import { Droplets, Info, RefreshCw } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import type { useInformacionDia } from '../../hooks/useInformacionDia'
 import './calidadReferencia.css'
 import { useState } from 'react'
@@ -34,9 +34,9 @@ function ContenidoCalidad({ datos, area, informacion, horaServidor }: { datos: R
     }
   }
   return <section className="calidad-referencia" aria-label={`Calidad de ${area === 'calderas' ? 'Calderas' : 'PTAR'}`}>
-    <header className="calidad-encabezado"><div className="calidad-encabezado-titulo"><span className="calidad-icono"><Droplets aria-hidden="true" /></span><div><h2>Calidad</h2><p>Registro de muestras y análisis de calidad del agua</p></div></div><button className="boton-secundario" type="button"
+    <header className="calidad-encabezado"><div className="calidad-encabezado-titulo"><div><h2>Calidad</h2></div></div><button className="boton-secundario" type="button"
       disabled={guardando || estadoCarga === 'cargando'} onClick={() => { void actualizarCalidad() }}><RefreshCw aria-hidden="true" />Actualizar Calidad</button></header>
-    {informacion && rol === area && <aside className="calidad-produccion" aria-label="Objetivos de producción actual"><Info aria-hidden="true" /><div><h3>Objetivos de producción actual</h3>
+    {informacion && rol === area && <aside className="calidad-produccion" aria-label="Objetivos de producción actual"><div><h3>Objetivos de producción actual</h3>
       {informacion.datos?.produccion.error ? <p role="alert">No se pudo consultar la producción.</p>
         : !informacion.datos ? <p role="status">Consultando producción…</p>
         : informacion.datos.produccion.elementos.length === 0 ? <p>Sin producción programada.</p>

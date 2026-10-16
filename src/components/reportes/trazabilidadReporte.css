@@ -1,0 +1,47 @@
+.co-layout .rep-traza > .ayuda-turno { margin: -8px 0 16px; }
+.co-layout .rep-traza-metricas { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin-bottom: 18px; }
+.co-layout .rep-traza-metricas > div { display: grid; gap: 4px; padding: 12px 16px; border: 1px solid var(--co-border); border-radius: 8px; background: #f5f8fc; }
+.co-layout .rep-traza-metricas span { font-size: 13px; color: var(--co-muted); }
+.co-layout .rep-traza-metricas strong { color: var(--co-text); font-size: 24px; font-variant-numeric: tabular-nums; white-space: nowrap; flex-shrink: 0; }
+.co-layout .rep-traza .planta-tabla { min-width: 800px; }
+.co-layout .rep-traza :is(td,dd) { overflow-wrap: anywhere; }
+.co-layout .rep-traza-accion { display: inline-block; padding: 3px 8px; border-radius: 5px; background: #edf2f8; color: #405371; font-size: 12px; white-space: nowrap; }
+.co-layout .rep-traza-insert { background: #e7f3ed; color: #236144; }
+.co-layout .rep-traza-update { background: #eaf1fd; color: #275a94; }
+.co-layout .rep-traza-delete { background: #f8ecee; color: #8c3c49; }
+.co-layout .rep-traza .planta-paginacion { margin-top: 16px; }
+.co-layout .rep-traza-sin-datos { padding: 0 16px; }
+.co-layout .rep-traza button, .co-layout .rep-traza-dialog button { min-height: 38px; padding: 7px 14px; border: 1px solid #bed1ed; border-radius: 7px; background: #fff; color: var(--co-primary); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.co-layout .rep-traza button:disabled { opacity: .45; cursor: not-allowed; }
+.co-layout .rep-traza-dialog { position: fixed; inset: 0 0 0 auto; width: min(760px,100%); max-width: 100%; height: 100dvh; max-height: 100dvh; margin: 0; padding: 24px; border: 1px solid var(--co-border); border-radius: 12px 0 0 12px; background: #fff; color: var(--co-text); overflow-y: auto; overscroll-behavior: contain; box-sizing: border-box; font: inherit; }
+.co-layout .rep-traza-dialog::backdrop { background: rgb(9 27 55 / 35%); }
+.co-layout .rep-traza-cabecera { display: flex; justify-content: space-between; align-items: center; gap: 12px; border-bottom: 1px solid var(--co-border); padding-bottom: 14px; margin-bottom: 18px; position: sticky; top: 0; z-index: 1; background: #fff; }
+.co-layout .rep-traza-cabecera button { flex-shrink: 0; white-space: nowrap; }
+.co-layout .rep-traza-dialog .rep-traza-cabecera h2 { margin: 0; font-size: 20px; }
+.co-layout .rep-traza-dialog h3 { margin: 22px 0 12px; color: var(--co-navy); font-size: 16px; }
+.co-layout .rep-traza-datos { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px 20px; margin: 0; }
+.co-layout .rep-traza-dialog dt { color: var(--co-muted); font-size: 12px; }
+.co-layout .rep-traza-dialog dd { margin: 3px 0 0; overflow-wrap: anywhere; font-size: 14px; }
+.co-layout .rep-traza-descripcion { margin: 18px 0; padding: 12px; background: #f3f6fb; border-radius: 6px; font-size: 14px; }
+.co-layout .rep-traza-comparacion { border: 1px solid var(--co-border); border-radius: 8px; overflow: hidden; }
+.co-layout .rep-traza-comparacion table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 13px; }
+.co-layout .rep-traza-comparacion :is(th,td) { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--co-border); overflow-wrap: anywhere; white-space: pre-wrap; }
+.co-layout .rep-traza-comparacion thead { background: #eef4fb; }
+.co-layout .rep-traza-comparacion tbody th { font-weight: 600; }
+.co-layout .rep-traza-comparacion tr:last-child > * { border-bottom: 0; }
+.co-layout .rep-traza-vacio { color: var(--co-muted); }
+.co-layout .rep-traza-valores { margin: 0; display: grid; gap: 10px; }
+.co-layout .rep-traza-valores > div { padding: 9px 0; border-bottom: 1px solid var(--co-border); min-width: 0; }
+.co-layout .rep-traza-valores dd { white-space: pre-wrap; }
+.co-layout .rep-traza-lista { margin: 0; padding-left: 18px; }
+.co-layout .rep-traza-tecnicos { margin-top: 24px; border-top: 1px solid var(--co-border); padding-top: 16px; }
+.co-layout .rep-traza-tecnicos summary { cursor: pointer; color: var(--co-primary); font-weight: 600; }
+.co-layout .rep-traza-tecnicos pre { margin: 12px 0 0; padding: 12px; border-radius: 6px; background: #f3f6fb; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
+@media(max-width:600px) {
+  .co-layout .rep-traza-metricas { grid-template-columns: minmax(0,1fr); gap: 8px; }
+  .co-layout .rep-traza-metricas > div { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 12px; }
+  .co-layout .rep-traza-dialog { inset: 0; width: calc(100% - 20px); height: auto; max-height: calc(100dvh - 20px); margin: auto; padding: 16px; border-radius: 12px; }
+  .co-layout .rep-traza-dialog .rep-traza-cabecera h2 { font-size: 18px; }
+  .co-layout .rep-traza-datos { gap: 12px; }
+  .co-layout .rep-traza-comparacion :is(th,td) { padding: 8px 6px; font-size: 12px; }
+}

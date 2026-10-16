@@ -1,7 +1,9 @@
+import { GuardadoReporteTecnico } from './GuardadoReporteTecnico'
 import { Fragment, useId, useState } from 'react'
 import type { KeyboardEvent, ReactNode } from 'react'
-import { bombasBitacoraPTAR, borradorBitacoraPTAR, destinosDescargaPTAR, medicionesBitacoraPTAR, prensasBitacoraPTAR } from '../../lib/tiposBitacoraPTAR'
+import { bombasBitacoraPTAR, destinosDescargaPTAR, medicionesBitacoraPTAR, prensasBitacoraPTAR } from '../../lib/tiposBitacoraPTAR'
 import type { EstadoAgitadorPTAR, EstadoPrensaPTAR, ModoBombaPTAR } from '../../lib/tiposBitacoraPTAR'
+import type { useReportePTAR } from '../../hooks/useReportePTAR'
 
 const pestanas = [
   { nombre: 'Clarificador', titulo: 'Clarificador primario' },
@@ -9,12 +11,15 @@ const pestanas = [
   { nombre: 'Flujos PTAR', titulo: 'Flujos PTAR' },
   { nombre: 'AIMSU y almacén', titulo: 'AIMSU y tanque de almacén' },
   { nombre: 'Prensas', titulo: 'Prensas de fin de turno' },
-  { nombre: 'Observaciones', titulo: 'Observaciones generales' },
+  { nombre: 'Historial', titulo: 'Historial de Bitácora' },
 ]
-export function FormularioBitacoraPTAR({ habilitado, observaciones }: { habilitado: boolean; observaciones: ReactNode }) {
+export function FormularioBitacoraPTAR({ captura, observaciones }: { captura: ReturnType<typeof useReportePTAR>; observaciones: ReactNode }) {
   const prefijo = useId()
   const [activo, setActivo] = useState(0)
-  const [borrador, setBorrador] = useState(borradorBitacoraPTAR)
+  const { borrador, cambiarBorrador: setBorrador, editable: habilitado } = captura
+  const ayudaGuardado = captura.guardando ? 'Esperando confirmación del servidor…' : captura.reporte ? null
+    : captura.estado === 'cargando' ? 'Consultando el reporte técnico del turno…'
+    : captura.pendiente ? 'El reintento comprueba el envío original; las ediciones posteriores no sustituyen sus datos.' : null
   function navegar(evento: KeyboardEvent<HTMLButtonElement>, indice: number) {
     let siguiente: number
     if (evento.key === 'ArrowRight') siguiente = (indice + 1) % pestanas.length
@@ -78,16 +83,22 @@ export function FormularioBitacoraPTAR({ habilitado, observaciones }: { habilita
             </select>
           </label>)}
           <label className="bpt-campo bpt-ancho" htmlFor={`${prefijo}-comentario-prensas`}>
-            <span>Reporte relevante de fin de turno y motivo por el cual la prensa está parada <small>(opcional)</small></span>
+            <span>Motivo por el cual la prensa está parada <small>(opcional)</small></span>
             <textarea id={`${prefijo}-comentario-prensas`} rows={3} disabled={!habilitado} value={borrador.comentarioPrensas}
               onChange={e => setBorrador(b => ({ ...b, comentarioPrensas: e.target.value }))} />
           </label>
+          <label className="bpt-campo bpt-ancho" htmlFor={`${prefijo}-reporte-relevante`}><span>Reporte relevante del turno <small>(obligatorio)</small></span>
+            <textarea aria-label="Reporte relevante del turno (obligatorio)" id={`${prefijo}-reporte-relevante`} rows={4} required maxLength={4000} disabled={!habilitado} value={borrador.reporteRelevante}
+              onChange={e => setBorrador(b => ({ ...b, reporteRelevante: e.target.value }))} /></label>
         </div>}
         {indice === 5 && observaciones}
       </div>
     </div>)}
-    <footer className="bpt-acciones"><span className="bpt-ayuda" id={`${prefijo}-guardado`}>El guardado técnico estará disponible posteriormente.</span>
-      <button type="button" className="boton-primario" disabled aria-describedby={`${prefijo}-guardado`}>Guardar reporte técnico</button>
+    {captura.mensaje && captura.mensaje !== 'Reporte técnico registrado. Solo Administración puede corregirlo.' && <p className="bpt-ayuda" role={captura.estado === 'error' || (!captura.reporte && !captura.guardando) ? 'alert' : 'status'}>{captura.mensaje}</p>}
+    <footer className="bpt-acciones"><span className="bpt-ayuda" id={`${prefijo}-guardado`} hidden={!ayudaGuardado}>{ayudaGuardado}</span>
+      <GuardadoReporteTecnico captura={captura} descripcionId={`${prefijo}-guardado`} alIntentar={() => {
+        if (!captura.pendiente && !borrador.reporteRelevante.trim()) { setActivo(4); window.setTimeout(() => document.getElementById(`${prefijo}-reporte-relevante`)?.focus(), 0) }
+      }} />
     </footer>
   </div>
 }

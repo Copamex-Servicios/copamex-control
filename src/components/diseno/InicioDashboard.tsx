@@ -11,7 +11,7 @@ export function InicioDashboard({ accesos, nombre }: { accesos: readonly AccesoV
     <nav className="co-launch-grid" aria-label="Módulos disponibles">
       {accesos.map(a => <Link key={a.ruta} to={a.ruta} className="co-launch-card" data-modulo={a.icono}>
         <span className="co-launch-icon" aria-hidden="true"><Icono nombre={a.icono} /></span>
-        <div className="co-launch-copy"><h2>{a.titulo}</h2><span>{a.descripcion}</span></div>
+        <div className="co-launch-copy"><h2>{a.titulo}</h2></div>
         <span className="co-launch-arrow" aria-hidden="true"><Icono nombre="flecha" /></span>
       </Link>)}
     </nav>

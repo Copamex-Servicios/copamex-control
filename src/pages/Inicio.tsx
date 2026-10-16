@@ -103,7 +103,8 @@ export function Inicio({ vista = 'inicio' }: PropsInicio = {}) {
   if (pagina && !pagina.roles.includes(perfil.rol)) {
     return <Navigate to="/sin-acceso" replace state={{ desde: pagina.ruta, motivo: 'rol' }} />
   }
-  const accesos = Object.values(paginas).filter((opcion) => opcion.roles.includes(perfil.rol))
+  const accesos = Object.values(paginas).filter((opcion) => opcion.roles.includes(perfil.rol)
+    && (perfil.rol !== 'admin' || (opcion.ruta !== '/calderas' && opcion.ruta !== '/ptar')))
   const visuales: AccesoVisual[] = accesos.map(opcion => ({ titulo: opcion.titulo, ruta: opcion.ruta,
     icono: opcion.ruta === '/calidad' || opcion.ruta === '/calidad/limites' ? 'calidad' : opcion.ruta === '/calderas' ? 'calderas' : opcion.ruta === '/ptar' ? 'ptar' : opcion.ruta === '/planta' ? 'planta' : opcion.ruta === '/reportes' ? 'reportes' : 'administracion',
     descripcion: opcion.ruta === '/calidad/limites' ? 'Administra los límites de calidad del sistema.' : opcion.ruta === '/calidad' ? 'Resultados de agua registrados por los operadores.' : opcion.ruta === '/gestion' ? 'Avisos, calendario y programa de producción.' : opcion.ruta === '/calderas' ? 'Turnos, bitácora, pozos, UF y calidad del área.' : opcion.ruta === '/ptar' ? 'Turnos, bitácora, proceso PTAR y calidad del área.' : opcion.ruta === '/planta' ? 'Consulta de Calderas y PTAR en un solo lugar.' : opcion.ruta === '/reportes' ? 'Indicadores, gráficas y exportación a Excel.' : 'Operadores, capturas, avisos y configuración.',

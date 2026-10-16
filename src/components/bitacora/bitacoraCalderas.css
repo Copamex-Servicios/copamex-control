@@ -20,6 +20,14 @@
 .co-layout .bc-panel .bc-ayuda { margin:0 0 12px; color:#526581; font-size:13px; line-height:1.5; }
 .co-layout .bc-panel :is(.bc-equipos,.bc-pilas) { border:0; padding:0; margin:0; min-width:0; display:grid; gap:0 20px; grid-template-columns:repeat(2,minmax(0,1fr)); }
 .co-layout .bc-panel .bc-equipo { display:grid; grid-template-columns:minmax(85px,.8fr) minmax(0,1.2fr) minmax(0,1fr); gap:12px; align-items:center; padding:12px 0; border-bottom:1px solid #e7eef6; min-width:0; }
+.co-layout .bc-panel .bc-equipo.bc-solo-estado { grid-template-columns:minmax(85px,.8fr) minmax(0,1.2fr); }
+.co-layout .bc-panel .bc-servicio-ayuda { margin:16px 0 8px; }
+.co-layout .bc-panel .bc-servicios { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.co-layout .bc-panel .bc-servicio-grupo { display:flex; flex-wrap:wrap; gap:10px 20px; margin:0; padding:10px 12px; border:1px solid var(--co-border); border-radius:8px; min-width:0; }
+.co-layout .bc-panel .bc-servicio-grupo legend { padding:0 4px; font-size:13px; color:var(--co-text); }
+.co-layout .bc-panel .bc-servicio-opcion { display:flex; align-items:center; gap:8px; font-size:14px; color:var(--co-text); }
+.co-layout .bc-panel .bc-servicio-opcion input { width:17px; height:17px; margin:0; accent-color:var(--co-primary); }
+@media(max-width:600px) { .co-layout .bc-panel .bc-servicios { grid-template-columns:minmax(0,1fr); } }
 .co-layout .bc-panel :is(.bc-equipo,.bc-pila) h3 { margin:0; font-size:14px; font-weight:650; color:var(--co-text); }
 .co-layout .bc-panel .bc-pila { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; min-width:0; padding:12px 0; border-bottom:1px solid #e7eef6; }
 .co-layout .bc-panel .bc-pila h3 { grid-column:1 / -1; }
@@ -54,6 +62,7 @@
   .co-layout .bc-panel :is(.bc-pilas,.bc-mediciones) { grid-template-columns:minmax(0,1fr); }
   .co-layout .bc-panel .bc-equipo { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
   .co-layout .bc-panel .bc-equipo h3 { grid-column:1 / -1; }
+  .co-layout .bc-panel .bc-equipo.bc-solo-estado .bc-campo { grid-column:1 / -1; }
   .co-layout .bc-panel .bc-equipo-encabezado { display:none; }
   .co-layout .bc-panel .bc-equipo label>span { position:static; width:auto; height:auto; overflow:visible; clip-path:none; }
   .co-layout .bc-panel .bc-tabs button { padding:10px 6px; }
@@ -71,3 +80,29 @@
 /* Consulta administrativa: reutiliza el historial y sus permisos existentes. */
 .co-layout .bc-panel .bc-consulta { padding:0; }
 .co-layout .bc-panel .bc-consulta .bc-aviso-tecnico { margin:0 0 10px; }
+
+/* Historial técnico integrado en la Bitácora; no afecta otros módulos. */
+.co-layout .bc-panel .bc-historial-tecnico { margin:0 0 22px; min-width:0; }
+.co-layout .bc-panel .bc-historial-cabecera { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+.co-layout .bc-panel .bc-historial-cabecera h4 { margin:0; color:var(--co-text); font-size:16px; }
+.co-layout .bc-panel .bc-filtros-tecnicos { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-bottom:14px; }
+.co-layout .bc-panel .bc-reporte-historico { margin:0 0 10px; border:1px solid var(--co-border); border-radius:8px; min-width:0; }
+.co-layout .bc-panel .bc-reporte-historico summary { padding:12px 14px; cursor:pointer; color:var(--co-text); }
+.co-layout .bc-panel .bc-reporte-historico summary>span { display:inline-flex; flex-direction:column; gap:4px; max-width:calc(100% - 24px); vertical-align:top; overflow-wrap:anywhere; }
+.co-layout .bc-panel .bc-reporte-historico summary strong { font-size:14px; }
+.co-layout .bc-panel .bc-reporte-historico summary span span { color:#526581; font-size:13px; }
+.co-layout .bc-panel .bc-reporte-historico summary:focus-visible { outline:2px solid var(--co-primary); outline-offset:2px; }
+.co-layout .bc-panel .bc-detalle-tecnico { padding:0 14px 14px; }
+.co-layout .bc-panel .bc-detalle-grupo { padding:12px 0; border-top:1px solid #e7eef6; }
+.co-layout .bc-panel .bc-detalle-grupo h5 { margin:0 0 10px; font-size:14px; color:var(--co-text); }
+.co-layout .bc-panel .bc-valores { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px 18px; margin:0; }
+.co-layout .bc-panel .bc-valores dt { color:#526581; font-size:12px; }
+.co-layout .bc-panel .bc-valores dd { margin:4px 0 0; color:var(--co-text); font-size:14px; white-space:pre-wrap; overflow-wrap:anywhere; }
+.co-layout .bc-panel .bc-paginacion-tecnica { display:flex; align-items:center; justify-content:flex-end; gap:12px; flex-wrap:wrap; margin:12px 0; font-size:13px; }
+@media(max-width:600px) {
+  .co-layout .bc-panel .bc-filtros-tecnicos { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .co-layout .bc-panel .bc-valores { grid-template-columns:minmax(0,1fr); }
+}
+
+.co-layout .bc-panel .bc-acciones:has(> [hidden]) { justify-content: flex-end; }
+.co-layout .bc-panel .bc-acciones:has(> [hidden]):not(:has(> button)) { padding-top: 0; gap: 0; }

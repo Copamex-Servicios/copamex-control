@@ -1,6 +1,5 @@
 import { RefreshCw } from 'lucide-react'
 import '../operativo/medicionesVisual.css'
-import { Icono } from '../diseno/Icono'
 import { useUF } from '../../hooks/useUF'
 import type { TipoTurno } from '../../lib/tiposTurno'
 import { FormularioUF } from './FormularioUF'
@@ -42,7 +41,7 @@ function ContenidoUF({ datos }: PropsContenidoUF) {
   return (
     <section className="panel-informacion panel-uf panel-mediciones" aria-label="UF de Calderas">
       <div className="cabecera-turno">
-        <h2><Icono nombre="uf" />Ultrafiltración</h2>
+        <h2>Ultrafiltración</h2>
         <button className="boton-secundario" type="button" disabled={guardando || estadoCarga === 'cargando'}
           onClick={() => { void actualizarUF() }}>
           <RefreshCw className="mediciones-actualizar" aria-hidden="true" />Actualizar UF

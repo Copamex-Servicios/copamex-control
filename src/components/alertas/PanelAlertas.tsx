@@ -5,6 +5,7 @@ import { consultarAtenciones, exigirCuentaAlerta, guardarAtencion, pendienteAten
 import type { Alerta, AtencionAlerta, FiltrosAlertas, SolicitudAtencion } from '../../lib/alertas'
 import { fechaMexicoAdmin } from '../../lib/administracion'
 import { textoLimite } from '../../lib/limitesCalidad'
+import type { AreaOperativa } from '../../lib/tiposTurno'
 
 const hora = (s: string) => fechaMexicoAdmin(s).replace('T',' ')
 const turno = (s: string) => s==='dia'?'Día':s==='tarde'?'Tarde':'Noche'
@@ -13,8 +14,8 @@ function HistorialAtencion({cuenta,alerta}:{cuenta:string;alerta:Alerta}) {
   useEffect(()=>{const c=new AbortController();let vivo=true;void consultarAtenciones(cuenta,alerta.id,c.signal).then(filas=>{if(vivo)setVista({filas,error:null,cargando:false})}).catch(e=>{if(vivo)setVista({filas:[],error:e instanceof Error?e.message:'No se pudo consultar la atención.',cargando:false})});return()=>{vivo=false;c.abort()}},[cuenta,alerta.id,alerta.actualizado_en])
   return <div><h4>Atención registrada</h4>{vista.cargando?<p>Consultando…</p>:vista.error?<p className="mensaje-error">{vista.error}</p>:!vista.filas.length?<p>Todavía no hay reconocimiento ni cierre.</p>:vista.filas.map(e=><article key={e.id}><strong>{e.accion==='reconocer'?'Reconocida':'Cerrada'} · {e.responsable_nombre}</strong><p>{hora(e.creado_en)} (México) · Cuenta: {e.creado_por}</p><p className="notas-turno">{e.comentario}</p><small>UUID de atención: {e.id}</small></article>)}</div>
 }
-export function PanelAlertas({compacto=false}:{compacto?:boolean}) {
-  const [filtros,setFiltros]=useState<FiltrosAlertas>({area:'todas',estado:'pendientes'})
+export function PanelAlertas({compacto=false,area}:{compacto?:boolean;area?:AreaOperativa}) {
+  const [filtros,setFiltros]=useState<FiltrosAlertas>({area:area??'todas',estado:'pendientes'})
   const {cuenta,admin,filas,limitada,cargando,error,actualizar}=useAlertas(filtros)
   const [busqueda,setBusqueda]=useState(''),[pagina,setPagina]=useState(1),[detalle,setDetalle]=useState<string|null>(null)
   const [editor,setEditor]=useState<{alerta:Alerta;comentario:string}|null>(null)
@@ -37,7 +38,7 @@ export function PanelAlertas({compacto=false}:{compacto?:boolean}) {
   return <section className="panel-informacion">
     <div className="planta-encabezado"><div><h2>Seguimiento de Alertas de Calidad</h2><p className="ayuda-turno">Cada episodio conserva el valor y el límite que originaron el hallazgo. Actualización cada 30 segundos y al recuperar conexión.</p></div><button type="button" className="boton-secundario" disabled={cargando || !!estado?.guardando} onClick={actualizar}>Actualizar</button></div>
     {!admin&&<p className="planta-aviso">Consulta de alertas. El reconocimiento y el cierre corresponden al administrador.</p>}
-    <div className="admin-campos"><label>Área<select value={filtros.area} onChange={e=>{setFiltros({...filtros,area:e.target.value as FiltrosAlertas['area']});setPagina(1)}}><option value="todas">Ambas áreas</option><option value="calderas">Calderas</option><option value="ptar">PTAR</option></select></label><label>Estado<select value={filtros.estado} onChange={e=>{setFiltros({...filtros,estado:e.target.value as FiltrosAlertas['estado']});setPagina(1)}}><option value="pendientes">Pendientes de atención</option><option value="abierta">Abiertas</option><option value="reconocida">Reconocidas</option><option value="cerrada">Cerradas</option><option value="todas">Todos</option></select></label><label>Buscar<input type="search" placeholder="Punto, parámetro, operador, fecha o UUID" value={busqueda} onChange={e=>{setBusqueda(e.target.value);setPagina(1)}} /></label></div>
+    <div className="admin-campos">{!area&&<label>Área<select value={filtros.area} onChange={e=>{setFiltros({...filtros,area:e.target.value as FiltrosAlertas['area']});setPagina(1)}}><option value="todas">Ambas áreas</option><option value="calderas">Calderas</option><option value="ptar">PTAR</option></select></label>}<label>Estado<select value={filtros.estado} onChange={e=>{setFiltros({...filtros,estado:e.target.value as FiltrosAlertas['estado']});setPagina(1)}}><option value="pendientes">Pendientes de atención</option><option value="abierta">Abiertas</option><option value="reconocida">Reconocidas</option><option value="cerrada">Cerradas</option><option value="todas">Todos</option></select></label><label>Buscar<input type="search" placeholder="Punto, parámetro, operador, fecha o UUID" value={busqueda} onChange={e=>{setBusqueda(e.target.value);setPagina(1)}} /></label></div>
     {error&&<p className="mensaje-error" role="alert">{error}</p>}{estado?.error&&<p className="mensaje-error" role="alert">{estado.error}</p>}{estado?.mensaje&&<p className="mensaje-exito" role="status">{estado.mensaje}</p>}
     {limitada&&<p className="planta-aviso">Se consultaron hasta 1000 episodios. Filtra por área y estado; los conteos no representan el total de la base.</p>}
     {admin&&pendiente&&<div className="admin-pendiente"><strong>Atención pendiente de confirmación</strong><p>Se conserva el mismo comentario e identificador para evitar duplicados.</p><button className="boton-principal" type="button" disabled={!!estado?.guardando} onClick={()=>{void enviar(pendiente)}}>Comprobar / reintentar</button></div>}

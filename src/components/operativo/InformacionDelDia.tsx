@@ -1,5 +1,4 @@
-import { Icono } from '../diseno/Icono'
-import { CalendarDays, Factory, RefreshCw } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import type { useInformacionDia } from '../../hooks/useInformacionDia'
 import type { EventoDia } from '../../lib/informacionDia'
 
@@ -32,9 +31,8 @@ export function InformacionDelDia({ fecha, informacion, compacto = false }: {
   const otros = eventos.filter(e => !destacados.some(d => d.id === e.id))
   return <div className={compacto ? "resumen-dia co-encabezado-datos" : "resumen-dia"}>
     <section className="resumen-dia-tarjeta" aria-label="Producción de hoy">
-      <span className="co-dia-icono" aria-hidden="true"><Icono nombre="calderas" /></span>
       <div className="resumen-dia-cabecera">
-        <h2>{compacto ? <Factory aria-hidden="true" /> : <Icono nombre="calderas" />}Producción de hoy</h2>
+        <h2>Producción de hoy</h2>
         <button className="boton-icono" type="button" onClick={actualizar}
           disabled={!fecha || cargando} aria-label="Actualizar producción y eventos">{compacto ? <RefreshCw aria-hidden="true" /> : <span aria-hidden="true">↻</span>}</button>
       </div>
@@ -49,8 +47,7 @@ export function InformacionDelDia({ fecha, informacion, compacto = false }: {
         </article>)}</div>}
     </section>
     <section className="resumen-dia-tarjeta" aria-label="Próximos eventos del área">
-      <span className="co-dia-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="2" /><path d="M8 3v4m8-4v4M4 10h16" /></svg></span>
-      <div className="resumen-dia-cabecera"><h2>{compacto ? <CalendarDays aria-hidden="true" /> : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="2" /><path d="M8 3v4m8-4v4M4 10h16" /></svg>}Próximos eventos</h2></div>
+      <div className="resumen-dia-cabecera"><h2>Próximos eventos</h2></div>
       {!fecha ? <p className="resumen-dia-vacio">Esperando fecha del servidor…</p>
         : !datos ? <p className="resumen-dia-vacio" role="status">Consultando…</p>
         : datos.eventos.error ? <p className="error-lateral" role="alert">No se pudieron consultar los eventos. Usa Actualizar.</p>

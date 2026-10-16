@@ -36,7 +36,7 @@ export function PanelTurno({ area, referencia = false }: PropsPanelTurno) {
   return (
     <section className="panel-informacion panel-turno" aria-label={`Turno de ${area === 'calderas' ? 'Calderas' : 'PTAR'}`}>
       <div className="cabecera-turno">
-        <h2>{referencia && <svg className="co-turno-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 6v6l4 2" /></svg>}Gestión del turno</h2>
+        <h2>Gestión del turno</h2>
         {referencia && estadoCarga === 'listo' && !turno && <span className="co-turno-estado"><span aria-hidden="true" />No hay un turno abierto</span>}
         <button className="boton-secundario" type="button" onClick={() => { void actualizarTurno() }}
           disabled={ocupado || estadoCarga === 'cargando'}>
@@ -93,7 +93,6 @@ export function PanelTurno({ area, referencia = false }: PropsPanelTurno) {
           nombreOperador ? (
             <TurnoActivo key={`${cuentaId}:${turno.id}`} turno={turno} nombreOperador={nombreOperador}
               operadores={operadores} deshabilitado={bloqueado} soloLectura={!pertenece}
-              alCambiar={pertenece ? iniciarOCambiarTurno : undefined}
               alCerrar={pertenece ? cerrarTurnoActual : undefined} />
           ) : <p className="mensaje-error" role="alert">Actualiza el turno para consultar el nombre del operador.</p>
         ) : (

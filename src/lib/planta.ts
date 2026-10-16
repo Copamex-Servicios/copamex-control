@@ -5,8 +5,8 @@ import { leerRegistroPozosPlanta } from './pozos'
 import { leerRegistroUFPlanta } from './uf'
 import { leerRegistroCalidad } from './calidad'
 import { leerRegistroPTAR } from './ptar'
-import type { RegistroBitacora } from './tiposBitacora'
 import type { RegistroPozos } from './pozos'
+import type { RegistroBitacora } from './tiposBitacora'
 import type { RegistroUF } from './uf'
 import type { RegistroCalidad } from './tiposCalidad'
 import type { RegistroPTAR } from './tiposPTAR'
@@ -25,7 +25,8 @@ export interface FuentePlanta<T> { elementos: T[]; error: boolean; incompleta: b
 export interface DatosPlanta { turnos: FuentePlanta<TurnoPlanta>; fuentes: Record<ModuloPlanta, FuentePlanta<CapturaPlanta>> }
 export const nombresModulo: Record<ModuloPlanta, string> = { bitacora: 'Bitácora', pozos: 'Pozos', uf: 'Ultrafiltración', calidad: 'Calidad', ptar: 'PTAR' }
 export const nombresTurno: Record<TipoTurno, string> = { dia: 'Día', tarde: 'Tarde', noche: 'Noche' }
-export const modulosPlanta = Object.keys(nombresModulo) as ModuloPlanta[]
+// El historial de observaciones se conserva en su almacenamiento, pero deja de consultarse en Planta.
+export const modulosPlanta: ModuloPlanta[] = ['pozos', 'uf', 'calidad', 'ptar']
 const columnasTurno = 'id,fecha_operativa,area,turno,operador_id,iniciado_por,iniciado_en,finalizado_en,notas_cierre'
 const relacionTurno = `turno:turnos_operativos!inner(${columnasTurno},operador:operadores!inner(id,nombre))`
 const metadata = 'id,turno_id,capturado_en,recibido_en,creado_por,eliminado_en,eliminado_por'
@@ -108,6 +109,7 @@ export async function consultarPlanta(f: FiltrosPlanta, signal: AbortSignal): Pr
     const r = resultados[i + 1]
     fuentes[m] = r.status === 'fulfilled' ? r.value as FuentePlanta<CapturaPlanta> : { elementos: [], error: true, incompleta: false }
   })
+  fuentes.bitacora = { elementos: [], error: false, incompleta: false }
   return { turnos: turnos.status === 'fulfilled' ? turnos.value as FuentePlanta<TurnoPlanta> : { elementos: [], error: true, incompleta: false }, fuentes }
 }
 export function capturasPlanta(d: DatosPlanta): CapturaPlanta[] {
