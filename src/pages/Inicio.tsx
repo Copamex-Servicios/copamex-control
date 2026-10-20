@@ -68,12 +68,12 @@ const paginas: Record<Exclude<VistaInicio, 'inicio'>, Pagina> = {
 export function Inicio({ vista = 'inicio' }: PropsInicio = {}) {
   const { sesion, perfil, estado, cerrarSesion } = useAuth()
   const ubicacion = useLocation()
-  const [seleccionPTAR, cambiarPTAR] = useState({ clave: ubicacion.key, modulo: 'bitacora' as ModuloOperativo })
+  const [seleccionPTAR, cambiarPTAR] = useState({ clave: ubicacion.key, modulo: 'bitacora' as ModuloOperativo, revision: 0 })
   const moduloPTAR = seleccionPTAR.clave === ubicacion.key ? seleccionPTAR.modulo : 'bitacora'
-  const setModuloPTAR = (modulo: ModuloOperativo) => cambiarPTAR({ clave: ubicacion.key, modulo })
-  const [seleccionCalderas, cambiarCalderas] = useState({ clave: ubicacion.key, modulo: 'bitacora' as ModuloOperativo })
+  const setModuloPTAR = (modulo: ModuloOperativo) => cambiarPTAR(anterior => ({ clave: ubicacion.key, modulo, revision: anterior.revision + 1 }))
+  const [seleccionCalderas, cambiarCalderas] = useState({ clave: ubicacion.key, modulo: 'bitacora' as ModuloOperativo, revision: 0 })
   const moduloCalderas = seleccionCalderas.clave === ubicacion.key ? seleccionCalderas.modulo : 'bitacora'
-  const setModuloCalderas = (modulo: ModuloOperativo) => cambiarCalderas({ clave: ubicacion.key, modulo })
+  const setModuloCalderas = (modulo: ModuloOperativo) => cambiarCalderas(anterior => ({ clave: ubicacion.key, modulo, revision: anterior.revision + 1 }))
   const [error, setError] = useState<string | null>(null)
   const [cerrando, setCerrando] = useState(false)
   const salidaActiva = useRef(false)
@@ -122,7 +122,7 @@ export function Inicio({ vista = 'inicio' }: PropsInicio = {}) {
     return <AppLayout accesos={visuales} nombre={perfil.nombre} rol={nombresRol[perfil.rol]} titulo={pagina?.titulo ?? 'Inicio'} cerrando={cerrando} alSalir={() => { void salir() }} submenu={operativo ? { titulo: vista === 'calderas' ? 'MÓDULO CALDERAS' : 'MÓDULO PTAR', seleccion, opciones, alSeleccionar: id => { if (opciones.some(o => o.id === id)) { if (vista === 'calderas') setModuloCalderas(id as ModuloOperativo); else setModuloPTAR(id as ModuloOperativo) } } } : undefined}>
       {error && <p className="mensaje-error" role="alert">{error}</p>}
       {vista === 'inicio' ? <InicioDashboard accesos={visuales} nombre={perfil.nombre} rol={nombresRol[perfil.rol]} admin={perfil.rol === 'admin'} />
-        : operativo ? <div className="co-calderas"><PanelOperativo key={perfil.id + ':' + vista} area={vista} rol={perfil.rol} seleccionExterna={seleccion} alSeleccionar={vista === 'calderas' ? setModuloCalderas : setModuloPTAR} /></div>
+        : operativo ? <div className="co-calderas"><PanelOperativo key={perfil.id + ':' + vista} area={vista} rol={perfil.rol} seleccionExterna={seleccion} solicitudDesplazamiento={vista === 'calderas' ? seleccionCalderas.revision : seleccionPTAR.revision} alSeleccionar={vista === 'calderas' ? setModuloCalderas : setModuloPTAR} /></div>
         : <div className={vista === 'planta' ? 'co-consulta co-planta-referencia' : 'co-consulta'}><PageHeader titulo={vista === 'planta' ? 'Planta' : 'Reportes'} descripcion={vista === 'planta' ? 'Consulta de registros operativos de Calderas y PTAR.' : undefined} icono={vista === 'planta' ? 'planta' : 'reportes'} />{vista === 'planta' ? <PanelPlanta key={perfil.id} /> : <PanelReportes key={perfil.id} />}</div>}
     </AppLayout>
   }

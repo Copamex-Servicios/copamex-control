@@ -1,0 +1,16 @@
+.co-layout .gestion-registros { display: grid; gap: 14px; min-width: 0; }
+.co-layout .gestion-registros .boton-principal { background: var(--co-primary); color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 10px 16px; font: inherit; font-weight: 600; }
+.co-layout .gestion-registros .boton-principal:disabled { opacity: .5; cursor: not-allowed; }
+.co-layout .gestion-editor-tecnico > .boton-principal { justify-self: start; }
+.co-layout .gestion-filtros-tecnicos { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)) auto; align-items: end; gap: 12px; border: 0; padding: 0; margin: 0; min-width: 0; width: 100%; grid-column: 1 / -1; }
+.co-layout .gestion-editor-tecnico { display: grid; gap: 16px; min-width: 0; }
+.co-layout .gestion-editor-tecnico h3 { margin: 0; }
+.co-layout .gestion-motivo { display: grid; gap: 8px; margin: 16px 0; }
+.co-layout .gestion-motivo textarea { width: 100%; min-width: 0; padding: 10px 12px; border: 1px solid var(--co-border); border-radius: 8px; font: inherit; resize: vertical; }
+.co-layout .gestion-editor-tecnico .revision-evento { margin: 12px 0; padding: 14px; border: 1px solid var(--co-border); border-radius: 8px; }
+.co-layout .gestion-editor-tecnico summary { cursor: pointer; font-weight: 600; color: var(--co-navy); }
+.co-layout .gestion-editor-tecnico details details { margin-top: 12px; }
+.co-layout .gestion-editor-tecnico pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
+.co-layout .gestion-editor-tecnico .planta-encabezado { gap: 12px; flex-wrap: wrap; }
+@media(max-width:1100px) { .co-layout .gestion-filtros-tecnicos { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width:600px) { .co-layout .gestion-filtros-tecnicos { grid-template-columns: minmax(0,1fr); } }

@@ -5,12 +5,11 @@ import type { FiltrosPlanta } from '../../lib/planta'
 import type { AreaOperativa } from '../../lib/tiposTurno'
 import { consultarCapturasRevision } from '../../lib/revisionCapturas'
 import { consultarResumenesTecnicosPlanta } from '../../lib/reportesTecnicosPlanta'
-import { PanelRevisionCapturas } from '../administracion/PanelRevisionCapturas'
 import { MonitorConcesionPozos } from '../pozos/MonitorConcesionPozos'
 import { TablaReportesSupervision } from './TablaReportesSupervision'
 import './supervisionPlanta.css'
 
-const pestanas = { resumen: 'Resumen', tecnicos: 'Reportes técnicos', registros: 'Registros' } as const
+const pestanas = { resumen: 'Resumen', tecnicos: 'Reportes técnicos' } as const
 type Pestana = keyof typeof pestanas
 const areasSupervision = (area: FiltrosPlanta['area']): AreaOperativa[] => area === 'todas' ? ['calderas', 'ptar'] : [area]
 const nombreAreaSupervision = (area: AreaOperativa) => area === 'calderas' ? 'Calderas' : 'PTAR'
@@ -34,17 +33,17 @@ export function PanelSupervisionPlanta() {
   return <div className="planta-admin">
     <section className="panel-informacion supervision-selector">
       <h2>Supervisión de la operación</h2>
-      <form className={`supervision-periodo${pestana === 'registros' ? ' supervision-solo-area' : ''}`} onSubmit={e => { e.preventDefault(); consultar() }}>
+      <form className="supervision-periodo" onSubmit={e => { e.preventDefault(); consultar() }}>
         <label>Área<select value={borrador.area} onChange={e => {
           const area = e.target.value as FiltrosPlanta['area']
           setBorrador(f => ({ ...f, area })); setFiltros(f => ({ ...f, area }))
         }}><option value="todas">Ambos</option><option value="calderas">Calderas</option><option value="ptar">PTAR</option></select></label>
-        {pestana !== 'registros' && <>
+        <>
           <label>Desde<input type="date" required value={borrador.desde} onChange={e => setBorrador({ ...borrador, desde: e.target.value })} /></label>
           <label>Hasta<input type="date" required value={borrador.hasta} onChange={e => setBorrador({ ...borrador, hasta: e.target.value })} /></label>
           <label>Turno<select value={borrador.turno} onChange={e => setBorrador({ ...borrador, turno: e.target.value as FiltrosPlanta['turno'] })}><option value="todos">Todos</option>{Object.entries(nombresTurno).map(([v, n]) => <option key={v} value={v}>{n}</option>)}</select></label>
           <button type="submit" className="boton-principal">Consultar período</button>
-        </>}
+        </>
       </form>
       {error && <p role="alert" className="mensaje-error">{error}</p>}
     </section>
@@ -60,8 +59,7 @@ export function PanelSupervisionPlanta() {
     </div>
     {abiertas.map(p => <div key={`${perfil.id}:${p}`} id={`${id}-${p}`} role="tabpanel" aria-labelledby={`${id}-${p}-tab`} hidden={pestana !== p}>
       {p === 'resumen' ? <ResumenSupervision filtros={filtros} cuenta={perfil.id} revision={revision} />
-        : p === 'tecnicos' ? <TablaReportesSupervision filtros={filtros} revision={revision} />
-          : <PanelRevisionCapturas supervision={{ filtros, borrador, onBorrador: setBorrador, onConsultar: consultar }} />}
+        : <TablaReportesSupervision filtros={filtros} revision={revision} />}
     </div>)}
   </div>
 }
@@ -126,18 +124,8 @@ function ResumenSupervision({ filtros, cuenta, revision }: { filtros: FiltrosPla
     return () => { vivo = false; c.abort(); window.clearTimeout(limite) }
   }, [clave, cuenta, filtros])
   const filas = vista?.clave === clave ? vista.filas : null
-  const total = (tipo: 'turnos' | 'capturas' | 'tecnicos') => {
-    if (!filas) return 'Consultando…'
-    if (filas.some(f => f[tipo] === null)) return 'No disponible'
-    if (tipo === 'turnos') return `${filas.reduce((n, f) => n + f.turnos!.numero, 0)}${filas.some(f => f.turnos?.limitado) ? '+' : ''}`
-    return filas.reduce((n, f) => n + (f[tipo] ?? 0), 0)
-  }
   return <div className="supervision-resumen">
-    <dl className="supervision-conteos" aria-live="polite">
-      <div><dt>Turnos registrados</dt><dd>{total('turnos')}</dd></div>
-      <div><dt>Capturas vigentes</dt><dd>{total('capturas')}</dd></div>
-      <div><dt>Reportes técnicos</dt><dd>{total('tecnicos')}</dd></div>
-    </dl>
+
     <section className="panel-informacion">
       <div className="planta-encabezado"><h2>Resumen por área</h2><button type="button" className="boton-secundario" disabled={!filas} onClick={() => setRecarga(n => n + 1)}>Actualizar resumen</button></div>
       <div className="planta-tabla-scroll"><table className="planta-tabla supervision-tabla-resumen"><thead><tr><th>Área</th><th>Turnos registrados</th><th>Capturas vigentes</th><th>Reportes técnicos</th><th>Última captura</th></tr></thead>

@@ -132,18 +132,14 @@ export function FormularioUF({
               </div>
             </GrupoMediciones>
           ))}
-        </div>
-        <div className="mediciones-balance">
-          <div className="campo-turno">
-            <label htmlFor={`${id}-rechazo`}>Rechazo (m³)</label>
-            <output id={`${id}-rechazo`}>{resultados ? `${resultados.rechazo} m³` : 'Completa las cuatro lecturas'}</output>
-          </div>
-          <div className="campo-turno">
-            <label htmlFor={`${id}-rendimiento`}>Rendimiento (%)</label>
-            <output id={`${id}-rendimiento`}>{resultados === null ? 'Completa las cuatro lecturas'
+          <GrupoMediciones titulo="Rechazo (m³)">
+            <output id={`${id}-rechazo`} aria-label="Rechazo (m³)">{resultados ? `${resultados.rechazo} m³` : 'Completa las cuatro lecturas'}</output>
+          </GrupoMediciones>
+          <GrupoMediciones titulo="Rendimiento (%)">
+            <output id={`${id}-rendimiento`} aria-label="Rendimiento (%)">{resultados === null ? 'Completa las cuatro lecturas'
               : resultados.rendimiento === null ? 'Sin alimentación: no aplica'
                 : `${resultados.rendimiento.toLocaleString('es-MX', { maximumFractionDigits: 2 })} %`}</output>
-          </div>
+          </GrupoMediciones>
         </div>
         <div className="campo-turno campo-turno-ancho">
           <label htmlFor={`${id}-notas`}>Notas (opcional)</label>

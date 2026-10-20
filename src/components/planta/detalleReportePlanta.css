@@ -61,3 +61,15 @@
 @container planta-reporte (min-width:1000px) {
   .co-layout .planta-reporte-detalle .pcr-ptar-datos { grid-template-columns:repeat(4,minmax(0,1fr)); }
 }
+
+/* Ficha técnica de consulta: Planta y detalles de PTAR, sin afectar captura. */
+.co-layout :is(.co-planta-referencia,.bpt-panel) div.planta-reporte-detalle { padding:0; }
+.co-layout :is(.co-planta-referencia,.bpt-panel) div.planta-reporte-detalle .pcr-secciones { padding:0; gap:12px; background:transparent; border-radius:0; }
+.co-layout :is(.co-planta-referencia,.bpt-panel) div.planta-reporte-detalle .pcr-seccion { padding:0 0 12px; border:0; border-bottom:1px solid var(--co-border); border-radius:0; background:transparent; }
+.co-layout :is(.co-planta-referencia,.bpt-panel) div.planta-reporte-detalle .pcr-seccion>h5 { margin:0 0 8px; padding:0; border:0; font-size:14px; line-height:1.4; }
+.co-layout :is(.co-planta-referencia,.bpt-panel) div.planta-reporte-detalle :is(.pcr-metadatos,dt,.pcr-estado,.pcr-presion-equipo,.pcr-pila-datos dt) { font-size:13px; line-height:1.4; }
+.co-layout :is(.co-planta-referencia,.bpt-panel) div.planta-reporte-detalle :is(.pcr-dato dd,.pcr-narrativa,.pcr-equipo>dt,.pcr-presion-equipo strong,.pcr-pila h6) { font-size:14px; }
+.co-layout :is(.co-planta-referencia,.bpt-panel) div.planta-reporte-detalle .pcr-dato dd { margin-top:3px; font-variant-numeric:tabular-nums; }
+.co-layout :is(.co-planta-referencia,.bpt-panel) div.planta-reporte-detalle .pcr-narrativa { padding:0; background:transparent; border-radius:0; line-height:1.5; }
+.co-layout :is(.co-planta-referencia,.bpt-panel) div.planta-reporte-detalle .pcr-equipo { padding:7px 0; border:0; border-bottom:1px solid var(--co-border); border-radius:0; }
+.co-layout :is(.co-planta-referencia,.bpt-panel) div.planta-reporte-detalle .pcr-pila { padding:0; border:0; border-radius:0; }

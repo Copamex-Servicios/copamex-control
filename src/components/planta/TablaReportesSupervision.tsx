@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useId, useState } from 'react'
 import type { FiltrosPlanta } from '../../lib/planta'
 import { nombresTurno } from '../../lib/planta'
 import type { AreaOperativa } from '../../lib/tiposTurno'
@@ -16,7 +16,8 @@ type Fila = ResumenReporteCalderas & { area: AreaOperativa }
 type Detalle = { area: 'calderas'; reporte: ReporteTecnicoCalderas } | { area: 'ptar'; reporte: ReporteTecnicoPTAR }
 const nombreArea = (a: AreaOperativa) => a === 'calderas' ? 'Calderas' : 'PTAR'
 
-export function TablaReportesSupervision({ filtros, revision }: { filtros: FiltrosPlanta; revision: number }) {
+export function TablaReportesSupervision({ filtros, revision, alAbrir }: { filtros: FiltrosPlanta; revision: number; alAbrir?: (fila: Fila) => void }) {
+  const id = useId()
   const [navegacion, setNavegacion] = useState({ filtro: '', pagina: 0 })
   const [recarga, setRecarga] = useState(0)
   const filtro = JSON.stringify([filtros, revision, recarga])
@@ -25,6 +26,7 @@ export function TablaReportesSupervision({ filtros, revision }: { filtros: Filtr
   const [vista, setVista] = useState<{ clave: string; filas: Fila[]; mas: boolean; error: string | null } | null>(null)
   const [seleccion, setSeleccion] = useState<{ clave: string; fila: Fila } | null>(null)
   useEffect(() => {
+    setSeleccion(null)
     let vivo = true
     const c = new AbortController(), limite = window.setTimeout(() => c.abort(), 20000)
     const areas: AreaOperativa[] = filtros.area === 'todas' ? ['calderas', 'ptar'] : [filtros.area]
@@ -56,20 +58,24 @@ export function TablaReportesSupervision({ filtros, revision }: { filtros: Filtr
   return <section className="panel-informacion supervision-tecnicos">
     <div className="planta-encabezado"><h2>Reportes técnicos</h2><button type="button" className="boton-secundario" disabled={!actual} onClick={() => setRecarga(n => n + 1)}>Actualizar reportes</button></div>
     <div className="planta-tabla-scroll"><table className="planta-tabla supervision-tabla-tecnicos"><caption>Reportes técnicos por fecha operativa; hasta 20 por página.</caption><thead><tr><th>Fecha</th><th>Turno</th><th>Área</th><th>Operador</th><th>Acciones</th></tr></thead><tbody>
-      {actual?.filas.map(r => <tr key={`${r.area}:${r.id}`}><td>{r.fechaOperativa.split('-').reverse().join('/')}</td><td>{nombresTurno[r.turno]}</td><td>{nombreArea(r.area)}</td><td>{r.operador}</td><td><button type="button" className="boton-secundario" aria-expanded={elegido?.id === r.id && elegido.area === r.area} onClick={() => setSeleccion(elegido?.id === r.id && elegido.area === r.area ? null : { clave, fila: r })}>Ver</button></td></tr>)}
+      {actual?.filas.map(r => {
+        const abierto = !alAbrir && elegido?.id === r.id && elegido.area === r.area
+        const detalleId = `${id}-detalle-${r.area}-${r.id}`
+        return <Fragment key={`${r.area}:${r.id}`}>
+          <tr className="supervision-fila-reporte"><td data-label="Fecha">{r.fechaOperativa.split('-').reverse().join('/')}</td><td data-label="Turno">{nombresTurno[r.turno]}</td><td data-label="Área">{nombreArea(r.area)}</td><td data-label="Operador">{r.operador}</td><td><button id={`${detalleId}-boton`} type="button" className="boton-secundario" aria-expanded={alAbrir ? undefined : abierto} aria-controls={alAbrir ? undefined : detalleId} onClick={() => alAbrir ? alAbrir(r) : setSeleccion(abierto ? null : { clave, fila: r })}>Ver</button></td></tr>
+          {abierto && <tr className="supervision-fila-detalle"><td colSpan={5}><div id={detalleId}><DetalleSeleccionado fila={r} cerrar={() => { setSeleccion(null); document.getElementById(`${detalleId}-boton`)?.focus() }} /></div></td></tr>}
+        </Fragment>
+      })}
     </tbody></table></div>
     {!actual ? <p role="status">Consultando reportes…</p> : actual.error ? <p role="alert" className="mensaje-error">{actual.error}</p> : !actual.filas.length && <p>No hay reportes técnicos para esta consulta.</p>}
     <nav className="planta-paginacion" aria-label="Páginas de reportes técnicos"><span>{actual && !actual.error ? `${actual.filas.length} reportes en esta página` : ''}</span><button className="boton-secundario" type="button" disabled={!actual || pagina === 0} onClick={() => setNavegacion({ filtro, pagina: pagina - 1 })}>Anterior</button><span>Página {pagina + 1}</span><button className="boton-secundario" type="button" disabled={!actual?.mas} onClick={() => setNavegacion({ filtro, pagina: pagina + 1 })}>Siguiente</button></nav>
-    {elegido && <DetalleSeleccionado key={`${clave}:${elegido.area}:${elegido.id}`} fila={elegido} cerrar={() => setSeleccion(null)} />}
   </section>
 }
 
 function DetalleSeleccionado({ fila, cerrar }: { fila: Fila; cerrar: () => void }) {
-  const ref = useRef<HTMLElement>(null)
   const [intento, setIntento] = useState(0)
   const [vista, setVista] = useState<{ intento: number; detalle: Detalle | null; error: string | null } | null>(null)
   useEffect(() => {
-    ref.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
     let vivo = true
     const c = new AbortController(), limite = window.setTimeout(() => c.abort(), 15000)
     const cargar = async (): Promise<Detalle> => fila.area === 'calderas'
@@ -80,7 +86,7 @@ function DetalleSeleccionado({ fila, cerrar }: { fila: Fila; cerrar: () => void 
     return () => { vivo = false; c.abort(); window.clearTimeout(limite) }
   }, [fila, intento])
   const actual = vista?.intento === intento ? vista : null
-  return <section ref={ref} className="supervision-detalle-reporte" aria-label={`Detalle técnico de ${nombreArea(fila.area)}`}>
+  return <section className="supervision-detalle-reporte" aria-label={`Detalle técnico de ${nombreArea(fila.area)}`}>
     <div className="planta-encabezado"><div><h3>Reporte técnico de {nombreArea(fila.area)}</h3><p>{fila.fechaOperativa.split('-').reverse().join('/')} · {nombresTurno[fila.turno]} · {fila.operador}</p></div><button type="button" className="boton-secundario" onClick={cerrar}>Cerrar detalle</button></div>
     {!actual ? <p role="status">Consultando mediciones del reporte…</p> : actual.error ? <><p role="alert" className="mensaje-error">{actual.error}</p><button type="button" className="boton-secundario" onClick={() => setIntento(n => n + 1)}>Reintentar detalle</button></> : actual.detalle?.area === 'calderas' ? <div className="bc-panel"><DetalleReporteCalderasPlanta reporte={actual.detalle.reporte} /></div> : actual.detalle?.area === 'ptar' ? <div className="bpt-panel"><DetalleReportePTARPlanta reporte={actual.detalle.reporte} /></div> : null}
   </section>

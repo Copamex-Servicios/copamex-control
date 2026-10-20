@@ -13,13 +13,15 @@ const pestanas = [
   { nombre: 'Prensas', titulo: 'Prensas de fin de turno' },
   { nombre: 'Historial', titulo: 'Historial de Bitácora' },
 ]
-export function FormularioBitacoraPTAR({ captura, observaciones }: { captura: ReturnType<typeof useReportePTAR>; observaciones: ReactNode }) {
+type CamposFormulario = Pick<ReturnType<typeof useReportePTAR>, 'borrador' | 'cambiarBorrador' | 'editable' | 'reporte'>
+export function FormularioBitacoraPTAR({ captura, observaciones }: { captura: ReturnType<typeof useReportePTAR> | CamposFormulario; observaciones: ReactNode }) {
   const prefijo = useId()
   const [activo, setActivo] = useState(0)
   const { borrador, cambiarBorrador: setBorrador, editable: habilitado } = captura
-  const ayudaGuardado = captura.guardando ? 'Esperando confirmación del servidor…' : captura.reporte ? null
-    : captura.estado === 'cargando' ? 'Consultando el reporte técnico del turno…'
-    : captura.pendiente ? 'El reintento comprueba el envío original; las ediciones posteriores no sustituyen sus datos.' : null
+  const operacion = 'guardar' in captura ? captura : null
+  const ayudaGuardado = operacion?.guardando ? 'Esperando confirmación del servidor…' : captura.reporte ? null
+    : operacion?.estado === 'cargando' ? 'Consultando el reporte técnico del turno…'
+    : operacion?.pendiente ? 'El reintento comprueba el envío original; las ediciones posteriores no sustituyen sus datos.' : null
   function navegar(evento: KeyboardEvent<HTMLButtonElement>, indice: number) {
     let siguiente: number
     if (evento.key === 'ArrowRight') siguiente = (indice + 1) % pestanas.length
@@ -87,18 +89,20 @@ export function FormularioBitacoraPTAR({ captura, observaciones }: { captura: Re
             <textarea id={`${prefijo}-comentario-prensas`} rows={3} disabled={!habilitado} value={borrador.comentarioPrensas}
               onChange={e => setBorrador(b => ({ ...b, comentarioPrensas: e.target.value }))} />
           </label>
-          <label className="bpt-campo bpt-ancho" htmlFor={`${prefijo}-reporte-relevante`}><span>Reporte relevante del turno <small>(obligatorio)</small></span>
-            <textarea aria-label="Reporte relevante del turno (obligatorio)" id={`${prefijo}-reporte-relevante`} rows={4} required maxLength={4000} disabled={!habilitado} value={borrador.reporteRelevante}
+          <label className="bpt-campo bpt-ancho" htmlFor={`${prefijo}-reporte-relevante`}><span>Reporte relevante del turno <small>({!operacion && !captura.reporte?.borrador.reporteRelevante ? 'opcional' : 'obligatorio'})</small></span>
+            <textarea aria-label={`Reporte relevante del turno (${!operacion && !captura.reporte?.borrador.reporteRelevante ? 'opcional' : 'obligatorio'})`} id={`${prefijo}-reporte-relevante`} rows={4} required={!!operacion || !!captura.reporte?.borrador.reporteRelevante} maxLength={4000} disabled={!habilitado} value={borrador.reporteRelevante}
               onChange={e => setBorrador(b => ({ ...b, reporteRelevante: e.target.value }))} /></label>
         </div>}
         {indice === 5 && observaciones}
       </div>
     </div>)}
-    {captura.mensaje && captura.mensaje !== 'Reporte técnico registrado. Solo Administración puede corregirlo.' && <p className="bpt-ayuda" role={captura.estado === 'error' || (!captura.reporte && !captura.guardando) ? 'alert' : 'status'}>{captura.mensaje}</p>}
-    <footer className="bpt-acciones"><span className="bpt-ayuda" id={`${prefijo}-guardado`} hidden={!ayudaGuardado}>{ayudaGuardado}</span>
-      <GuardadoReporteTecnico captura={captura} descripcionId={`${prefijo}-guardado`} alIntentar={() => {
-        if (!captura.pendiente && !borrador.reporteRelevante.trim()) { setActivo(4); window.setTimeout(() => document.getElementById(`${prefijo}-reporte-relevante`)?.focus(), 0) }
-      }} />
-    </footer>
+    {operacion?.mensaje && operacion.mensaje !== 'Reporte técnico registrado. Solo Administración puede corregirlo.' && <p className="bpt-ayuda" role={operacion.estado === 'error' || (!captura.reporte && !operacion.guardando) ? 'alert' : 'status'}>{operacion.mensaje}</p>}
+    {operacion && activo < pestanas.length - 1 && <footer className="bpt-acciones"><span className="bpt-ayuda" id={`${prefijo}-guardado`} hidden={!ayudaGuardado}>{ayudaGuardado}</span>
+      {activo < pestanas.length - 2 ? <button type="button" className="boton-primario" disabled={operacion.guardando}
+        onClick={() => { setActivo(activo + 1); document.getElementById(`${prefijo}-tab-${activo + 1}`)?.focus() }}>Siguiente</button>
+      : <GuardadoReporteTecnico captura={operacion} descripcionId={`${prefijo}-guardado`} alIntentar={() => {
+        if (!operacion.pendiente && !borrador.reporteRelevante.trim()) { setActivo(4); window.setTimeout(() => document.getElementById(`${prefijo}-reporte-relevante`)?.focus(), 0) }
+      }} />}
+    </footer>}
   </div>
 }

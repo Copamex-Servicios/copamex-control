@@ -49,7 +49,7 @@ function estadoModulo(datos: {
   return { texto: registrado ? 'Registrado' : 'Sin registros', clase: registrado ? 'registrado' : 'neutro', registrado }
 }
 
-export function PanelOperativo({ area, rol, seleccionExterna, alSeleccionar }: { area: AreaOperativa; rol: RolUsuario; seleccionExterna?: ModuloOperativo; alSeleccionar?: (modulo: ModuloOperativo) => void }) {
+export function PanelOperativo({ area, rol, seleccionExterna, alSeleccionar, solicitudDesplazamiento = 0 }: { area: AreaOperativa; rol: RolUsuario; seleccionExterna?: ModuloOperativo; alSeleccionar?: (modulo: ModuloOperativo) => void; solicitudDesplazamiento?: number }) {
   const id = useId()
   const [seleccionInterna, setSeleccionInterna] = useState<ModuloOperativo>('bitacora')
   const seleccion = seleccionExterna ?? seleccionInterna
@@ -64,15 +64,43 @@ export function PanelOperativo({ area, rol, seleccionExterna, alSeleccionar }: {
   useEffect(() => {
     if (moduloAnterior.current === actual.id) return
     moduloAnterior.current = actual.id
+    if (rol !== 'admin' && actual.id !== 'bitacora') return
     const destino = destinoModulo.current?.closest('.panel-operativo')?.querySelector<HTMLElement>('.co-encabezado-operativo') ?? destinoModulo.current
     if (!destino) return
     const barra = destino.closest('.co-layout')?.querySelector<HTMLElement>('.co-aviso-barra')
     const espacio = barra ? barra.getBoundingClientRect().height + 30 : 20
     const top = Math.max(0, destino.getBoundingClientRect().top + window.scrollY - espacio)
     window.scrollTo({ top, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
-  }, [actual.id])
+  }, [actual.id, rol])
   const turnoId = turno.area === area && turno.turno?.finalizado_en === null ? turno.turno.id : null
   const datosModulos = { bitacora, pozos, uf, calidad, ptar }
+  const estadoCaptura = datosModulos[actual.id].estadoCarga
+  const turnoPropio = !!turnoId && turno.turno?.iniciado_por === turno.cuentaId
+  const desplazamientoRealizado = useRef<string | null>(null)
+  useEffect(() => {
+    if (rol !== area || actual.id === 'bitacora') {
+      desplazamientoRealizado.current = null
+      return
+    }
+    const solicitud = `${actual.id}:${solicitudDesplazamiento}`
+    if (desplazamientoRealizado.current === solicitud || turno.estadoCarga === 'cargando' || turno.estadoCarga === 'sin-cuenta') return
+    const raiz = destinoModulo.current?.closest('.panel-operativo')
+    if (!raiz) return
+    let destino = raiz.querySelector<HTMLElement>('.panel-turno')
+    if (turnoPropio) {
+      if (estadoCaptura === 'cargando' || estadoCaptura === 'sin-cuenta') return
+      const panel = destinoModulo.current?.querySelector<HTMLElement>('.contenido-modulo:not([hidden])')
+      const captura = panel?.querySelector<HTMLElement>('.captura-pozos,.captura-uf,.calidad-formulario,.ptar-captura')
+      destino = captura && !captura.closest('[hidden]') && captura.getClientRects().length
+        ? captura : panel?.querySelector<HTMLElement>('.cabecera-turno,.calidad-encabezado,.ptar-cabecera') ?? panel ?? destino
+    }
+    if (!destino || !destino.getClientRects().length) return
+    const barra = raiz.closest('.co-layout')?.querySelector<HTMLElement>('.co-aviso-barra')
+    const espacio = barra ? barra.getBoundingClientRect().height + 30 : 20
+    const top = Math.max(0, destino.getBoundingClientRect().top + window.scrollY - espacio)
+    desplazamientoRealizado.current = solicitud
+    window.scrollTo({ top, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+  }, [actual.id, solicitudDesplazamiento, turno.estadoCarga, turnoPropio, estadoCaptura, rol, area])
   const estados = Object.fromEntries(opciones.map(a => [a.id, estadoModulo(datosModulos[a.id], turnoId)]))
   const registrados = opciones.filter(a => estados[a.id].registrado).length
   const fechaISO = reloj.fecha?.split('/').reverse().join('-') ?? null
@@ -89,7 +117,7 @@ export function PanelOperativo({ area, rol, seleccionExterna, alSeleccionar }: {
     const botones = evento.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')
     botones?.[siguiente]?.focus()
   }
-  return <div className="panel-operativo co-bitacora-referencia co-operativo-referencia">
+  return <div className="panel-operativo co-bitacora-referencia co-operativo-referencia" data-area={area}>
     <div className="titulo-operativo">
       <div><PageHeader titulo={area === 'calderas' ? 'Calderas' : 'PTAR'} icono={area === 'calderas' ? 'calderas' : 'ptar'} /></div>
 

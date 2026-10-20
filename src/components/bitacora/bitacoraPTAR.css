@@ -91,3 +91,20 @@
 
 .co-layout .bpt-panel .bpt-acciones:has(> [hidden]) { justify-content: flex-end; }
 .co-layout .bpt-panel .bpt-acciones:has(> [hidden]):not(:has(> button)) { padding-top: 0; gap: 0; }
+
+/* Ajustes dentro de PTAR; las consultas de Planta y Administración se conservan. */
+.co-layout .co-operativo-referencia[data-area="ptar"] .bpt-cabecera { margin-bottom:12px; }
+.co-layout .co-operativo-referencia[data-area="ptar"] .bpt-cabecera h2 { font-size:20px; line-height:1.3; }
+.co-layout .co-operativo-referencia[data-area="ptar"] .bpt-contenido { padding:12px; }
+.co-layout .co-operativo-referencia[data-area="ptar"] .bpt-consulta { padding:0; }
+.co-layout .co-operativo-referencia[data-area="ptar"] :is(.bpt-campo,.bpt-ayuda) { font-size:14px; line-height:1.4; }
+.co-layout .co-operativo-referencia[data-area="ptar"] .bpt-campo :is(input,select) { min-height:44px; }
+.co-layout .co-operativo-referencia[data-area="ptar"] :is(.bpt-tabs button,.bpt-acciones button) { min-height:44px; padding:9px 12px; font-size:14px; line-height:1.4; white-space:normal; }
+.co-layout .co-operativo-referencia[data-area="ptar"] .bpt-mediciones { gap:12px 16px; }
+.co-layout .co-operativo-referencia[data-area="ptar"] :is(.bpt-valores dt,.bpt-descarga legend) { font-size:13px; }
+.co-layout .co-operativo-referencia[data-area="ptar"] .bpt-destino { min-height:44px; }
+.co-layout .co-operativo-referencia[data-area="ptar"] .bpt-filtros-tecnicos { align-items:end; }
+@media(max-width:480px) {
+ .co-layout .co-operativo-referencia[data-area="ptar"] .bpt-filtros-tecnicos { grid-template-columns:minmax(0,1fr); }
+ .co-layout .co-operativo-referencia[data-area="ptar"] .bpt-destinos { gap:0 16px; }
+}

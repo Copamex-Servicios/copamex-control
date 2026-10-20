@@ -1,5 +1,4 @@
-import { useId, useRef, useState } from 'react'
-import type { FormEvent } from 'react'
+import { useRef, useState } from 'react'
 import type { CamposInicioTurno } from '../../hooks/useTurno'
 import type { Operador, TipoTurno, TurnoOperativo } from '../../lib/tiposTurno'
 import { InicioTurno } from './InicioTurno'
@@ -29,9 +28,7 @@ export function TurnoActivo({
   turno, nombreOperador, operadores, deshabilitado = false,
   soloLectura = false, alCambiar, alCerrar,
 }: PropsTurnoActivo) {
-  const id = useId()
   const [accion, setAccion] = useState<'cambiar' | 'cerrar' | null>(null)
-  const [notas, setNotas] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [cerrando, setCerrando] = useState(false)
   const cierreActivo = useRef(false)
@@ -46,16 +43,14 @@ export function TurnoActivo({
     setError(null)
   }
 
-  async function cerrar(evento: FormEvent<HTMLFormElement>): Promise<void> {
-    evento.preventDefault()
+  async function cerrar(): Promise<void> {
     if (!puedeCerrar || !alCerrar || accion !== 'cerrar' || bloqueado || cierreActivo.current) return
     cierreActivo.current = true
     setCerrando(true)
     setError(null)
     try {
-      if (await alCerrar(notas.trim())) {
+      if (await alCerrar('')) {
         setAccion(null)
-        setNotas('')
       }
     } catch {
       setError('No se pudo completar el cierre. Revisa el mensaje del turno antes de volver a intentar.')
@@ -114,27 +109,19 @@ export function TurnoActivo({
       )}
 
       {accion === 'cerrar' && puedeCerrar && (
-        <form className="formulario-turno gestion-turno" onSubmit={cerrar} aria-busy={cerrando}>
+        <div className="formulario-turno gestion-turno" aria-busy={cerrando}>
           <h3>Cierre de turno</h3>
-          <p className="texto-secundario" id={`${id}-ayuda-cierre`}>
-            El cierre se registrará al guardar.{puedeCambiar && ' Si entra otro operador, usa Cambiar de turno para cerrar este e iniciar el siguiente juntos.'}
-          </p>
-          <div className="campo-turno">
-            <label htmlFor={`${id}-notas`}>Notas de cierre (opcional)</label>
-            <textarea id={`${id}-notas`} name="notas_cierre" rows={3} disabled={bloqueado}
-              value={notas} onChange={(evento) => setNotas(evento.target.value)}
-              aria-describedby={`${id}-ayuda-cierre`} />
-          </div>
+          <p className="texto-secundario">¿Estás seguro de que deseas cerrar tu turno?</p>
           {error && <p className="mensaje-error" role="alert">{error}</p>}
           <div className="acciones-turno">
-            <button className="boton-primario" type="submit" disabled={bloqueado}>
-              {cerrando ? 'Cerrando…' : 'Guardar cierre'}
+            <button className="boton-primario" type="button" disabled={bloqueado} onClick={() => { void cerrar() }}>
+              {cerrando ? 'Cerrando…' : 'Sí, cerrar turno'}
             </button>
             <button className="boton-secundario" type="button" onClick={cancelar} disabled={bloqueado}>
               Cancelar
             </button>
           </div>
-        </form>
+        </div>
       )}
     </div>
   )

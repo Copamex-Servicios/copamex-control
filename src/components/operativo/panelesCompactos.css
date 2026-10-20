@@ -1,0 +1,124 @@
+/* Solo el encabezado compartido de Calderas y PTAR. */
+.co-layout .co-operativo-referencia[data-area] .co-encabezado-operativo.co-paneles-compactos {
+  grid-template-columns:minmax(0,3fr) minmax(240px,1fr); align-items:start; gap:10px; margin-bottom:10px;
+}
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo :is(.resumen-dia-tarjeta,.panel-turno,.resumen-dia-tarjeta:has(>.resumen-dia-vacio)) {
+  min-height:0; padding:12px; box-shadow:none; background:#fff;
+}
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno { grid-column:1/-1; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo :is(.resumen-dia-cabecera,.cabecera-turno) { margin-bottom:8px; gap:8px; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo :is(.resumen-dia-cabecera h2,.panel-turno .cabecera-turno h2) { font-size:17px; font-weight:650; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-vacio { margin:4px 0 0; font-size:14px; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-produccion { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr)); gap:16px; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-programa { min-width:0; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-programa+.resumen-dia-programa { padding:0 0 0 16px; border-top:0; border-left:1px solid var(--co-border); }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-papel { align-items:baseline; flex-wrap:wrap; margin-bottom:10px; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-papel strong { font-size:15px; font-weight:650; overflow-wrap:anywhere; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-maquina { font-size:13px; background:#eaf2ff; padding:3px 8px; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-programa dl { gap:12px; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-programa dt { font-size:13px; margin-bottom:3px; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-programa dd { font-size:16px; font-weight:600; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .co-eventos-contenido { max-height:150px; overflow:auto; scrollbar-gutter:stable; padding-right:4px; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-evento { padding:8px 10px; margin-bottom:8px; border:1px solid var(--co-border); border-radius:6px; background:#fff; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-evento.evento-hoy { border-color:#dbe7f6; background:#edf4fd; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo :is(.resumen-dia-evento-fecha,.resumen-dia-otros,.resumen-dia-hoy) { font-size:13px; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo :is(.resumen-dia-evento strong,.resumen-dia-evento p) { font-size:14px; line-height:1.4; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno .cabecera-turno > button { margin-left:auto; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo :is(.co-turno-estado,.mensaje-error,.mensaje-exito,.ayuda-turno,.error-lateral) { font-size:13px; line-height:1.4; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo :is(.boton-icono,.panel-turno .boton-primario,.panel-turno .boton-secundario) { min-height:38px; height:auto; padding:6px 10px; font-size:14px; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno .formulario-turno:has(>.campos-turno) { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:8px 12px; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno .formulario-turno > .campos-turno { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; grid-column:1; grid-row:1; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno .campos-turno > .campo-turno { grid-column:auto; grid-row:auto; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno .campos-turno label { font-size:14px; line-height:1.5; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno .campos-turno :is(input,select,output) { min-height:38px; height:auto; padding:6px 10px; font-size:14px; white-space:normal; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno .campo-turno-ancho input { padding-left:10px; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno .campo-turno > .co-empleado-icono { display:none; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno .formulario-turno > .acciones-turno { grid-column:2; grid-row:1; align-self:start; padding-top:26px; margin:0; flex-wrap:wrap; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno .formulario-turno > .acciones-turno button { min-height:38px; font-size:14px; white-space:normal; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno .formulario-turno > :is(.co-confirmar-empleado,.mensaje-error) { grid-column:1/-1; grid-row:auto; margin:0; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .co-confirmar-empleado strong { white-space:normal; font-size:15px; overflow-wrap:anywhere; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .turno-actual > .datos-turno { grid-template-columns:minmax(90px,.6fr) minmax(100px,.7fr) minmax(180px,1.6fr) minmax(130px,1fr) minmax(160px,1fr); gap:8px 16px; margin:0 0 8px; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .turno-actual > .datos-turno > div { grid-column:auto; order:0; display:block; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .turno-actual > .datos-turno dt { font-size:13px; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .turno-actual > .datos-turno dd { font-size:14px; white-space:normal; overflow-wrap:anywhere; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .gestion-turno :is(p,textarea) { font-size:14px; }
+@media(max-width:1050px) {
+  .co-layout .co-operativo-referencia[data-area] .co-encabezado-operativo.co-paneles-compactos { grid-template-columns:minmax(0,2fr) minmax(240px,1fr); }
+  .co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno .formulario-turno:has(>.campos-turno) { grid-template-columns:minmax(0,1fr); }
+  .co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno .formulario-turno > .acciones-turno { grid-column:1; grid-row:auto; padding-top:0; }
+  .co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .turno-actual > .datos-turno { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
+@media(max-width:700px) {
+  .co-layout .co-operativo-referencia[data-area] .co-encabezado-operativo.co-paneles-compactos { grid-template-columns:minmax(0,1fr); }
+  .co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno .formulario-turno > .campos-turno { grid-template-columns:minmax(0,1fr); }
+  .co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .turno-actual > .datos-turno { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-programa+.resumen-dia-programa { border-left:0; border-top:1px solid var(--co-border); padding:12px 0 0; }
+}
+
+/* Fichas de Producción y Eventos; no modifica Gestión del turno. */
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-produccion { gap:12px; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo :is(.resumen-dia-programa,.resumen-dia-programa+.resumen-dia-programa) {
+  padding:10px 12px; border:1px solid #e0e8f3; border-radius:8px; background:#f2f6fb;
+}
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-papel {
+  display:grid; grid-template-columns:auto minmax(0,1fr); gap:8px; padding-bottom:8px; margin-bottom:8px; border-bottom:1px solid #d9e3ef;
+}
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-maquina {
+  justify-self:start; padding:0; background:transparent; color:#173e70; font-size:15px; font-weight:700;
+}
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-papel strong { color:var(--co-text); font-size:15px; line-height:1.4; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-programa dl { gap:12px; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-programa dl>div+div { padding-left:12px; border-left:1px solid #d9e3ef; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-programa dt { font-size:13px; color:#526581; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-programa dd { margin-top:4px; font-size:18px; line-height:1.35; font-weight:650; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .co-eventos-total { min-height:30px; padding:3px 8px; border:1px solid #c8ddfa; border-radius:5px; background:#eaf2ff; color:#173e70; font:inherit; font-size:13px; white-space:nowrap; cursor:pointer; box-shadow:0 0 0 3px rgb(11 94 215 / 8%); }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .co-eventos-total:is(:hover,[aria-expanded="true"]) { background:#dceafe; border-color:#8eb8ed; }
+.co-layout .co-paneles-compactos .co-eventos-total:disabled { cursor:default; box-shadow:none; }
+.co-layout .co-paneles-compactos .co-eventos-lista { max-height:280px; overflow:auto; scrollbar-gutter:stable; padding-right:4px; }
+.co-layout .co-paneles-compactos .co-eventos-lista:focus-visible { outline:2px solid var(--co-primary); outline-offset:2px; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo :is(.co-evento-ficha,.co-evento-ficha.evento-hoy) {
+  display:grid; grid-template-columns:56px minmax(0,1fr); gap:10px; align-items:start;
+  padding:9px 10px; border:1px solid #dbe7f6; border-radius:8px; background:#edf4fd;
+}
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .co-evento-ficha.evento-hoy { border-color:#dbe7f6; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .co-evento-fecha {
+  display:grid; gap:2px; padding:6px 4px; text-align:center; border:1px solid #dbe7f6; border-radius:6px; background:#fff; color:#173e70;
+}
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .co-evento-fecha strong { font-size:24px; font-weight:650; line-height:1.1; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .co-evento-fecha span { font-size:12px; line-height:1.35; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .co-evento-datos { min-width:0; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .co-evento-datos>.resumen-dia-evento-fecha { margin-bottom:5px; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .co-evento-datos>strong { display:block; font-weight:650; overflow-wrap:anywhere; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .co-evento-datos p { margin:5px 0 0; white-space:pre-wrap; }
+
+/* Mantener blancos tactiles comodos en pantallas pequenas. */
+.co-layout .co-operativo-referencia .co-paneles-compactos .co-turno-abierto { background:#e8f5ee; color:#166534; }
+.co-layout .co-operativo-referencia .co-paneles-compactos .co-turno-abierto > span { background:#16803c; }
+.co-layout .co-operativo-referencia .co-paneles-compactos :is(.co-turno-sin-abierto,.co-turno-cerrado) { background:#fef0f0; color:#a51d28; }
+.co-layout .co-operativo-referencia .co-paneles-compactos :is(.co-turno-sin-abierto,.co-turno-cerrado) > span { background:#dc2626; }
+.co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno:has(.co-turno-sin-abierto) { animation:co-latido-turno 3s ease-out infinite; }
+@keyframes co-latido-turno {
+  0%,20%,48%,100% { border-color:#dae6f6; box-shadow:0 0 0 0 rgb(57 126 203 / 0%); }
+  8%,30% { border-color:#8cb8ec; box-shadow:0 0 0 3px rgb(57 126 203 / 10%); }
+  18%,42% { border-color:#dae6f6; box-shadow:0 0 0 6px rgb(57 126 203 / 0%); }
+}
+@media(prefers-reduced-motion:reduce) {
+  .co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno:has(.co-turno-sin-abierto) { animation:none; }
+}
+.co-layout .co-paneles-compactos .co-eventos-carrusel { min-width:0; }
+.co-layout .co-paneles-compactos .co-eventos-ventana { overflow:hidden; }
+.co-layout .co-paneles-compactos .co-eventos-pista { display:flex; align-items:flex-start; }
+.co-layout .co-paneles-compactos .co-eventos-diapositiva { flex:0 0 100%; min-width:0; }
+.co-layout .co-paneles-compactos .co-eventos-deslizar { animation:co-eventos-deslizar 320ms cubic-bezier(.16,1,.3,1) both; }
+.co-layout .co-paneles-compactos .co-eventos-carrusel:focus-visible { outline:2px solid var(--co-primary); outline-offset:2px; }
+@keyframes co-eventos-deslizar { from { transform:translateX(0); } to { transform:translateX(-100%); } }
+@media(prefers-reduced-motion:reduce) { .co-layout .co-paneles-compactos .co-eventos-deslizar { animation:none; } }
+@media(min-width:701px) {
+  .co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-tarjeta[aria-label="Producción de hoy"] .resumen-dia-cabecera { position:relative; padding-right:48px; margin-bottom:5px; }
+  .co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-cabecera > .boton-icono { position:absolute; right:0; top:50%; transform:translateY(-50%); margin:0; }
+}
+@media(max-width:700px) {
+  .co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo :is(.boton-icono,.panel-turno .boton-primario,.panel-turno .boton-secundario) { min-height:44px; }
+  .co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno .campos-turno :is(input,select,output) { min-height:44px; }
+  .co-layout .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno .formulario-turno > .acciones-turno button { min-height:44px; }
+}

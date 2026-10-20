@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react'
+import { ResumenHistorial } from '../diseno/ResumenHistorial'
+import { useEffect, useId, useState } from 'react'
+import '../diseno/acordeonHistorial.css'
+import './historialFichaTecnica.css'
 import { consultarDetalleReporteCalderas, consultarHistorialReportesCalderas } from '../../lib/bitacoraTecnicaCalderas'
 import type { FiltrosReportesCalderas, ReporteTecnicoCalderas, ResumenReporteCalderas } from '../../lib/bitacoraTecnicaCalderas'
 import { DetalleReporteCalderasPlanta } from '../planta/DetalleReporteCalderasPlanta'
 
-function ReporteHistorico({ resumen, compartido }: { resumen: ResumenReporteCalderas; compartido: boolean }) {
+function ReporteHistorico({ resumen, compartido, grupo }: { resumen: ResumenReporteCalderas; compartido: boolean; grupo: string }) {
   const [abierto, setAbierto] = useState(false)
   const [intento, setIntento] = useState(0)
   const [reporte, setReporte] = useState<ReporteTecnicoCalderas | null>(null)
@@ -18,19 +21,19 @@ function ReporteHistorico({ resumen, compartido }: { resumen: ResumenReporteCald
       : e instanceof Error ? e.message : 'No se pudo consultar el detalle técnico.') })
     return () => { vigente = false; window.clearTimeout(limite); control.abort() }
   }, [abierto, intento, resumen.id, resumen.turnoId, compartido])
-  return <details className="bc-reporte-historico" onToggle={e => {
+  return <details className="bc-reporte-historico co-acordeon-historial" name={grupo} onToggle={e => {
     if (e.currentTarget.open) { setReporte(null); setError(null) }
     setAbierto(e.currentTarget.open)
   }}>
-    <summary><span><strong>Reporte técnico · {resumen.fechaOperativa.split('-').reverse().join('/')}</strong>
-      <span>{resumen.turno === 'dia' ? 'Día' : resumen.turno === 'tarde' ? 'Tarde' : 'Noche'} · {resumen.operador}</span></span></summary>
-    {abierto && (error ? <div className="bc-detalle-tecnico"><p role="alert">{error}</p>
+    <ResumenHistorial fecha={resumen.fechaOperativa} titulo="Reporte técnico" operador={resumen.operador} turno={resumen.turno} />
+    {error ? <div className="bc-detalle-tecnico"><p role="alert">{error}</p>
       <button type="button" className="boton-secundario" onClick={() => { setReporte(null); setError(null); setIntento(n => n + 1) }}>Reintentar detalle</button></div>
-      : reporte ? <DetalleReporteCalderasPlanta reporte={reporte} /> : <p className="bc-ayuda" role="status">Consultando mediciones del reporte…</p>)}
+      : reporte ? <DetalleReporteCalderasPlanta reporte={reporte} /> : <p className="bc-ayuda" role="status">Consultando mediciones del reporte…</p>}
   </details>
 }
 
 export function HistorialReportesCalderas({ actualizacion, compartido = false }: { actualizacion: string; compartido?: boolean }) {
+  const grupoHistorial = useId()
   const [filtros, setFiltros] = useState<FiltrosReportesCalderas>({ desde: '', hasta: '', turno: 'todos' })
   const [pagina, setPagina] = useState(0), [intento, setIntento] = useState(0)
   const clave = `${filtros.desde}:${filtros.hasta}:${filtros.turno}:${pagina}:${intento}:${actualizacion}`
@@ -60,7 +63,7 @@ export function HistorialReportesCalderas({ actualizacion, compartido = false }:
     </div>
     {!datos ? <p className="bc-ayuda" role="status">Consultando reportes técnicos…</p> : datos.error ? <p className="bc-ayuda" role="alert">{datos.error}</p>
       : datos.filas.length === 0 ? <p className="bc-ayuda">No hay reportes técnicos para esta consulta.</p>
-      : datos.filas.map(r => <ReporteHistorico key={`${r.id}:${r.revision}`} resumen={r} compartido={compartido} />)}
+      : datos.filas.map(r => <ReporteHistorico key={`${r.id}:${r.revision}`} resumen={r} compartido={compartido} grupo={grupoHistorial} />)}
     {((datos && !datos.error && (pagina > 0 || datos.hayMas)) || pagina > 0) && <nav className="bc-paginacion-tecnica" aria-label="Páginas de reportes técnicos">
       <button type="button" className="boton-secundario" disabled={!datos || pagina === 0} onClick={() => setPagina(n => n - 1)}>Anterior</button>
       <span>Página {pagina + 1}</span><button type="button" className="boton-secundario" disabled={!datos || !datos.hayMas} onClick={() => setPagina(n => n + 1)}>Siguiente</button>

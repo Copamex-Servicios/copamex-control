@@ -1,6 +1,8 @@
+import { ResumenHistorial } from '../diseno/ResumenHistorial'
 import { RefreshCw } from 'lucide-react'
 import '../operativo/medicionesVisual.css'
-import { useState } from 'react'
+import { useId, useState } from 'react'
+import '../diseno/acordeonHistorial.css'
 import { usePozos } from '../../hooks/usePozos'
 import type { TipoTurno } from '../../lib/tiposTurno'
 import { FormularioPozos } from './FormularioPozos'
@@ -12,16 +14,13 @@ const nombresTurno: Record<TipoTurno, string> = {
   dia: 'Día', tarde: 'Tarde', noche: 'Noche',
 }
 
-function fechaOperativa(fecha: string): string {
-  const [anio, mes, dia] = fecha.split('-')
-  return `${dia}/${mes}/${anio}`
-}
 
 interface PropsContenidoPozos {
   datos: ReturnType<typeof usePozos>
 }
 
 function ContenidoPozos({ datos }: PropsContenidoPozos) {
+  const grupoHistorial = useId()
   const [revisionConcesion, setRevisionConcesion] = useState(0)
   const {
     cuentaId, rol, turno, lecturaActual, historial, estadoCarga, mensaje,
@@ -100,9 +99,6 @@ function ContenidoPozos({ datos }: PropsContenidoPozos) {
             deshabilitado={!listo || !puedeCrear || ocupado || actual !== null} />
         </div>
       )}
-      {listo && rol === 'calderas' && !turnoPropio && (
-        <p className="texto-secundario">Para una lectura nueva se necesita tu turno de Calderas abierto. Puedes consultar las lecturas anteriores.</p>
-      )}
 
       {listo && actual && (
         <LecturaPozosGuardada registro={actual} deshabilitado={ocupado} />
@@ -114,8 +110,8 @@ function ContenidoPozos({ datos }: PropsContenidoPozos) {
           {anteriores.length === 0 ? (
             <p>{actual ? 'No hay otras lecturas guardadas para consultar.' : 'No hay lecturas guardadas para consultar.'}</p>
           ) : anteriores.map((registro) => (
-            <details className="item-historial-pozos" key={registro.lectura.id}>
-              <summary>{fechaOperativa(registro.turno.fecha_operativa)} · {nombresTurno[registro.turno.turno]} · {registro.operadorNombre}</summary>
+            <details className="item-historial-pozos co-acordeon-historial" name={grupoHistorial} key={registro.lectura.id}>
+              <ResumenHistorial fecha={registro.turno.fecha_operativa} titulo="Lectura de Pozos" operador={registro.operadorNombre} turno={registro.turno.turno} />
               <LecturaPozosGuardada registro={registro} deshabilitado={ocupado} />
             </details>
           ))}

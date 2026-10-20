@@ -19,13 +19,15 @@ function Apartado({ indice, activo, prefijo, children }: { indice: number; activ
     aria-labelledby={`${prefijo}-tab-${indice}`} hidden={activo !== indice} tabIndex={0}>
     <div className="bc-contenido"><h3 className="bc-titulo-seccion">{pestanas[indice].titulo}</h3>{children}</div></div>
 }
-export function FormularioBitacoraCalderas({ captura, observaciones }: { captura: ReturnType<typeof useReporteCalderas>; observaciones: ReactNode }) {
+type CamposFormulario = Pick<ReturnType<typeof useReporteCalderas>, 'borrador' | 'cambiarBorrador' | 'editable' | 'reporte' | 'unidadPresion'>
+export function FormularioBitacoraCalderas({ captura, observaciones }: { captura: ReturnType<typeof useReporteCalderas> | CamposFormulario; observaciones: ReactNode }) {
   const prefijo = useId()
   const [activo, setActivo] = useState(0)
   const { borrador, cambiarBorrador: setBorrador, editable: habilitado } = captura
-  const ayudaGuardado = captura.guardando ? 'Esperando confirmación del servidor…' : captura.reporte ? null
-    : captura.estado === 'cargando' ? 'Consultando el reporte técnico del turno…'
-    : captura.pendiente ? 'El reintento comprueba el envío original; las ediciones posteriores no sustituyen sus datos.' : null
+  const operacion = 'guardar' in captura ? captura : null
+  const ayudaGuardado = operacion?.guardando ? 'Esperando confirmación del servidor…' : captura.reporte ? null
+    : operacion?.estado === 'cargando' ? 'Consultando el reporte técnico del turno…'
+    : operacion?.pendiente ? 'El reintento comprueba el envío original; las ediciones posteriores no sustituyen sus datos.' : null
   function navegar(evento: KeyboardEvent<HTMLButtonElement>, indice: number) {
     let siguiente: number
     if (evento.key === 'ArrowRight') siguiente = (indice + 1) % pestanas.length
@@ -55,9 +57,7 @@ export function FormularioBitacoraCalderas({ captura, observaciones }: { captura
       </button>)}
     </div>
     <Apartado indice={0} activo={activo} prefijo={prefijo}>
-      <p className="bc-ayuda" id={`${prefijo}-unidades`}>{captura.reporte?.versionFormato === 1
-        ? 'Reporte del formato anterior: Sulzer y condensado se registraron en PSI. Los valores no se convierten.'
-        : 'Las Calderas solo registran estado. Sulzer y condensado: presión en kg/cm².'}</p>
+      {captura.reporte?.versionFormato === 1 && <p className="bc-ayuda" id={`${prefijo}-unidades`}>Reporte del formato anterior: Sulzer y condensado se registraron en PSI. Los valores no se convierten.</p>}
       <div className="bc-grupos-equipos">
       {[{ nombre: 'Calderas', equipos: equiposCalderas.slice(0, 4) }, { nombre: 'Bombas Sulzer', equipos: equiposCalderas.slice(4) }].map(grupo =>
         <fieldset disabled={!habilitado} className="bc-equipos" key={grupo.nombre}><legend>{grupo.nombre}</legend>
@@ -70,7 +70,7 @@ export function FormularioBitacoraCalderas({ captura, observaciones }: { captura
               <option value="">Selecciona</option>{['Servicio', 'Reserva', 'Mantenimiento'].map(v => <option key={v}>{v}</option>)}
             </select></label>
           {equipo.id.startsWith('sulzer_') && <label className="bc-campo" htmlFor={`${prefijo}-${equipo.id}-presion`}><span className="bc-sr">Presión <small>{borrador.equipos[equipo.id].estado === 'Servicio' ? 'en Servicio' : '(opcional)'}</small></span>
-            <input aria-label={`Presión de ${equipo.nombre}, ${captura.unidadPresion}`} id={`${prefijo}-${equipo.id}-presion`} type="number" step="any" inputMode="decimal" aria-describedby={`${prefijo}-unidades`}
+            <input aria-label={`Presión de ${equipo.nombre}, ${captura.unidadPresion}`} id={`${prefijo}-${equipo.id}-presion`} type="number" step="any" inputMode="decimal" aria-describedby={captura.reporte?.versionFormato === 1 ? `${prefijo}-unidades` : undefined}
               disabled={!habilitado} placeholder={captura.unidadPresion}
               value={borrador.equipos[equipo.id].presion} onChange={e => setBorrador(b => ({ ...b, equipos: { ...b.equipos, [equipo.id]: { ...b.equipos[equipo.id], presion: e.target.value } } }))} />
           </label>}
@@ -119,27 +119,28 @@ export function FormularioBitacoraCalderas({ captura, observaciones }: { captura
     <Apartado indice={5} activo={activo} prefijo={prefijo}><div className="bc-mediciones">
       {medicion('nivel_agua_potable', 'Nivel de tanques de agua potable', '%')}
     </div>
-      <p className="bc-ayuda bc-servicio-ayuda">{captura.reporte?.versionFormato === 1 ? 'Estos equipos no se capturaban en el formato anterior.'
-        : 'Marca los equipos en servicio. Puedes marcar ambos; sin marcar queda sin registrar.'}</p>
+      {captura.reporte?.versionFormato === 1 && <p className="bc-ayuda bc-servicio-ayuda">Estos equipos no se capturaban en el formato anterior.</p>}
       <div className="bc-servicios">{[{ titulo: 'Bombas de agua potable', equipos: equiposAguaCalderas.slice(0, 2) },
         { titulo: 'Pozos en servicio', equipos: equiposAguaCalderas.slice(2) }].map(g =>
-        <fieldset key={g.titulo} disabled={!habilitado} className="bc-servicio-grupo"><legend>{g.titulo}</legend>
+        <fieldset key={g.titulo} disabled={!habilitado || captura.reporte?.versionFormato === 1} className="bc-servicio-grupo"><legend>{g.titulo}</legend>
           {g.equipos.map(e => <label key={e.id} className="bc-servicio-opcion">
             <input type="checkbox" aria-label={`${e.nombre} en servicio`} checked={borrador.servicioAgua[e.id]}
               onChange={evento => { const marcado = evento.target.checked; setBorrador(b => ({ ...b, servicioAgua: { ...b.servicioAgua, [e.id]: marcado } })) }} />
             <span>{e.nombre}</span>
           </label>)}
         </fieldset>)}</div>
-      <label className="bc-campo bc-ancho" htmlFor={`${prefijo}-reporte-relevante`}><span>Reporte relevante del turno <small>(obligatorio)</small></span>
-        <textarea aria-label="Reporte relevante del turno (obligatorio)" id={`${prefijo}-reporte-relevante`} rows={4} required maxLength={4000} disabled={!habilitado} value={borrador.reporteRelevante}
+      <label className="bc-campo bc-ancho" htmlFor={`${prefijo}-reporte-relevante`}><span>Reporte relevante del turno <small>({!operacion && !captura.reporte?.borrador.reporteRelevante ? 'opcional' : 'obligatorio'})</small></span>
+        <textarea aria-label={`Reporte relevante del turno (${!operacion && !captura.reporte?.borrador.reporteRelevante ? 'opcional' : 'obligatorio'})`} id={`${prefijo}-reporte-relevante`} rows={4} required={!!operacion || !!captura.reporte?.borrador.reporteRelevante} maxLength={4000} disabled={!habilitado || captura.reporte?.versionFormato === 1} value={borrador.reporteRelevante}
           onChange={e => setBorrador(b => ({ ...b, reporteRelevante: e.target.value }))} /></label>
     </Apartado>
     <Apartado indice={6} activo={activo} prefijo={prefijo}>{observaciones}</Apartado>
-    {captura.mensaje && captura.mensaje !== 'Reporte técnico registrado. Solo Administración puede corregirlo.' && <p className="bc-ayuda" role={captura.estado === 'error' || (!captura.reporte && !captura.guardando) ? 'alert' : 'status'}>{captura.mensaje}</p>}
-    <footer className="bc-acciones"><span className="bc-ayuda" id={`${prefijo}-guardado`} hidden={!ayudaGuardado}>{ayudaGuardado}</span>
-      <GuardadoReporteTecnico captura={captura} descripcionId={`${prefijo}-guardado`} alIntentar={() => {
-        if (!captura.pendiente && !borrador.reporteRelevante.trim()) { setActivo(5); window.setTimeout(() => document.getElementById(`${prefijo}-reporte-relevante`)?.focus(), 0) }
-      }} />
-    </footer>
+    {operacion?.mensaje && operacion.mensaje !== 'Reporte técnico registrado. Solo Administración puede corregirlo.' && <p className="bc-ayuda" role={operacion.estado === 'error' || (!captura.reporte && !operacion.guardando) ? 'alert' : 'status'}>{operacion.mensaje}</p>}
+    {operacion && activo < pestanas.length - 1 && <footer className="bc-acciones"><span className="bc-ayuda" id={`${prefijo}-guardado`} hidden={!ayudaGuardado}>{ayudaGuardado}</span>
+      {activo < pestanas.length - 2 ? <button type="button" className="boton-primario" disabled={operacion.guardando}
+        onClick={() => { setActivo(activo + 1); document.getElementById(`${prefijo}-tab-${activo + 1}`)?.focus() }}>Siguiente</button>
+      : <GuardadoReporteTecnico captura={operacion} descripcionId={`${prefijo}-guardado`} alIntentar={() => {
+        if (!operacion.pendiente && !borrador.reporteRelevante.trim()) { setActivo(5); window.setTimeout(() => document.getElementById(`${prefijo}-reporte-relevante`)?.focus(), 0) }
+      }} />}
+    </footer>}
   </div>
 }

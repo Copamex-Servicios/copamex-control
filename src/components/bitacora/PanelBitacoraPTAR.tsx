@@ -16,9 +16,9 @@ export function PanelBitacoraPTAR() {
     {datos.rol === 'admin' ? <div className="bpt-contenido bpt-consulta">
       {observaciones}
     </div> : <>
-      {!habilitado && !captura.reporte && !captura.pendiente && <p className="bpt-ayuda" role="status">
+      {!habilitado && !captura.reporte && !captura.pendiente && (datos.estadoCarga === 'cargando' || datos.estadoCarga === 'error') && <p className="bpt-ayuda" role="status">
         {datos.estadoCarga === 'cargando' ? 'Consultando el turno y la Bitácora…' : datos.estadoCarga === 'error'
-          ? 'La captura técnica estará disponible al confirmar la consulta de Bitácora.' : 'Abre un turno de PTAR para capturar el reporte técnico.'}
+          ? 'La captura técnica estará disponible al confirmar la consulta de Bitácora.' : null}
       </p>}
       <FormularioBitacoraPTAR key={`${datos.cuentaId}:${datos.turno?.id ?? 'sin-turno'}`} captura={captura}
         observaciones={observaciones} />

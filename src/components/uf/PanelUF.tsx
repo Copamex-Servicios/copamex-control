@@ -1,25 +1,26 @@
+import { ResumenHistorial } from '../diseno/ResumenHistorial'
 import { RefreshCw } from 'lucide-react'
+import { useId } from 'react'
+import '../diseno/acordeonHistorial.css'
 import '../operativo/medicionesVisual.css'
 import { useUF } from '../../hooks/useUF'
 import type { TipoTurno } from '../../lib/tiposTurno'
 import { FormularioUF } from './FormularioUF'
 import { formatearVolumenUF } from '../../lib/formatoUF'
 import { LecturaUFGuardada } from './LecturaUFGuardada'
+import { LecturaUFHistorial } from './LecturaUFHistorial'
 
 const nombresTurno: Record<TipoTurno, string> = {
   dia: 'Día', tarde: 'Tarde', noche: 'Noche',
 }
 
-function fechaOperativa(fecha: string): string {
-  const [anio, mes, dia] = fecha.split('-')
-  return `${dia}/${mes}/${anio}`
-}
 
 interface PropsContenidoUF {
   datos: ReturnType<typeof useUF>
 }
 
 function ContenidoUF({ datos }: PropsContenidoUF) {
+  const grupoHistorial = useId()
   const {
     cuentaId, rol, turno, lecturaActual, historial, estadoCarga, mensaje,
     guardando, solicitudPendiente, mensajeAccion, puedeCrear,
@@ -96,23 +97,20 @@ function ContenidoUF({ datos }: PropsContenidoUF) {
             deshabilitado={!listo || !puedeCrear || ocupado || actual !== null} />
         </div>
       )}
-      {listo && rol === 'calderas' && !turnoPropio && (
-        <p className="texto-secundario">Para una lectura nueva se necesita tu turno de Calderas abierto. Puedes consultar las lecturas anteriores.</p>
-      )}
 
       {listo && actual && (
         <LecturaUFGuardada registro={actual} deshabilitado={ocupado} />
       )}
       {listo && (
         <div className="historial-uf">
-          <h3>Historial de UF</h3>
+          <div className="uf-historial-cabecera"><h3>Historial de UF</h3><span>{anteriores.length} {anteriores.length === 1 ? 'registro' : 'registros'}</span></div>
           
           {anteriores.length === 0 ? (
             <p>{actual ? 'No hay otras lecturas guardadas para consultar.' : 'No hay lecturas guardadas para consultar.'}</p>
           ) : anteriores.map((registro) => (
-            <details className="item-historial-uf" key={registro.lectura.id}>
-              <summary>{fechaOperativa(registro.turno.fecha_operativa)} · {nombresTurno[registro.turno.turno]} · {registro.operadorNombre}</summary>
-              <LecturaUFGuardada registro={registro} deshabilitado={ocupado} />
+            <details className="item-historial-uf co-acordeon-historial" name={grupoHistorial} key={registro.lectura.id}>
+              <ResumenHistorial fecha={registro.turno.fecha_operativa} titulo="Lectura de Ultrafiltración" operador={registro.operadorNombre} turno={registro.turno.turno} />
+              <LecturaUFHistorial registro={registro} />
             </details>
           ))}
         </div>
