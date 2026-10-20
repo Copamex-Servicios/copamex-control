@@ -68,7 +68,8 @@ export function leerTurnoPlanta(v: unknown): TurnoPlanta {
 function corresponde(t: TurnoOperativo, f: FiltrosPlanta): boolean {
   return t.fecha_operativa >= f.desde && t.fecha_operativa <= f.hasta && (f.area === 'todas' || t.area === f.area) && (f.turno === 'todos' || t.turno === f.turno)
 }
-async function consultarTurnos(f: FiltrosPlanta, signal: AbortSignal): Promise<FuentePlanta<TurnoPlanta>> {
+export async function consultarTurnos(f: FiltrosPlanta, signal: AbortSignal): Promise<FuentePlanta<TurnoPlanta>> {
+  validarFiltrosPlanta(f); signal.throwIfAborted()
   let q = supabase.from('turnos_operativos').select(`${columnasTurno},operador:operadores!inner(id,nombre)`)
     .gte('fecha_operativa', f.desde).lte('fecha_operativa', f.hasta)
   if (f.area !== 'todas') q = q.eq('area', f.area)

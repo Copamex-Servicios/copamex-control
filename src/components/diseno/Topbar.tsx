@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useId, useRef, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import logoCopamex from '../../assets/cpx-logo-transparente.png'
+import logoCopamex from '../../assets/cpx-logo-barra.png'
 import type { AccesoVisual, SubmenuVisual } from './tipos'
 
 export function Topbar({ accesos, submenu, nombre, rol, cerrando, alSalir }: {

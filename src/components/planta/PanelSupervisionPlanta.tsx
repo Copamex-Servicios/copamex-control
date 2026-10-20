@@ -1,6 +1,6 @@
 import { useEffect, useId, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
-import { consultarPlanta, filtrosInicialesPlanta, nombresTurno, validarFiltrosPlanta } from '../../lib/planta'
+import { consultarTurnos, filtrosInicialesPlanta, nombresTurno, validarFiltrosPlanta } from '../../lib/planta'
 import type { FiltrosPlanta } from '../../lib/planta'
 import type { AreaOperativa } from '../../lib/tiposTurno'
 import { consultarCapturasRevision } from '../../lib/revisionCapturas'
@@ -70,7 +70,7 @@ async function consultarResumenArea(area: AreaOperativa, cuenta: string, filtros
   const f = { ...filtros, area }
   // Recorre las páginas de las consultas existentes; nunca usa el tamaño de una página como total.
   const [turnos, capturas, tecnicos] = await Promise.allSettled([
-    consultarPlanta(f, signal),
+    consultarTurnos(f, signal),
     (async () => {
       let pagina = 1, ultima: string | null = null
       const ids = new Set<string>()
@@ -106,7 +106,7 @@ async function consultarResumenArea(area: AreaOperativa, cuenta: string, filtros
   ])
   const fechas = [capturas.status === 'fulfilled' ? capturas.value.ultima : null, tecnicos.status === 'fulfilled' ? tecnicos.value.ultima : null].filter((v): v is string => !!v).sort((a,b) => Date.parse(a)-Date.parse(b))
   return { area,
-    turnos: turnos.status === 'fulfilled' && !turnos.value.turnos.error ? { numero: turnos.value.turnos.elementos.length, limitado: turnos.value.turnos.incompleta } : null,
+    turnos: turnos.status === 'fulfilled' && !turnos.value.error ? { numero: turnos.value.elementos.length, limitado: turnos.value.incompleta } : null,
     capturas: capturas.status === 'fulfilled' ? capturas.value.numero : null,
     tecnicos: tecnicos.status === 'fulfilled' ? tecnicos.value.numero : null,
     ultima: capturas.status === 'fulfilled' && tecnicos.status === 'fulfilled' ? fechas.at(-1) ?? null : null,
