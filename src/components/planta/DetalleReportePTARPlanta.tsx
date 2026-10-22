@@ -1,3 +1,4 @@
+import '../bitacora/historialFichaTecnica.css'
 import type { ReporteTecnicoPTAR } from '../../lib/bitacoraTecnicaPTAR'
 import { medicionesBitacoraPTAR, bombasBitacoraPTAR, prensasBitacoraPTAR } from '../../lib/tiposBitacoraPTAR'
 import { fechaHoraBitacora } from '../../lib/formatoBitacora'
@@ -8,7 +9,7 @@ export function DetalleReportePTARPlanta({ reporte }: { reporte: ReporteTecnicoP
   const b = reporte.borrador
   const mediciones = (seccion: number) => medicionesBitacoraPTAR.filter(m => m.seccion === seccion).map(m =>
     <Dato key={m.campo} nombre={m.nombre} valor={b.mediciones[m.campo]} unidad={m.unidad} />)
-  return <div className="bpt-detalle-tecnico planta-ptar-detalle planta-reporte-detalle">
+  return <div className="bpt-detalle-tecnico planta-ptar-detalle planta-reporte-detalle reporte-ficha-nueva">
     <div className="pcr-metadatos">
       <p>Registrado: {fechaHoraBitacora(reporte.creadoEn)} (México) · Revisión {reporte.revision}</p>
       <span>Solo consulta</span>

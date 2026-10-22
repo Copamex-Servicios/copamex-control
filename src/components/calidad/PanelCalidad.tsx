@@ -1,9 +1,10 @@
 import { RefreshCw } from 'lucide-react'
+import { ResumenHistorial } from '../diseno/ResumenHistorial'
 import type { useInformacionDia } from '../../hooks/useInformacionDia'
 import './calidadReferencia.css'
-import { useState } from 'react'
+import { useId, useState } from 'react'
+import '../diseno/acordeonHistorial.css'
 import { useCalidad } from '../../hooks/useCalidad'
-import { fechaHoraCalidad } from '../../lib/formatoCalidad'
 import type { AreaOperativa } from '../../lib/tiposTurno'
 import type { CamposCalidad } from '../../lib/tiposCalidad'
 import { FormularioCalidad } from './FormularioCalidad'
@@ -12,6 +13,7 @@ import { LecturaCalidadGuardada } from './LecturaCalidadGuardada'
 interface ContextoVisualCalidad { informacion?: ReturnType<typeof useInformacionDia>; horaServidor?: string | null }
 
 function ContenidoCalidad({ datos, area, informacion, horaServidor }: { datos: ReturnType<typeof useCalidad>; area: AreaOperativa } & ContextoVisualCalidad) {
+  const grupoHistorial = useId()
   const [numeroCaptura, setNumeroCaptura] = useState(0)
   const { rol, cuentaId, turno, catalogos, historial, lecturaActual, estadoCarga, mensaje, mensajeAccion,
     solicitudPendiente, guardando, puedeCrear, guardarCalidad,
@@ -35,7 +37,7 @@ function ContenidoCalidad({ datos, area, informacion, horaServidor }: { datos: R
   }
   return <section className="calidad-referencia" aria-label={`Calidad de ${area === 'calderas' ? 'Calderas' : 'PTAR'}`}>
     <header className="calidad-encabezado"><div className="calidad-encabezado-titulo"><div><h2>Calidad</h2></div></div><button className="boton-secundario" type="button"
-      disabled={guardando || estadoCarga === 'cargando'} onClick={() => { void actualizarCalidad() }}><RefreshCw aria-hidden="true" />Actualizar Calidad</button></header>
+      disabled={guardando || estadoCarga === 'cargando'} onClick={() => { void actualizarCalidad() }} data-actualizar="true" aria-label="Actualizar Calidad" title="Actualizar Calidad"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button></header>
     {informacion && rol === area && <aside className="calidad-produccion" aria-label="Objetivos de producción actual"><div><h3>Objetivos de producción actual</h3>
       {informacion.datos?.produccion.error ? <p role="alert">No se pudo consultar la producción.</p>
         : !informacion.datos ? <p role="status">Consultando producción…</p>
@@ -56,12 +58,11 @@ function ContenidoCalidad({ datos, area, informacion, horaServidor }: { datos: R
       <FormularioCalidad key={`${turno.id}:${numeroCaptura}`} area={area} catalogos={catalogos} horaServidor={horaServidor} alGuardar={guardar}
         deshabilitado={!puedeCrear || ocupado} />
     </div>}
-    {listo && rol === area && !propio && <p>Para guardar una muestra nueva necesitas tu turno del área abierto. Puedes consultar las muestras anteriores.</p>}
     {listo && <div className="historial-calidad"><h3>Historial de Calidad</h3>
       
-      {registros.length === 0 ? <p>No hay muestras guardadas para consultar.</p> : registros.map(r => <details className="item-historial-calidad" key={r.lectura.id}>
-        <summary>{fechaHoraCalidad(r.lectura.capturado_en)} · {r.operadorNombre} · {r.lectura.resultados.length} resultados</summary>
-        <LecturaCalidadGuardada registro={r} deshabilitado={ocupado} />
+      {registros.length === 0 ? <p>No hay muestras guardadas para consultar.</p> : registros.map(r => <details className="item-historial-calidad co-acordeon-historial" name={grupoHistorial} key={r.lectura.id}>
+        <ResumenHistorial fecha={r.turno.fecha_operativa} titulo="Muestra de Calidad" operador={r.operadorNombre} turno={r.turno.turno} adicional={`${r.lectura.resultados.length} resultados`} />
+        <LecturaCalidadGuardada registro={r} deshabilitado={ocupado} historial />
       </details>)}
     </div>}
   </section>

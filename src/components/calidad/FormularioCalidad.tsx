@@ -1,4 +1,4 @@
-import { Clock, Save, Trash2 } from 'lucide-react'
+import { Save, Trash2 } from 'lucide-react'
 import { useLimitesCalidad } from '../../hooks/useLimitesCalidad'
 import { evaluarLimite, textoLimite } from '../../lib/limitesCalidad'
 import { useId, useRef, useState } from 'react'
@@ -17,7 +17,7 @@ interface Props {
   alGuardar: (campos: CamposCalidad) => Promise<boolean>
 }
 
-export function FormularioCalidad({ area, catalogos, original, deshabilitado, alGuardar, horaServidor }: Props) {
+export function FormularioCalidad({ area, catalogos, original, deshabilitado, alGuardar }: Props) {
   const id = useId()
   const configuracion = useLimitesCalidad()
   const [campos, setCampos] = useState<CamposCalidad>(() => ({
@@ -43,7 +43,7 @@ export function FormularioCalidad({ area, catalogos, original, deshabilitado, al
     if (!original && (configuracion.error || configuracion.cargando)) return <small className="ayuda-turno">{configuracion.error ? 'No se pudo consultar el límite. El servidor evaluará al guardar.' : 'Consultando límite…'}</small>
     const texto = (campos.valores[celda.clave] ?? '').trim(), valor = Number(texto.replace(',', '.'))
     const evaluacion = texto && /^[+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+)$/.test(texto) && Number.isFinite(valor) ? evaluarLimite(valor,min,max) : null
-    return <div><small className="ayuda-turno">{original ? 'Límite original' : 'Límite vigente'}: {textoLimite(min,max)}</small>{texto && <p className={evaluacion === true ? 'mensaje-error' : evaluacion === false ? 'mensaje-exito' : 'ayuda-turno'} role="status">{evaluacion === true ? 'Fuera de norma' : evaluacion === false ? 'En norma' : min === null && max === null ? 'Sin límite definido; no se evalúa.' : 'Escribe un número válido para evaluar.'}</p>}</div>
+    return <div>{original && <small className="ayuda-turno">Límite original: {textoLimite(min,max)}</small>}{texto && <p className={evaluacion === true ? 'mensaje-error' : evaluacion === false ? 'mensaje-exito' : 'ayuda-turno'} role="status">{evaluacion === true ? 'Fuera de norma' : evaluacion === false ? 'En norma' : min === null && max === null ? 'Sin límite definido; no se evalúa.' : 'Escribe un número válido para evaluar.'}</p>}</div>
   }
 
   async function guardar(evento: FormEvent<HTMLFormElement>) {
@@ -73,7 +73,6 @@ export function FormularioCalidad({ area, catalogos, original, deshabilitado, al
       <legend>{original ? 'Corregir muestra' : 'Nueva muestra de Calidad'}</legend>
       <div className="calidad-captura-cabecera">
         <div><h3>{original ? 'Corregir análisis de calidades de agua' : 'Análisis de calidades de agua'}</h3></div>
-        <div className="calidad-hora"><span>Hora de muestra (México)</span><output>{original ? original.hora_muestra.slice(0,5) : horaServidor ?? '—'}</output><Clock aria-hidden="true" /><small>{original ? 'Hora original registrada' : 'Hora del servidor · Se registra al guardar'}</small></div>
       </div>
       {celdas.length === 0 && <p>No hay puntos o parámetros activos disponibles para esta área.</p>}
       <div className="calidad-tarjetas">{Array.from(new Set(celdas.map(c => c.puntoId))).map(puntoId => <article className="calidad-tarjeta" key={puntoId}>

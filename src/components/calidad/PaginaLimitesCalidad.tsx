@@ -4,10 +4,10 @@ import { useAdministracion } from '../../hooks/useAdministracion'
 
 // La pantalla y sus operaciones siguen en el componente original, exclusivo de Admin.
 export function PaginaLimitesCalidad() {
-  const { cuenta, datos, error } = useAdministracion()
+  const { cuenta, datos, error, cargando } = useAdministracion()
   if (!cuenta) return null
   return <div className="admin-panel co-admin-referencia">
     {error && <p className="mensaje-error" role="alert">{error}</p>}
-    <PanelLimitesCalidad key={cuenta} datos={datos} />
+    <PanelLimitesCalidad key={cuenta} datos={datos} cargandoCatalogos={cargando} />
   </div>
 }

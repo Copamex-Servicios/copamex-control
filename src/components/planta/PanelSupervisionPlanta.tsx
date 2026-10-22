@@ -1,16 +1,17 @@
+import { RefreshCw } from 'lucide-react'
 import { useEffect, useId, useState } from 'react'
+import { cacheConsultas } from '../../lib/cacheConsultas'
 import { useAuth } from '../../hooks/useAuth'
-import { consultarPlanta, filtrosInicialesPlanta, nombresTurno, validarFiltrosPlanta } from '../../lib/planta'
+import { consultarTurnos, filtrosInicialesPlanta, nombresTurno, validarFiltrosPlanta } from '../../lib/planta'
 import type { FiltrosPlanta } from '../../lib/planta'
 import type { AreaOperativa } from '../../lib/tiposTurno'
 import { consultarCapturasRevision } from '../../lib/revisionCapturas'
 import { consultarResumenesTecnicosPlanta } from '../../lib/reportesTecnicosPlanta'
-import { PanelRevisionCapturas } from '../administracion/PanelRevisionCapturas'
 import { MonitorConcesionPozos } from '../pozos/MonitorConcesionPozos'
 import { TablaReportesSupervision } from './TablaReportesSupervision'
 import './supervisionPlanta.css'
 
-const pestanas = { resumen: 'Resumen', tecnicos: 'Reportes técnicos', registros: 'Registros' } as const
+const pestanas = { resumen: 'Resumen', tecnicos: 'Reportes técnicos' } as const
 type Pestana = keyof typeof pestanas
 const areasSupervision = (area: FiltrosPlanta['area']): AreaOperativa[] => area === 'todas' ? ['calderas', 'ptar'] : [area]
 const nombreAreaSupervision = (area: AreaOperativa) => area === 'calderas' ? 'Calderas' : 'PTAR'
@@ -34,17 +35,17 @@ export function PanelSupervisionPlanta() {
   return <div className="planta-admin">
     <section className="panel-informacion supervision-selector">
       <h2>Supervisión de la operación</h2>
-      <form className={`supervision-periodo${pestana === 'registros' ? ' supervision-solo-area' : ''}`} onSubmit={e => { e.preventDefault(); consultar() }}>
+      <form className="supervision-periodo" onSubmit={e => { e.preventDefault(); consultar() }}>
         <label>Área<select value={borrador.area} onChange={e => {
           const area = e.target.value as FiltrosPlanta['area']
           setBorrador(f => ({ ...f, area })); setFiltros(f => ({ ...f, area }))
         }}><option value="todas">Ambos</option><option value="calderas">Calderas</option><option value="ptar">PTAR</option></select></label>
-        {pestana !== 'registros' && <>
+        <>
           <label>Desde<input type="date" required value={borrador.desde} onChange={e => setBorrador({ ...borrador, desde: e.target.value })} /></label>
           <label>Hasta<input type="date" required value={borrador.hasta} onChange={e => setBorrador({ ...borrador, hasta: e.target.value })} /></label>
           <label>Turno<select value={borrador.turno} onChange={e => setBorrador({ ...borrador, turno: e.target.value as FiltrosPlanta['turno'] })}><option value="todos">Todos</option>{Object.entries(nombresTurno).map(([v, n]) => <option key={v} value={v}>{n}</option>)}</select></label>
           <button type="submit" className="boton-principal">Consultar período</button>
-        </>}
+        </>
       </form>
       {error && <p role="alert" className="mensaje-error">{error}</p>}
     </section>
@@ -60,8 +61,7 @@ export function PanelSupervisionPlanta() {
     </div>
     {abiertas.map(p => <div key={`${perfil.id}:${p}`} id={`${id}-${p}`} role="tabpanel" aria-labelledby={`${id}-${p}-tab`} hidden={pestana !== p}>
       {p === 'resumen' ? <ResumenSupervision filtros={filtros} cuenta={perfil.id} revision={revision} />
-        : p === 'tecnicos' ? <TablaReportesSupervision filtros={filtros} revision={revision} />
-          : <PanelRevisionCapturas supervision={{ filtros, borrador, onBorrador: setBorrador, onConsultar: consultar }} />}
+        : <TablaReportesSupervision filtros={filtros} revision={revision} />}
     </div>)}
   </div>
 }
@@ -72,7 +72,7 @@ async function consultarResumenArea(area: AreaOperativa, cuenta: string, filtros
   const f = { ...filtros, area }
   // Recorre las páginas de las consultas existentes; nunca usa el tamaño de una página como total.
   const [turnos, capturas, tecnicos] = await Promise.allSettled([
-    consultarPlanta(f, signal),
+    consultarTurnos(f, signal),
     (async () => {
       let pagina = 1, ultima: string | null = null
       const ids = new Set<string>()
@@ -108,38 +108,31 @@ async function consultarResumenArea(area: AreaOperativa, cuenta: string, filtros
   ])
   const fechas = [capturas.status === 'fulfilled' ? capturas.value.ultima : null, tecnicos.status === 'fulfilled' ? tecnicos.value.ultima : null].filter((v): v is string => !!v).sort((a,b) => Date.parse(a)-Date.parse(b))
   return { area,
-    turnos: turnos.status === 'fulfilled' && !turnos.value.turnos.error ? { numero: turnos.value.turnos.elementos.length, limitado: turnos.value.turnos.incompleta } : null,
+    turnos: turnos.status === 'fulfilled' && !turnos.value.error ? { numero: turnos.value.elementos.length, limitado: turnos.value.incompleta } : null,
     capturas: capturas.status === 'fulfilled' ? capturas.value.numero : null,
     tecnicos: tecnicos.status === 'fulfilled' ? tecnicos.value.numero : null,
     ultima: capturas.status === 'fulfilled' && tecnicos.status === 'fulfilled' ? fechas.at(-1) ?? null : null,
   }
 }
+const cacheResumen = cacheConsultas<ResumenArea[]>('resumen-supervision')
 function ResumenSupervision({ filtros, cuenta, revision }: { filtros: FiltrosPlanta; cuenta: string; revision: number }) {
   const [recarga, setRecarga] = useState(0)
+  const filtroCache = JSON.stringify([filtros, cuenta])
   const clave = JSON.stringify([filtros, cuenta, revision, recarga])
   const [vista, setVista] = useState<{ clave: string; filas: ResumenArea[] } | null>(null)
   useEffect(() => {
+    const guardarCache = cacheResumen.preparar()
     let vivo = true
     const c = new AbortController(), limite = window.setTimeout(() => c.abort(), 20000)
     void Promise.all(areasSupervision(filtros.area).map(a => consultarResumenArea(a, cuenta, filtros, c.signal)))
-      .then(filas => { if (vivo) setVista({ clave, filas }) }).finally(() => window.clearTimeout(limite))
+      .then(filas => { if (vivo) { guardarCache(filtroCache, filas); setVista({ clave, filas }) } }).finally(() => window.clearTimeout(limite))
     return () => { vivo = false; c.abort(); window.clearTimeout(limite) }
-  }, [clave, cuenta, filtros])
-  const filas = vista?.clave === clave ? vista.filas : null
-  const total = (tipo: 'turnos' | 'capturas' | 'tecnicos') => {
-    if (!filas) return 'Consultando…'
-    if (filas.some(f => f[tipo] === null)) return 'No disponible'
-    if (tipo === 'turnos') return `${filas.reduce((n, f) => n + f.turnos!.numero, 0)}${filas.some(f => f.turnos?.limitado) ? '+' : ''}`
-    return filas.reduce((n, f) => n + (f[tipo] ?? 0), 0)
-  }
+  }, [clave, cuenta, filtros, filtroCache])
+  const filas = vista?.clave === clave ? vista.filas : cacheResumen.leer(filtroCache)
   return <div className="supervision-resumen">
-    <dl className="supervision-conteos" aria-live="polite">
-      <div><dt>Turnos registrados</dt><dd>{total('turnos')}</dd></div>
-      <div><dt>Capturas vigentes</dt><dd>{total('capturas')}</dd></div>
-      <div><dt>Reportes técnicos</dt><dd>{total('tecnicos')}</dd></div>
-    </dl>
+
     <section className="panel-informacion">
-      <div className="planta-encabezado"><h2>Resumen por área</h2><button type="button" className="boton-secundario" disabled={!filas} onClick={() => setRecarga(n => n + 1)}>Actualizar resumen</button></div>
+      <div className="planta-encabezado"><h2>Resumen por área</h2><button type="button" className="boton-secundario" disabled={!filas} onClick={() => setRecarga(n => n + 1)} data-actualizar="true" aria-label="Actualizar resumen" title="Actualizar resumen"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button></div>
       <div className="planta-tabla-scroll"><table className="planta-tabla supervision-tabla-resumen"><thead><tr><th>Área</th><th>Turnos registrados</th><th>Capturas vigentes</th><th>Reportes técnicos</th><th>Última captura</th></tr></thead>
         <tbody>{areasSupervision(filtros.area).map(area => { const f = filas?.find(r => r.area === area); return <tr key={area}><th scope="row">{nombreAreaSupervision(area)}</th><td>{!f ? '…' : f.turnos ? `${f.turnos.numero}${f.turnos.limitado ? '+' : ''}` : 'No disponible'}</td><td>{!f ? '…' : f.capturas ?? 'No disponible'}</td><td>{!f ? '…' : f.tecnicos ?? 'No disponible'}</td><td>{!f ? '…' : f.ultima ? horaSupervision(f.ultima) : f.capturas === null || f.tecnicos === null ? 'No disponible' : 'Sin capturas'}</td></tr> })}</tbody>
       </table></div>

@@ -1,0 +1,37 @@
+.co-layout details.item-historial-calidad.co-acordeon-historial[open] { border-color:#a9c2e3; }
+.co-layout details.item-historial-calidad.co-acordeon-historial[open] > summary.co-resumen-historial { background:#edf3fb; }
+.co-layout article.co-ficha-registro.calidad-historial-ficha { margin:0; padding:20px; border:0; border-radius:0; background:#f5f8fc; font-family:var(--co-font); }
+.co-layout article.calidad-historial-ficha * { font-family:inherit; }
+.co-layout article.calidad-historial-ficha .co-ficha-cabecera { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:10px 24px; margin-bottom:18px; }
+.co-layout article.calidad-historial-ficha .co-ficha-cabecera h3 { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); margin:-1px; padding:0; }
+.co-layout article.calidad-historial-ficha :is(.co-ficha-identidad,.co-ficha-fechas) { display:flex; align-items:baseline; flex-wrap:wrap; gap:8px 20px; margin:0; padding:0; border:0; }
+.co-layout article.calidad-historial-ficha :is(.co-ficha-identidad,.co-ficha-fechas) > div { display:flex; flex-wrap:wrap; gap:4px; min-width:0; }
+.co-layout article.calidad-historial-ficha :is(.co-ficha-identidad,.co-ficha-fechas) dt { color:#345578; font-size:13px; }
+.co-layout article.calidad-historial-ficha :is(.co-ficha-identidad,.co-ficha-fechas) dd { margin:0; font-size:13px; font-weight:600; overflow-wrap:anywhere; }
+.co-layout article.calidad-historial-ficha .calidad-historial-resultados { border:1px solid var(--co-border); border-radius:10px; background:#fff; overflow:hidden; }
+.co-layout article.calidad-historial-ficha .calidad-historial-cabecera { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px 16px; padding:12px 18px; border-bottom:1px solid #d4e2f5; background:#e8f0fb; }
+.co-layout article.calidad-historial-ficha .calidad-historial-cabecera h4 { margin:0; font-size:15px; line-height:1.4; font-weight:650; color:var(--co-text); }
+.co-layout article.calidad-historial-ficha .calidad-historial-cabecera p { margin:3px 0 0; font-size:13px; line-height:1.4; color:#345578; }
+.co-layout article.calidad-historial-ficha .calidad-historial-filtros { display:flex; flex-wrap:wrap; gap:6px; }
+.co-layout article.calidad-historial-ficha .calidad-historial-filtros button { min-height:40px; padding:8px 12px; border:1px solid #b8cfea; border-radius:6px; background:#fff; color:var(--co-text); font:inherit; font-size:13px; font-weight:600; cursor:pointer; }
+.co-layout article.calidad-historial-ficha .calidad-historial-filtros button[aria-pressed="true"] { background:#173e70; border-color:#173e70; color:#fff; }
+.co-layout article.calidad-historial-ficha .tabla-calidad-contenedor { margin:0; }
+.co-layout article.calidad-historial-ficha table.co-ficha-tabla { width:100%; min-width:0; font-size:14px; }
+.co-layout article.calidad-historial-ficha .co-ficha-tabla caption { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); padding:0; }
+.co-layout article.calidad-historial-ficha table.co-ficha-tabla :is(th,td) { padding:14px 18px; border-color:#e5edf8; }
+.co-layout article.calidad-historial-ficha .co-ficha-tabla thead th { background:#fff; font-size:12px; font-weight:600; letter-spacing:.04em; color:#345578; }
+.co-layout article.calidad-historial-ficha .co-ficha-tabla td:first-child { font-weight:600; }
+.co-layout article.calidad-historial-ficha .co-ficha-tabla td[data-label="Valor"] { font-size:18px; font-weight:650; }
+.co-layout article.calidad-historial-ficha .co-ficha-tabla .calidad-historial-fuera td { background:#fef1f3; }
+.co-layout article.calidad-historial-ficha .co-ficha-tabla .calidad-historial-fuera td[data-label="Valor"] { color:#b91c36; }
+.co-layout article.calidad-historial-ficha .calidad-historial-evaluacion { display:inline-block; max-width:100%; padding:3px 10px; border-radius:16px; font-size:13px; font-weight:600; line-height:1.4; }
+.co-layout article.calidad-historial-ficha .calidad-historial-evaluacion.dentro { background:#e0f3e9; color:#16603b; }
+.co-layout article.calidad-historial-ficha .calidad-historial-evaluacion.fuera { background:#fde0e5; color:#a41531; }
+.co-layout article.calidad-historial-ficha .calidad-historial-evaluacion.sin-limites { background:#edf1f6; color:#526581; }
+.co-layout article.calidad-historial-ficha .calidad-historial-vacio { margin:0; padding:14px 18px; color:var(--co-muted); font-size:14px; }
+.co-layout article.calidad-historial-ficha .co-ficha-notas { margin-top:16px; padding-top:12px; }
+@container ficha-registro (max-width:600px) {
+  .co-layout article.calidad-historial-ficha table.co-ficha-tabla :is(th,td) { padding:8px 12px; }
+  .co-layout article.calidad-historial-ficha .calidad-historial-filtros button { min-height:44px; }
+}
+@media(max-width:600px) { .co-layout article.co-ficha-registro.calidad-historial-ficha { padding:12px; } }

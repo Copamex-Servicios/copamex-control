@@ -1,5 +1,6 @@
+import { useValidacionReporte } from '../../hooks/useValidacionReporte'
 import { GuardadoReporteTecnico } from './GuardadoReporteTecnico'
-import { Fragment, useId, useState } from 'react'
+import { Fragment, useEffect, useId, useRef, useState } from 'react'
 import type { KeyboardEvent, ReactNode } from 'react'
 import { bombasBitacoraPTAR, destinosDescargaPTAR, medicionesBitacoraPTAR, prensasBitacoraPTAR } from '../../lib/tiposBitacoraPTAR'
 import type { EstadoAgitadorPTAR, EstadoPrensaPTAR, ModoBombaPTAR } from '../../lib/tiposBitacoraPTAR'
@@ -13,13 +14,32 @@ const pestanas = [
   { nombre: 'Prensas', titulo: 'Prensas de fin de turno' },
   { nombre: 'Historial', titulo: 'Historial de Bitácora' },
 ]
-export function FormularioBitacoraPTAR({ captura, observaciones }: { captura: ReturnType<typeof useReportePTAR>; observaciones: ReactNode }) {
+type CamposFormulario = Pick<ReturnType<typeof useReportePTAR>, 'borrador' | 'cambiarBorrador' | 'editable' | 'reporte'>
+export function FormularioBitacoraPTAR({ captura, observaciones }: { captura: ReturnType<typeof useReportePTAR> | CamposFormulario; observaciones: ReactNode }) {
   const prefijo = useId()
+  const { raiz: raizValidacion, faltas: faltasValidacion, revisar: revisarValidacion, alCambiar: actualizarValidacion } = useValidacionReporte()
   const [activo, setActivo] = useState(0)
+  const tabsRef = useRef<HTMLDivElement>(null)
+  const desplazarPendiente = useRef(false)
+  function mostrarSeccion(indice: number) {
+    desplazarPendiente.current = true
+    setActivo(indice)
+    if (indice === activo) desplazarASeccion()
+  }
+  function desplazarASeccion() {
+    tabsRef.current?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })
+    desplazarPendiente.current = false
+  }
+  useEffect(() => {
+    if (!desplazarPendiente.current) return
+    const frame = window.requestAnimationFrame(desplazarASeccion)
+    return () => window.cancelAnimationFrame(frame)
+  }, [activo])
   const { borrador, cambiarBorrador: setBorrador, editable: habilitado } = captura
-  const ayudaGuardado = captura.guardando ? 'Esperando confirmación del servidor…' : captura.reporte ? null
-    : captura.estado === 'cargando' ? 'Consultando el reporte técnico del turno…'
-    : captura.pendiente ? 'El reintento comprueba el envío original; las ediciones posteriores no sustituyen sus datos.' : null
+  const operacion = 'guardar' in captura ? captura : null
+  const ayudaGuardado = operacion?.guardando ? 'Esperando confirmación del servidor…' : captura.reporte ? null
+    : operacion?.estado === 'cargando' ? 'Consultando el reporte técnico del turno…'
+    : operacion?.pendiente ? 'El reintento comprueba el envío original; las ediciones posteriores no sustituyen sus datos.' : null
   function navegar(evento: KeyboardEvent<HTMLButtonElement>, indice: number) {
     let siguiente: number
     if (evento.key === 'ArrowRight') siguiente = (indice + 1) % pestanas.length
@@ -28,15 +48,16 @@ export function FormularioBitacoraPTAR({ captura, observaciones }: { captura: Re
     else if (evento.key === 'End') siguiente = pestanas.length - 1
     else return
     evento.preventDefault()
-    setActivo(siguiente)
-    evento.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[siguiente]?.focus()
+    mostrarSeccion(siguiente)
+    evento.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[siguiente]?.focus({ preventScroll: true })
   }
-  return <div className="bpt-formulario">
-    <div className="bpt-tabs" role="tablist" aria-label="Secciones de Bitácora de PTAR">
+  return <div ref={raizValidacion} onChangeCapture={actualizarValidacion} className="bpt-formulario">
+    {faltasValidacion.length > 0 && <p className="reporte-aviso-campos" role="alert">Completa todos los campos</p>}
+    <div ref={tabsRef} className="bpt-tabs" role="tablist" aria-label="Secciones de Bitácora de PTAR">
       {pestanas.map((pestana, indice) => <button key={pestana.nombre} type="button" role="tab"
         id={`${prefijo}-tab-${indice}`} aria-controls={`${prefijo}-panel-${indice}`}
         aria-selected={activo === indice} tabIndex={activo === indice ? 0 : -1}
-        onClick={() => setActivo(indice)} onKeyDown={e => navegar(e, indice)}>{pestana.nombre}</button>)}
+        onClick={() => mostrarSeccion(indice)} onKeyDown={e => navegar(e, indice)}>{pestana.nombre}</button>)}
     </div>
     {pestanas.map((pestana, indice) => <div className="bpt-seccion" role="tabpanel" key={pestana.nombre}
       id={`${prefijo}-panel-${indice}`} aria-labelledby={`${prefijo}-tab-${indice}`} hidden={activo !== indice} tabIndex={0}>
@@ -50,10 +71,10 @@ export function FormularioBitacoraPTAR({ captura, observaciones }: { captura: Re
               </select>
             </label>}
             <label className="bpt-campo" htmlFor={`${prefijo}-${m.campo}`}>
-            <span>{m.nombre}{indice < 2 && <> <small>({m.unidad})</small></>}</span>
-            <span className={`bpt-control${indice >= 2 ? ' bpt-con-unidad' : ''}`}><input aria-label={`${m.nombre} (${m.unidad})`} id={`${prefijo}-${m.campo}`} type="number" step="any" inputMode="decimal" disabled={!habilitado}
+            <span>{m.nombre}</span>
+            <span className="bpt-control bpt-con-unidad"><input aria-label={`${m.nombre} (${m.unidad})`} id={`${prefijo}-${m.campo}`} type="number" step="any" inputMode="decimal" disabled={!habilitado}
               value={borrador.mediciones[m.campo]} onChange={e => setBorrador(b => ({ ...b, mediciones: { ...b.mediciones, [m.campo]: e.target.value } }))} />
-              {indice >= 2 && <span className="bpt-unidad" aria-hidden="true">{m.unidad}</span>}</span>
+              <span className="bpt-unidad" aria-hidden="true">{m.unidad}</span></span>
           </label></Fragment>)}
           {indice === 1 && <fieldset className="bpt-descarga bpt-ancho" disabled={!habilitado}>
             <legend>Descarga del DAF Chino</legend>
@@ -83,22 +104,31 @@ export function FormularioBitacoraPTAR({ captura, observaciones }: { captura: Re
             </select>
           </label>)}
           <label className="bpt-campo bpt-ancho" htmlFor={`${prefijo}-comentario-prensas`}>
-            <span>Motivo por el cual la prensa está parada <small>(opcional)</small></span>
+            <span>Motivo por el cual la prensa está parada</span>
             <textarea id={`${prefijo}-comentario-prensas`} rows={3} disabled={!habilitado} value={borrador.comentarioPrensas}
               onChange={e => setBorrador(b => ({ ...b, comentarioPrensas: e.target.value }))} />
           </label>
-          <label className="bpt-campo bpt-ancho" htmlFor={`${prefijo}-reporte-relevante`}><span>Reporte relevante del turno <small>(obligatorio)</small></span>
-            <textarea aria-label="Reporte relevante del turno (obligatorio)" id={`${prefijo}-reporte-relevante`} rows={4} required maxLength={4000} disabled={!habilitado} value={borrador.reporteRelevante}
+          <label className="bpt-campo bpt-ancho" htmlFor={`${prefijo}-reporte-relevante`}><span>Reporte relevante del turno</span>
+            <textarea aria-label="Reporte relevante del turno" id={`${prefijo}-reporte-relevante`} rows={4} required={!!operacion || !!captura.reporte?.borrador.reporteRelevante} maxLength={4000} disabled={!habilitado} value={borrador.reporteRelevante}
               onChange={e => setBorrador(b => ({ ...b, reporteRelevante: e.target.value }))} /></label>
         </div>}
         {indice === 5 && observaciones}
       </div>
     </div>)}
-    {captura.mensaje && captura.mensaje !== 'Reporte técnico registrado. Solo Administración puede corregirlo.' && <p className="bpt-ayuda" role={captura.estado === 'error' || (!captura.reporte && !captura.guardando) ? 'alert' : 'status'}>{captura.mensaje}</p>}
-    <footer className="bpt-acciones"><span className="bpt-ayuda" id={`${prefijo}-guardado`} hidden={!ayudaGuardado}>{ayudaGuardado}</span>
-      <GuardadoReporteTecnico captura={captura} descripcionId={`${prefijo}-guardado`} alIntentar={() => {
-        if (!captura.pendiente && !borrador.reporteRelevante.trim()) { setActivo(4); window.setTimeout(() => document.getElementById(`${prefijo}-reporte-relevante`)?.focus(), 0) }
-      }} />
-    </footer>
+    {operacion?.mensaje && operacion.mensaje !== 'Reporte técnico registrado. Solo Administración puede corregirlo.' && <p className="bpt-ayuda" role={operacion.estado === 'error' || (!captura.reporte && !operacion.guardando) ? 'alert' : 'status'}>{operacion.mensaje}</p>}
+    {operacion && activo < pestanas.length - 1 && <footer className="bpt-acciones"><span className="bpt-ayuda" id={`${prefijo}-guardado`} hidden={!ayudaGuardado}>{ayudaGuardado}</span>
+      {activo < pestanas.length - 2 ? <button type="button" className="boton-primario" disabled={operacion.guardando}
+        onClick={() => { mostrarSeccion(activo + 1); document.getElementById(`${prefijo}-tab-${activo + 1}`)?.focus({ preventScroll: true }) }}>Siguiente</button>
+      : <GuardadoReporteTecnico captura={operacion} descripcionId={`${prefijo}-guardado`} alIntentar={() => {
+        if (operacion.pendiente) return true
+        const faltas = revisarValidacion()
+        if (faltas.length) {
+          mostrarSeccion(faltas[0].seccion)
+          window.requestAnimationFrame(() => faltas[0].campo.focus({ preventScroll: true }))
+          return false
+        }
+        return true
+      }} />}
+    </footer>}
   </div>
 }

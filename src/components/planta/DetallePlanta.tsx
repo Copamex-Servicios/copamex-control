@@ -7,7 +7,7 @@ import { LecturaPTARGuardada } from '../ptar/LecturaPTARGuardada'
 
 export function DetallePlanta({ captura }: { captura: CapturaPlanta }) {
   switch (captura.modulo) {
-    case 'bitacora': return <LecturaBitacoraGuardada registro={captura.registro} />
+    case 'bitacora': return <LecturaBitacoraGuardada registro={captura.registro} ficha />
     case 'pozos': return <LecturaPozosGuardada registro={captura.registro} />
     case 'uf': return <LecturaUFGuardada registro={captura.registro} />
     case 'calidad': return <LecturaCalidadGuardada registro={captura.registro} />

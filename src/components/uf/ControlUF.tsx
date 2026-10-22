@@ -24,7 +24,7 @@ export function ControlUF() {
       const datos = useUFStore.getState()
       return activo && document.visibilityState === 'visible'
         && obtenerContextoUF() !== null && !datos.guardando
-        && datos.estadoCarga !== 'cargando'
+        && (datos.estadoCarga === 'error' || datos.estadoCarga === 'sin-cuenta')
     }
 
     const actualizarAlVolver = () => {

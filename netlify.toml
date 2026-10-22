@@ -15,3 +15,15 @@
   for = "/iconos-opt/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+# Vite genera nombres con hash: se pueden reutilizar entre visitas sin descargarlos.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Comprobar la versión del documento al navegar o recargar.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

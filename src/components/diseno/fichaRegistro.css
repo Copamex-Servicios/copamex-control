@@ -1,0 +1,70 @@
+/* Solo detalles guardados: no alcanza campos ni formularios de captura. */
+.co-layout article.co-ficha-registro:is(.lectura-pozos,.lectura-uf,.lectura-calidad,.nota-bitacora) {
+  container: ficha-registro / inline-size;
+  min-width:0;
+  margin:12px 0 0;
+  padding:14px;
+  border:1px solid var(--co-border);
+  border-radius:12px;
+  background:#fff;
+  color:var(--co-text);
+  box-shadow:none;
+  font-size:14px;
+  line-height:1.45;
+}
+.co-layout article.co-ficha-registro .co-ficha-cabecera h3 {
+  margin:0 0 10px;
+  color:var(--co-navy);
+  font-size:15px;
+  line-height:1.35;
+  font-weight:650;
+}
+.co-layout article.co-ficha-registro :is(.co-ficha-identidad,.co-ficha-fechas) {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));
+  gap:8px 16px;
+  margin:0;
+}
+.co-layout article.co-ficha-registro :is(.co-ficha-identidad,.co-ficha-fechas)>div { min-width:0; }
+.co-layout article.co-ficha-registro .co-ficha-fechas { margin-top:10px; padding-top:8px; border-top:1px solid var(--co-border); }
+.co-layout article.co-ficha-registro :is(.co-ficha-identidad,.co-ficha-fechas) dt { margin:0 0 2px; color:var(--co-muted); font-size:13px; font-weight:400; }
+.co-layout article.co-ficha-registro :is(.co-ficha-identidad,.co-ficha-fechas) dd { margin:0; font-size:14px; font-weight:600; overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+.co-layout article.co-ficha-registro .co-ficha-fechas dd { font-weight:400; }
+.co-layout article.co-ficha-registro :is(.resumen-pozos,.resumen-uf) { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:12px 0 0; }
+.co-layout article.co-ficha-registro :is(.resumen-pozos,.resumen-uf)>section { min-width:0; padding:10px; border:1px solid var(--co-border); border-radius:8px; background:#f7f9fc; }
+.co-layout article.co-ficha-registro :is(.resumen-pozos,.resumen-uf)>section>h4 { margin:0 0 8px; font-size:14px; color:var(--co-navy); }
+.co-layout article.co-ficha-registro .co-ficha-mediciones.datos-turno { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px 12px; margin:0; }
+.co-layout article.co-ficha-registro .co-ficha-mediciones>div { min-width:0; padding:0; border:0; background:none; }
+.co-layout article.co-ficha-registro .co-ficha-mediciones dt { color:var(--co-muted); font-size:13px; line-height:1.4; }
+.co-layout article.co-ficha-registro .co-ficha-mediciones dd { margin:3px 0 0; font-size:14px; font-weight:600; line-height:1.45; overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+.co-layout article.co-ficha-registro .co-ficha-resultados.datos-turno { grid-template-columns:repeat(2,minmax(0,1fr)); margin-top:12px; padding-top:10px; border-top:1px solid var(--co-border); }
+.co-layout article.co-ficha-registro .tabla-calidad-contenedor { min-width:0; max-width:100%; margin:12px 0 0; }
+.co-layout article.co-ficha-registro table.co-ficha-tabla { width:100%; min-width:0; table-layout:fixed; border-collapse:collapse; font-size:14px; }
+.co-layout article.co-ficha-registro .co-ficha-tabla caption { padding:0 0 8px; color:var(--co-muted); font-size:13px; text-align:left; }
+.co-layout article.co-ficha-registro table.co-ficha-tabla :is(th,td) { padding:8px 10px; border-bottom:1px solid var(--co-border); text-align:left; vertical-align:top; white-space:normal; overflow-wrap:anywhere; line-height:1.45; }
+.co-layout article.co-ficha-registro .co-ficha-tabla th { background:#edf3fb; color:var(--co-text); font-size:13px; font-weight:600; }
+.co-layout article.co-ficha-registro .co-ficha-tabla td { font-variant-numeric:tabular-nums; }
+.co-layout article.co-ficha-registro .co-ficha-tabla .resultado-calidad-fuera { color:#9c2424; background:#fff1f1; font-weight:700; }
+.co-layout article.co-ficha-registro .co-ficha-notas { display:grid; gap:4px; margin-top:12px; padding-top:10px; border-top:1px solid var(--co-border); }
+.co-layout article.co-ficha-registro .co-ficha-notas h4 { margin:0; color:var(--co-muted); font-size:13px; font-weight:600; }
+.co-layout article.co-ficha-registro .co-ficha-notas .notas-turno { margin:0; padding:0; background:none; border:0; color:var(--co-text); font-size:14px; line-height:1.5; white-space:pre-wrap; overflow-wrap:anywhere; }
+.co-layout article.co-ficha-registro :is(.acciones-lectura-pozos,.acciones-lectura-uf) { display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; margin-top:12px; }
+.co-layout article.co-ficha-registro :is(.acciones-lectura-pozos,.acciones-lectura-uf) .ayuda-turno { flex:1 1 260px; margin:0; font-size:13px; color:var(--co-muted); }
+.co-layout article.co-ficha-registro button { min-height:44px; font-size:14px; }
+.co-layout article.co-ficha-registro>button { margin-top:12px; }
+.co-layout article.co-ficha-registro .texto-bitacora { margin:12px 0 0; font-size:14px; line-height:1.5; white-space:pre-wrap; overflow-wrap:anywhere; }
+@container ficha-registro (max-width:560px) {
+  .co-layout article.co-ficha-registro :is(.resumen-pozos,.resumen-uf) { grid-template-columns:minmax(0,1fr); }
+  .co-layout article.co-ficha-registro .co-ficha-tabla thead { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); }
+  .co-layout article.co-ficha-registro .co-ficha-tabla tbody { display:block; }
+  .co-layout article.co-ficha-registro .co-ficha-tabla tr { display:grid; padding:8px 0; border-bottom:1px solid var(--co-border); }
+  .co-layout article.co-ficha-registro table.co-ficha-tabla td { display:grid; grid-template-columns:minmax(80px,30%) minmax(0,1fr); gap:10px; padding:4px 8px; border:0; }
+  .co-layout article.co-ficha-registro .co-ficha-tabla td::before { content:attr(data-label); color:var(--co-muted); font-size:13px; font-weight:500; }
+}
+@container ficha-registro (max-width:380px) {
+  .co-layout article.co-ficha-registro .co-ficha-identidad { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .co-layout article.co-ficha-registro .co-ficha-operador { grid-column:1 / -1; }
+  .co-layout article.co-ficha-registro .co-ficha-mediciones.datos-turno { grid-template-columns:minmax(0,1fr); }
+  .co-layout article.co-ficha-registro .co-ficha-mediciones>div { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; align-items:baseline; }
+  .co-layout article.co-ficha-registro .co-ficha-mediciones dd { margin:0; text-align:right; }
+}

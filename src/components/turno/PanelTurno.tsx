@@ -35,13 +35,10 @@ export function PanelTurno({ area, referencia = false }: PropsPanelTurno) {
 
   return (
     <section className="panel-informacion panel-turno" aria-label={`Turno de ${area === 'calderas' ? 'Calderas' : 'PTAR'}`}>
-      <div className="cabecera-turno">
+      <div className="cabecera-turno" style={{ justifyContent: 'flex-start' }}>
         <h2>Gestión del turno</h2>
-        {referencia && estadoCarga === 'listo' && !turno && <span className="co-turno-estado"><span aria-hidden="true" />No hay un turno abierto</span>}
-        <button className="boton-secundario" type="button" onClick={() => { void actualizarTurno() }}
-          disabled={ocupado || estadoCarga === 'cargando'}>
-          {referencia && <span className="co-refrescar-icono" aria-hidden="true">↻</span>} Actualizar
-        </button>
+        {referencia && estadoCarga === 'listo' && !turno && <span className="co-turno-estado co-turno-sin-abierto"><span aria-hidden="true" />No hay un turno abierto</span>}
+        {referencia && estadoCarga === 'listo' && turno && <span className={`co-turno-estado ${turno.finalizado_en === null ? 'co-turno-abierto' : 'co-turno-cerrado'}`}><span aria-hidden="true" />{turno.finalizado_en === null ? 'Turno abierto' : 'Turno cerrado'}</span>}
       </div>
 
       {mensajeAccion && (

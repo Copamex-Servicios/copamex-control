@@ -34,7 +34,7 @@ function ContenidoPTAR({ datos }: { datos: ReturnType<typeof usePTAR> }) {
   return <section className="ptar-referencia" aria-label="Lecturas PTAR">
     <header className="ptar-cabecera">
       <div className="ptar-cabecera-titulo"><div><h2>Lecturas PTAR</h2></div></div>
-      <button className="boton-secundario" type="button" disabled={actualizando} onClick={() => { void actualizarPTAR() }}><RefreshCw aria-hidden="true" />Actualizar lecturas PTAR</button>
+      <button className="boton-secundario" type="button" disabled={actualizando} onClick={() => { void actualizarPTAR() }} data-actualizar="true" aria-label="Actualizar lecturas PTAR" title="Actualizar lecturas PTAR"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button>
     </header>
     {mensajeAccion && <p className={confirmado ? 'mensaje-exito' : 'mensaje-error'} role={confirmado ? 'status' : 'alert'}>{mensajeAccion}</p>}
     {solicitudPendiente && <div className="operacion-pendiente" aria-busy={guardando}>
@@ -50,10 +50,8 @@ function ContenidoPTAR({ datos }: { datos: ReturnType<typeof usePTAR> }) {
       <div className="ptar-seccion-titulo"><div><h3>Nueva lectura del turno</h3></div></div>
       <FormularioPTAR key={`${turno.id}:${numeroCaptura}`} alGuardar={guardar} deshabilitado={!puedeCrear || ocupado} />
     </div>}
-    {listo && rol === area && !propio && <p>Para guardar lecturas nuevas necesitas tu turno del área abierto. Puedes consultar las lecturas anteriores.</p>}
     {listo && <div className="ptar-tarjeta ptar-historial">
       <div className="ptar-historial-cabecera"><div className="ptar-seccion-titulo"><div><h3>Historial de lecturas PTAR</h3></div></div>
-        <button className="boton-secundario" type="button" disabled={actualizando} onClick={() => { void actualizarPTAR() }}><RefreshCw aria-hidden="true" />Actualizar</button>
       </div>
       {registros.length === 0 ? <p>No hay lecturas guardadas para consultar.</p> : <TablaHistorialPTAR registros={registros} deshabilitado={ocupado}
         />}

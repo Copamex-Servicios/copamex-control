@@ -24,7 +24,7 @@ export function ControlPTAR() {
       const datos = usePTARStore.getState()
       return activo && document.visibilityState === 'visible'
         && obtenerContextoPTAR() !== null && !datos.guardando
-        && datos.estadoCarga !== 'cargando'
+        && (datos.estadoCarga === 'error' || datos.estadoCarga === 'sin-cuenta')
     }
 
     const actualizarAlVolver = () => {

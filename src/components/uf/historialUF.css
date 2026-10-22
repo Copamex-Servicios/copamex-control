@@ -1,0 +1,49 @@
+.co-layout .historial-uf .uf-historial-cabecera { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+.co-layout .historial-uf .uf-historial-cabecera h3 { margin:0; }
+.co-layout .historial-uf .uf-historial-cabecera > span { font-size:13px; color:var(--co-muted); }
+.co-layout .historial-uf details.item-historial-uf[open] { border-color:#a9c2e3; }
+.co-layout .historial-uf details.item-historial-uf[open] > summary.co-resumen-historial { background:#edf3fb; }
+.co-layout .uf-historial-ficha { container:uf-historial / inline-size; min-width:0; padding:18px; background:#f5f8fc; color:var(--co-text); font-family:var(--co-font); font-size:14px; line-height:1.5; }
+.co-layout .uf-historial-ficha * { font-family:inherit; }
+.co-layout .uf-historial-ficha .co-ficha-cabecera { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:10px 16px; margin-bottom:16px; }
+.co-layout .uf-historial-ficha .co-ficha-cabecera h3 { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); }
+.co-layout .uf-historial-ficha .co-ficha-identidad { display:flex; flex-wrap:wrap; gap:8px 22px; margin:0; padding:0; border:0; }
+.co-layout .uf-historial-ficha .co-ficha-identidad > div { display:flex; flex-wrap:wrap; gap:4px; min-width:0; }
+.co-layout .uf-historial-ficha .co-ficha-identidad dt { color:#345578; font-size:13px; }
+.co-layout .uf-historial-ficha .co-ficha-identidad dd { margin:0; font-size:13px; font-weight:600; overflow-wrap:anywhere; }
+.co-layout .uf-historial-ficha .co-ficha-fechas { margin:0; padding:0; border:0; }
+.co-layout .uf-historial-ficha .co-ficha-fechas dt { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+.co-layout .uf-historial-ficha .co-ficha-fechas dd { margin:0; padding:3px 10px; border-radius:16px; background:#e7edf5; color:#17365d; font-size:12px; font-weight:600; }
+.co-layout .uf-historial-ficha .uf-historial-seccion { margin-top:16px; min-width:0; border:1px solid var(--co-border); border-radius:10px; background:#fff; overflow:hidden; }
+.co-layout .uf-historial-ficha .uf-historial-seccion h4 { margin:0; padding:10px 16px; border-bottom:1px solid #d9e5f5; background:#e8f0fb; color:var(--co-text); font-size:15px; font-weight:650; line-height:1.4; }
+.co-layout .uf-historial-ficha .uf-historial-resultados { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); margin:0; }
+.co-layout .uf-historial-ficha .uf-historial-resultados > div { min-width:0; padding:16px 18px; border-right:1px solid #edf2f9; }
+.co-layout .uf-historial-ficha .uf-historial-resultados > div:last-child { border-right:0; }
+.co-layout .uf-historial-ficha .uf-historial-resultados dt { font-size:13px; color:#345578; }
+.co-layout .uf-historial-ficha .uf-historial-resultados dd { margin:3px 0 0; font-size:28px; font-weight:650; line-height:1.3; overflow-wrap:anywhere; }
+.co-layout .uf-historial-ficha small { font-size:13px; font-weight:400; white-space:nowrap; }
+.co-layout .uf-historial-ficha .uf-historial-rendimiento { background:#f4f8ff; color:#0758c8; }
+.co-layout .uf-historial-ficha .uf-historial-rendimiento dt { color:#0758c8; font-weight:600; }
+.co-layout .uf-historial-ficha .uf-historial-resultados dd.uf-historial-vacio { font-size:14px; font-weight:400; }
+.co-layout .uf-historial-ficha .uf-historial-tabla { max-width:100%; overflow:auto; padding:8px 16px; }
+.co-layout .uf-historial-ficha table { width:100%; min-width:430px; border-collapse:collapse; table-layout:fixed; }
+.co-layout .uf-historial-ficha th { text-align:left; }
+.co-layout .uf-historial-ficha thead th { padding:6px 10px; font-size:12px; font-weight:500; letter-spacing:.04em; color:#345578; }
+.co-layout .uf-historial-ficha :is(tbody th,td) { padding:12px 10px; border-top:1px solid #e8eef7; font-size:14px; overflow-wrap:anywhere; }
+.co-layout .uf-historial-ficha tbody th { font-weight:600; }
+.co-layout .uf-historial-ficha .uf-historial-registro { padding:14px 16px; }
+.co-layout .uf-historial-ficha .uf-historial-registro dl { display:flex; flex-wrap:wrap; gap:12px 30px; margin:0 0 14px; }
+.co-layout .uf-historial-ficha .uf-historial-registro dl > div { display:flex; flex-wrap:wrap; gap:6px 14px; padding-bottom:9px; border-bottom:1px solid #e8eef7; }
+.co-layout .uf-historial-ficha .uf-historial-registro dt { color:#345578; font-size:13px; }
+.co-layout .uf-historial-ficha .uf-historial-registro dd { margin:0; font-size:13px; font-weight:600; }
+.co-layout .uf-historial-ficha .uf-historial-notas { display:flex; align-items:baseline; justify-content:space-between; gap:12px; font-size:13px; }
+.co-layout .uf-historial-ficha .uf-historial-notas > span { color:#345578; }
+.co-layout .uf-historial-ficha .uf-historial-notas p { margin:0; white-space:pre-wrap; overflow-wrap:anywhere; }
+.co-layout .uf-historial-ficha .uf-historial-tabla:focus-visible { outline:2px solid var(--co-primary); outline-offset:-2px; }
+@container uf-historial (max-width:600px) {
+  .co-layout .uf-historial-ficha .uf-historial-resultados { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .co-layout .uf-historial-ficha .uf-historial-resultados > div { padding:12px; border-bottom:1px solid #edf2f9; }
+  .co-layout .uf-historial-ficha .uf-historial-resultados dd { font-size:24px; }
+  .co-layout .uf-historial-ficha .uf-historial-notas { flex-wrap:wrap; }
+}
+@media(max-width:600px) { .co-layout .uf-historial-ficha { padding:12px; } }

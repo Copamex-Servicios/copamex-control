@@ -5,6 +5,7 @@ import { resolverPapel } from '../../lib/administracion'
 import { useState } from 'react'
 import { borradorAdmin, validarAdmin } from '../../lib/administracion'
 import type { ConfigAdmin, DatosAdmin, FilaAdmin, SolicitudAdmin } from '../../lib/administracion'
+import { SelectorPapelCalidad } from './SelectorPapelCalidad'
 
 interface Props { config: ConfigAdmin; datos: DatosAdmin; original: FilaAdmin | null; bloqueado: boolean; guardar: (valores: SolicitudAdmin['valores']) => Promise<boolean>; cancelar: () => void }
 export function FormularioAdmin({ config: c, datos, original, bloqueado, guardar, cancelar }: Props) {
@@ -12,16 +13,20 @@ export function FormularioAdmin({ config: c, datos, original, bloqueado, guardar
   const produccion = c.tabla === 'programa_produccion'
   const calendario = c.tabla === 'eventos_calendario'
   const programacion = produccion || calendario
+  const papelCalidad = produccion && perfil?.rol === 'calidad'
+  const [papelesCalidad, setPapelesCalidad] = useState(datos.catalogo_papeles.filas)
+  const [editandoPapel, setEditandoPapel] = useState(false)
+  const [guardandoPapel, setGuardandoPapel] = useState(false)
   const [preparando, setPreparando] = useState(false)
   const [papel, setPapel] = useState(() => String(datos.catalogo_papeles.filas.find(r => r.id === original?.papel_id)?.nombre ?? '').toLocaleUpperCase('es-MX'))
   const [campos, setCampos] = useState(() => borradorAdmin(c, original))
   const [error, setError] = useState<string | null>(null)
   async function enviar() {
-    if (bloqueado || preparando) return
+    if (bloqueado || preparando || guardandoPapel || editandoPapel) return
     setPreparando(true)
     try {
-      let fuente = datos, valoresCampos = campos
-      if (c.tabla === 'programa_produccion') {
+      let fuente = papelCalidad ? { ...datos, catalogo_papeles: { ...datos.catalogo_papeles, filas: papelesCalidad } } : datos, valoresCampos = campos
+      if (c.tabla === 'programa_produccion' && !papelCalidad) {
         // Validar antes de crear una opción de papel; no modifica el programa todavía.
         if (!perfil?.id || typeof campos.maquina_id !== 'string' || !papel.trim()) throw new Error('Selecciona la máquina y escribe el papel.')
         const temporal = { id: crypto.randomUUID(), maquina_id: campos.maquina_id, nombre: papel, activo: true }
@@ -36,20 +41,22 @@ export function FormularioAdmin({ config: c, datos, original, bloqueado, guardar
     finally { setPreparando(false) }
   }
   function cambiar(clave: string, valor: string | boolean) {
-    if (c.tabla === 'programa_produccion' && clave === 'maquina_id') setPapel('')
+    if (c.tabla === 'programa_produccion' && clave === 'maquina_id') { setPapel(''); setEditandoPapel(false) }
     setCampos(v => ({ ...v, [clave]: valor, ...(c.tabla === 'programa_produccion' && clave === 'maquina_id' ? { papel_id: '' } : {}) }))
   }
   function limpiar() {
-    if (bloqueado || preparando) return
+    if (bloqueado || preparando || guardandoPapel || editandoPapel) return
     setCampos(borradorAdmin(c, original))
     setPapel(String(datos.catalogo_papeles.filas.find(r => r.id === original?.papel_id)?.nombre ?? '').toLocaleUpperCase('es-MX'))
     setError(null)
   }
   return <form className={programacion ? `admin-editor co-programacion-formulario ${produccion ? 'co-programacion-produccion' : 'co-programacion-calendario'}` : 'admin-editor'} onSubmit={e => { e.preventDefault(); void enviar() }}>
-    <div className="planta-encabezado"><h3>{programacion ? <>{original ? 'Editar ' + c.singular : produccion ? 'Programación de producción diaria' : 'Programación de calendario'}</> : <>{original ? 'Editar' : 'Nuevo'} {c.singular}</>}</h3><button type="button" className="boton-secundario" onClick={cancelar} disabled={bloqueado || preparando}>Cancelar</button></div>
+    <div className="planta-encabezado"><h3>{programacion ? <>{original ? 'Editar ' + c.singular : produccion ? 'Programación de producción diaria' : 'Programación de calendario'}</> : <>{original ? 'Editar' : 'Nuevo'} {c.singular}</>}</h3><button type="button" className="boton-secundario" onClick={cancelar} disabled={bloqueado || preparando || guardandoPapel}>Cancelar</button></div>
     
-    <fieldset disabled={bloqueado || preparando} className="admin-campos">
+    <fieldset disabled={bloqueado || preparando || guardandoPapel} className="admin-campos">
       {c.campos.map(f => {
+        if (papelCalidad && f.clave === 'papel_id') return <SelectorPapelCalidad key={`${f.clave}-${campos.maquina_id}`} cuenta={perfil.id} maquina={String(campos.maquina_id)} seleccionado={String(campos.papel_id)} iniciales={papelesCalidad}
+          seleccionar={id => cambiar('papel_id', id)} actualizar={setPapelesCalidad} editar={setEditandoPapel} ocupar={setGuardandoPapel} />
         if (c.tabla === 'programa_produccion' && f.clave === 'papel_id') return <label className="co-programacion-campo co-programacion-papel" key={f.clave}>Papel<input type="text" list="opciones-papel-produccion" value={papel} maxLength={200} required onChange={e => setPapel(e.target.value.toLocaleUpperCase('es-MX'))} /><datalist id="opciones-papel-produccion">{datos.catalogo_papeles.filas.filter(r => r.maquina_id === campos.maquina_id && r.activo !== false).map(r => <option key={r.id} value={String(r.nombre).toLocaleUpperCase('es-MX')} />)}</datalist></label>
         const valor = campos[f.clave]
         if ((produccion && f.clave === 'consumo_objetivo') || (calendario && f.clave === 'tipo')) {
@@ -76,6 +83,6 @@ export function FormularioAdmin({ config: c, datos, original, bloqueado, guardar
       })}
     </fieldset>
     {error && <p className="mensaje-error" role="alert">{error}</p>}
-    {programacion ? <div className="co-programacion-acciones"><button type="button" className="boton-secundario" disabled={bloqueado || preparando} onClick={limpiar}><RotateCcw aria-hidden="true" />{original ? 'Restablecer' : 'Limpiar'}</button><button type="submit" className="boton-principal" disabled={bloqueado || preparando}><Save aria-hidden="true" />{bloqueado || preparando ? 'Esperando confirmación…' : original ? 'Guardar cambios' : calendario ? 'Agregar evento' : 'Guardar programación'}</button></div> : <button type="submit" className="boton-principal" disabled={bloqueado || preparando}>{bloqueado || preparando ? 'Esperando confirmación…' : 'Guardar'}</button>}
+    {programacion ? <div className="co-programacion-acciones"><button type="button" className="boton-secundario" disabled={bloqueado || preparando || guardandoPapel || editandoPapel} onClick={limpiar}><RotateCcw aria-hidden="true" />{original ? 'Restablecer' : 'Limpiar'}</button><button type="submit" className="boton-principal" disabled={bloqueado || preparando || guardandoPapel || editandoPapel}><Save aria-hidden="true" />{bloqueado || preparando ? 'Esperando confirmación…' : original ? 'Guardar cambios' : calendario ? 'Agregar evento' : 'Guardar programación'}</button></div> : <button type="submit" className="boton-principal" disabled={bloqueado || preparando || guardandoPapel || editandoPapel}>{bloqueado || preparando ? 'Esperando confirmación…' : 'Guardar'}</button>}
   </form>
 }

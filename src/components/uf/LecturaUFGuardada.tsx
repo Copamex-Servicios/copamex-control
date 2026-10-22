@@ -1,16 +1,12 @@
 import { useId } from 'react'
 import { formatearVolumenUF } from '../../lib/formatoUF'
 import type { RegistroUF } from '../../lib/uf'
-import type { TipoTurno } from '../../lib/tiposTurno'
+import { CabeceraRegistroGuardado } from '../diseno/CabeceraRegistroGuardado'
 
 interface PropsLecturaUFGuardada {
   registro: RegistroUF
   alCorregir?: () => void
   deshabilitado?: boolean
-}
-
-const nombresTurno: Record<TipoTurno, string> = {
-  dia: 'Día', tarde: 'Tarde', noche: 'Noche',
 }
 
 // Mostrar siempre la zona de la planta, aunque el navegador use otra zona.
@@ -19,11 +15,6 @@ const formatoHora = new Intl.DateTimeFormat('es-MX', {
   day: '2-digit', month: '2-digit', year: 'numeric',
   hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
 })
-
-function fechaOperativa(fecha: string): string {
-  const [anio, mes, dia] = fecha.split('-')
-  return `${dia}/${mes}/${anio}`
-}
 
 // Presentación de datos ya comprobados por el servicio.
 // El panel decide si ofrece corregir; el hook y el servidor validan la acción.
@@ -38,15 +29,11 @@ export function LecturaUFGuardada({
   ]
 
   return (
-    <article className="lectura-uf" aria-labelledby={`${id}-titulo`}>
-      <h3 id={`${id}-titulo`}>Lectura guardada de Ultrafiltración</h3>
-      <dl className="datos-turno">
-        <div><dt>Tipo de turno</dt><dd>{nombresTurno[turno.turno]}</dd></div>
-        <div><dt>Operador</dt><dd>{operadorNombre}</dd></div>
-        <div><dt>Fecha operativa</dt><dd>{fechaOperativa(turno.fecha_operativa)}</dd></div>
-        <div><dt>Turno</dt><dd>{turno.finalizado_en === null ? 'Abierto' : 'Cerrado'}</dd></div>
+    <article className="lectura-uf co-ficha-registro" aria-labelledby={`${id}-titulo`}>
+      <CabeceraRegistroGuardado titulo="Ultrafiltración" tituloId={`${id}-titulo`} turno={turno} operador={operadorNombre}>
+        <div><dt>Estado del turno</dt><dd>{turno.finalizado_en === null ? 'Abierto' : 'Cerrado'}</dd></div>
         <div>
-          <dt>Fecha y hora de captura (México)</dt>
+          <dt>Captura (México)</dt>
           <dd><time dateTime={lectura.capturado_en}>{formatoHora.format(new Date(lectura.capturado_en))}</time></dd>
         </div>
         {turno.finalizado_en !== null && (
@@ -55,13 +42,13 @@ export function LecturaUFGuardada({
             <dd><time dateTime={turno.finalizado_en}>{formatoHora.format(new Date(turno.finalizado_en))}</time></dd>
           </div>
         )}
-      </dl>
+      </CabeceraRegistroGuardado>
 
       <div className="resumen-uf">
         {uf.map(({ numero, nombre, inicial, final, consumo }) => (
           <section key={numero} aria-labelledby={`${id}-pozo-${numero}`}>
             <h4 id={`${id}-pozo-${numero}`}>{nombre}</h4>
-            <dl className="datos-turno datos-lectura-uf">
+            <dl className="datos-turno datos-lectura-uf co-ficha-mediciones">
               <div><dt>Lectura inicial</dt><dd>{formatearVolumenUF(inicial)}</dd></div>
               <div><dt>Lectura final</dt><dd>{formatearVolumenUF(final)}</dd></div>
               <div><dt>{numero === 1 ? 'Alimentado' : 'Aceptado'}</dt><dd>{formatearVolumenUF(consumo)}</dd></div>
@@ -69,14 +56,13 @@ export function LecturaUFGuardada({
           </section>
         ))}
       </div>
-      <dl className="datos-turno">
+      <dl className="datos-turno co-ficha-mediciones co-ficha-resultados">
         <div><dt>Rechazo</dt><dd>{formatearVolumenUF(lectura.rechazo)}</dd></div>
         <div><dt>Rendimiento</dt><dd>{lectura.rendimiento === null ? 'Sin alimentación: no aplica'
           : `${lectura.rendimiento.toLocaleString('es-MX', { maximumFractionDigits: 2 })} %`}</dd></div>
       </dl>
 
-      <h4>Notas</h4>
-      <p className="notas-turno">{lectura.notas || 'Sin notas.'}</p>
+      <footer className="co-ficha-notas"><h4>Notas</h4><p className="notas-turno">{lectura.notas || 'Sin notas.'}</p></footer>
       {alCorregir && (
         <div className="acciones-lectura-uf">
           <p className="ayuda-turno">

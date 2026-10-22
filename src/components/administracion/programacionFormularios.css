@@ -15,5 +15,10 @@
 .co-layout .co-programacion-formulario .co-programacion-acciones .boton-principal { order:1; background:#095fe1; border-color:#095fe1; color:#fff; }
 .co-layout .co-programacion-formulario input::placeholder { color:#8392aa; font-size:12px; }
 .co-layout .co-programacion-formulario :is(input,select,button):focus-visible { outline:2px solid #2b7deb; outline-offset:2px; }
+.co-layout .co-programacion-papel { display:flex; flex-direction:column; gap:6px; min-width:0; }
+.co-layout .co-programacion-papel-alta { display:flex; flex-direction:column; gap:6px; margin-top:4px; }
+.co-layout .co-programacion-papel-acciones { display:flex; flex-wrap:wrap; gap:8px; }
+.co-layout .co-programacion-papel-acciones .boton-principal { background:#095fe1; border-color:#095fe1; color:#fff; }
+.co-layout .co-programacion-papel :is(.mensaje-error,.mensaje-exito) { margin:2px 0 0; font-size:12px; overflow-wrap:anywhere; }
 @media(max-width:1150px) { .co-layout .co-programacion-calendario .admin-campos { grid-template-columns:repeat(2,minmax(0,1fr)); } .co-layout .co-programacion-calendario .admin-campos label:last-child { grid-column:1/-1; } }
 @media(max-width:550px) { .co-layout .admin-editor.co-programacion-formulario { padding:16px; } .co-layout .co-programacion-formulario .admin-campos { grid-template-columns:minmax(0,1fr); } .co-layout .co-programacion-formulario .planta-encabezado { flex-wrap:wrap; } .co-layout .co-programacion-formulario .co-programacion-acciones { flex-wrap:wrap; } .co-layout .co-programacion-formulario .co-programacion-acciones button { flex:1 1 140px; } }

@@ -75,3 +75,55 @@
   .co-layout .reportes-panel .rep-metricas article { padding: 12px; }
   .co-layout .reportes-panel .rep-metricas strong { font-size: 22px; }
 }
+
+/* Pulido de pantalla: conserva los estilos de impresión y las exportaciones. */
+@media screen {
+ .co-layout .co-consulta:has(>.reportes-panel)>.co-page-header { margin-bottom:16px; }
+ .co-layout .co-consulta:has(>.reportes-panel)>.co-page-header h1 { font-size:28px; }
+ .co-layout .reportes-panel .panel-informacion { padding:18px; }
+ .co-layout .reportes-panel h2 { margin-bottom:12px; line-height:1.3; }
+ .co-layout .reportes-panel .reporte-contexto h2 { margin-bottom:4px; font-size:18px; }
+ .co-layout .reportes-panel .planta-encabezado { flex-wrap:wrap; gap:12px; }
+ .co-layout .reportes-panel .planta-formulario { align-items:end; }
+ .co-layout .reportes-panel .planta-formulario label { font-size:14px; gap:6px; }
+ .co-layout .reportes-panel :is(.boton-principal,.boton-secundario,.reportes-menu button) { min-height:44px; padding:9px 12px; font-size:14px; line-height:1.4; }
+ .co-layout .reportes-panel .reportes-menu { padding:4px; gap:4px; }
+ .co-layout .reportes-panel .reportes-menu button { white-space:normal; }
+ .co-layout .reportes-panel .admin-casilla { align-items:flex-start; font-size:14px; line-height:1.4; gap:8px; }
+ .co-layout .reportes-panel .admin-casilla input { flex-shrink:0; margin-top:2px; }
+ .co-layout .reportes-panel :is(.admin-busqueda,.rep-metricas span,.rep-traza-metricas span) { font-size:14px; }
+ .co-layout .reportes-panel .admin-busqueda { min-width:0; margin:12px 0; }
+ .co-layout .reportes-panel .admin-busqueda :is(input,select) { width:100%; min-width:0; max-width:100%; min-height:44px; font-size:14px; }
+ .co-layout .reportes-panel .rep-metricas article { padding:14px; }
+ .co-layout .reportes-panel .planta-tabla-scroll { max-width:100%; overflow-x:auto; }
+ .co-layout .reportes-panel .planta-tabla { font-size:14px; }
+ .co-layout .reportes-panel .planta-tabla :is(th,td) { padding:10px 12px; line-height:1.4; }
+ .co-layout .reportes-panel .planta-tabla th { white-space:normal; min-width:100px; }
+ .co-layout .reportes-panel .planta-tabla td { overflow-wrap:anywhere; }
+ .co-layout .reportes-panel .reporte-grafica { min-width:0; padding:12px; }
+ .co-layout .reportes-panel .rep-graficas { gap:14px; }
+ .co-layout .reportes-panel :is(.ayuda-turno,.planta-paginacion,.rep-traza-accion) { font-size:13px; line-height:1.4; }
+ .co-layout .reportes-panel .rep-cambio { margin-top:10px; }
+ .co-layout .reportes-panel .rep-cambio>summary { padding:10px 0; font-size:14px; line-height:1.4; overflow-wrap:anywhere; }
+ .co-layout .reportes-panel .rep-traza-metricas>div { min-width:0; padding:12px; }
+ .co-layout .reportes-panel .rep-traza-metricas strong { white-space:normal; overflow-wrap:anywhere; }
+ .co-layout .reportes-panel .rep-traza-dialog { padding:18px; }
+ .co-layout .reportes-panel .rep-traza-cabecera { flex-wrap:wrap; gap:10px; padding-bottom:12px; margin-bottom:14px; }
+ .co-layout .reportes-panel .rep-traza-dialog dt { font-size:13px; }
+ .co-layout .reportes-panel .rep-traza-comparacion { max-width:100%; overflow-x:auto; }
+ .co-layout .reportes-panel .rep-traza-comparacion table { min-width:440px; font-size:14px; }
+ .co-layout .reportes-panel .rep-traza-tecnicos pre { font-size:13px; }
+ .co-layout .reportes-panel :is(button,input,select,summary):focus-visible { outline:2px solid var(--co-primary); outline-offset:2px; }
+}
+@media screen and (max-width:600px) {
+ .co-layout .co-consulta:has(>.reportes-panel)>.co-page-header h1 { font-size:24px; }
+ .co-layout .reportes-panel .panel-informacion { padding:16px; }
+ .co-layout .reportes-panel .reportes-menu button { min-width:0; padding:8px; }
+ .co-layout .reportes-panel .rep-traza-dialog { padding:16px; }
+ .co-layout .reportes-panel .rep-traza-datos { grid-template-columns:minmax(0,1fr); gap:10px; }
+ .co-layout .reportes-panel .rep-traza-comparacion :is(th,td) { font-size:14px; }
+}
+@media screen and (max-width:400px) {
+ .co-layout .reportes-panel .rep-metricas { grid-template-columns:minmax(0,1fr); }
+ .co-layout .reportes-panel .rep-acciones>button { flex:1 1 100px; }
+}

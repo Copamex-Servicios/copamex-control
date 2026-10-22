@@ -1,10 +1,13 @@
 import type { RegistroBitacora } from '../../lib/tiposBitacora'
 import { fechaHoraBitacora } from '../../lib/formatoBitacora'
-interface Props { referencia?: boolean; registro: RegistroBitacora; alCorregir?: () => void; deshabilitado?: boolean }
-export function LecturaBitacoraGuardada({ registro, alCorregir, deshabilitado = false, referencia = false }: Props) {
+import { CabeceraRegistroGuardado } from '../diseno/CabeceraRegistroGuardado'
+interface Props { ficha?: boolean; referencia?: boolean; registro: RegistroBitacora; alCorregir?: () => void; deshabilitado?: boolean }
+export function LecturaBitacoraGuardada({ registro, alCorregir, deshabilitado = false, referencia = false, ficha = false }: Props) {
   const { lectura, turno, operadorNombre } = registro
-  return <article className="nota-bitacora">
-    {referencia ? <header className="bitacora-nota-cabecera">
+  return <article className={`nota-bitacora${ficha ? ' co-ficha-registro' : ''}`}>
+    {ficha ? <CabeceraRegistroGuardado titulo="Bitácora" turno={turno} operador={operadorNombre}>
+      <div><dt>Captura (México)</dt><dd><time dateTime={lectura.capturado_en}>{fechaHoraBitacora(lectura.capturado_en)}</time></dd></div>
+    </CabeceraRegistroGuardado> : referencia ? <header className="bitacora-nota-cabecera">
       <div className="bitacora-nota-identidad">
         <h4>{operadorNombre}</h4>
         <span className="bitacora-nota-turno">{turno.turno === 'dia' ? 'Día' : turno.turno === 'tarde' ? 'Tarde' : 'Noche'}</span>

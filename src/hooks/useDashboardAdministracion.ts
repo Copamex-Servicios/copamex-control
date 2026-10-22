@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
+import { cacheConsultas } from '../lib/cacheConsultas'
 import { useAuth } from './useAuth'
 import { consultarDashboardAdministracion } from '../lib/dashboardAdministracion'
 import type { DatosDashboard } from '../lib/dashboardAdministracion'
+
+const cache = cacheConsultas<DatosDashboard>('dashboard')
 
 export function useDashboardAdministracion() {
   const { estado, perfil, sesion } = useAuth()
@@ -12,12 +15,13 @@ export function useDashboardAdministracion() {
   const cargandoRef = useRef(false)
   useEffect(() => {
     if (!cuenta) return
+    const guardarCache = cache.preparar()
     let vigente = true
     const controller = new AbortController()
     cargandoRef.current = true
     const limite = window.setTimeout(() => controller.abort(), 20000)
     void consultarDashboardAdministracion(cuenta, controller.signal).then(datos => {
-      if (vigente) setVista({ cuenta, revision, datos, cargando: false, error: null })
+      if (vigente) { guardarCache(cuenta!, datos); setVista({ cuenta, revision, datos, cargando: false, error: null }) }
     }).catch(() => {
       if (vigente) setVista({ cuenta, revision, datos: null, cargando: false, error: 'No se pudo actualizar el Dashboard. Revisa la conexión y vuelve a intentar.' })
     }).finally(() => {
@@ -26,6 +30,6 @@ export function useDashboardAdministracion() {
     })
     return () => { vigente = false; window.clearTimeout(limite); controller.abort(); cargandoRef.current = false }
   }, [cuenta, revision])
-  const actual = cuenta && cuenta === vista.cuenta && vista.revision === revision ? vista : { cuenta, datos: null, cargando: !!cuenta, error: null }
+  const actual = cuenta && cuenta === vista.cuenta && vista.revision === revision ? vista : { cuenta, datos: cuenta ? cache.leer(cuenta) : null, cargando: !!cuenta, error: null }
   return { ...actual, actualizar: () => { if (cuenta && !cargandoRef.current) setRevision(n => n + 1) } }
 }

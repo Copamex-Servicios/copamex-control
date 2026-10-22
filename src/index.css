@@ -1055,3 +1055,19 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .formulario-calidad input.calidad-normal { border-color:#16a34a; background:#f4fff8; }
 
 .co-module-loading { margin: 0; padding: 24px; color: var(--co-muted, #64748b); }
+
+/* Acción de recarga uniforme, con nombre accesible en cada botón. */
+.co-layout button[data-actualizar] { display:inline-flex; align-items:center; justify-content:center; width:38px; min-width:38px; height:38px; min-height:38px; padding:8px; border:1px solid var(--co-border); border-radius:6px; color:var(--co-primary); background:#fff; flex-shrink:0; }
+.co-layout button[data-actualizar] svg { width:20px; height:20px; }
+.co-layout button[data-actualizar]:disabled { opacity:.5; }
+.co-layout .co-planta-referencia .vista-planta .planta-reportes-unificados { position:relative; }
+.co-layout .co-planta-referencia .vista-planta .planta-reportes-unificados > .planta-encabezado { min-height:38px; padding-right:48px; margin-bottom:10px; }
+.co-layout .co-planta-referencia .vista-planta .planta-reportes-unificados :is(.bc-historial-cabecera,.bpt-historial-cabecera) { display:contents; }
+.co-layout .co-planta-referencia .vista-planta .planta-reportes-unificados :is(.bc-historial-cabecera,.bpt-historial-cabecera) button[data-actualizar] { position:absolute; top:16px; right:16px; min-width:38px; width:38px; padding:8px; }
+
+.co-layout :is(.bc-formulario,.bpt-formulario) [aria-invalid="true"] { border-color:#c52b36; outline:1px solid #c52b36; }
+.co-layout .reporte-campos-faltantes { border:1px solid #d68188; border-radius:8px; background:#fff6f6; padding:12px; color:#8e1823; }
+.co-layout .reporte-campos-faltantes ul { margin:6px 0 0; padding-left:20px; columns:2; }
+.co-layout .reporte-campos-faltantes button { border:0; background:transparent; color:inherit; font:inherit; text-align:left; text-decoration:underline; padding:3px 0; cursor:pointer; }
+@media(max-width:600px) { .co-layout .reporte-campos-faltantes ul { columns:1; } }
+.co-layout .reporte-aviso-campos { margin:0; color:#b42332; font:inherit; font-size:14px; font-weight:500; }

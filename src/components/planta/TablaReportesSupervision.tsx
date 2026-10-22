@@ -1,4 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { ResumenHistorial } from '../diseno/ResumenHistorial'
+import '../diseno/acordeonHistorial.css'
+import { RefreshCw } from 'lucide-react'
+import { cacheConsultas } from '../../lib/cacheConsultas'
+import { useEffect, useId, useRef, useState } from 'react'
 import type { FiltrosPlanta } from '../../lib/planta'
 import { nombresTurno } from '../../lib/planta'
 import type { AreaOperativa } from '../../lib/tiposTurno'
@@ -16,15 +20,21 @@ type Fila = ResumenReporteCalderas & { area: AreaOperativa }
 type Detalle = { area: 'calderas'; reporte: ReporteTecnicoCalderas } | { area: 'ptar'; reporte: ReporteTecnicoPTAR }
 const nombreArea = (a: AreaOperativa) => a === 'calderas' ? 'Calderas' : 'PTAR'
 
-export function TablaReportesSupervision({ filtros, revision }: { filtros: FiltrosPlanta; revision: number }) {
+const cacheTabla = cacheConsultas<{ filas: Fila[]; mas: boolean; error: string | null }>('tabla-tecnicos')
+
+export function TablaReportesSupervision({ filtros, revision, alAbrir }: { filtros: FiltrosPlanta; revision: number; alAbrir?: (fila: Fila) => void }) {
+  const id = useId()
   const [navegacion, setNavegacion] = useState({ filtro: '', pagina: 0 })
   const [recarga, setRecarga] = useState(0)
   const filtro = JSON.stringify([filtros, revision, recarga])
   const pagina = navegacion.filtro === filtro ? navegacion.pagina : 0
   const clave = `${filtro}:${pagina}`
+  const filtroCache = JSON.stringify([filtros, pagina])
   const [vista, setVista] = useState<{ clave: string; filas: Fila[]; mas: boolean; error: string | null } | null>(null)
-  const [seleccion, setSeleccion] = useState<{ clave: string; fila: Fila } | null>(null)
+  const [seleccion, setSeleccion] = useState<{ clave: string; fila: Fila; desplazar?: boolean } | null>(null)
   useEffect(() => {
+    const guardarCache = cacheTabla.preparar()
+    setSeleccion(null)
     let vivo = true
     const c = new AbortController(), limite = window.setTimeout(() => c.abort(), 20000)
     const areas: AreaOperativa[] = filtros.area === 'todas' ? ['calderas', 'ptar'] : [filtros.area]
@@ -46,30 +56,48 @@ export function TablaReportesSupervision({ filtros, revision }: { filtros: Filtr
       return { filas, mas }
     })).then(resultados => {
       const filas = resultados.flatMap(r => r.filas).sort((a, b) => b.fechaOperativa.localeCompare(a.fechaOperativa) || b.creadoEn.localeCompare(a.creadoEn) || a.area.localeCompare(b.area) || a.id.localeCompare(b.id))
-      if (vivo) setVista({ clave, filas: filas.slice(pagina * 20, (pagina + 1) * 20), mas: resultados.some(r => r.mas) || filas.length > (pagina + 1) * 20, error: null })
+      if (vivo) {
+        const resultado = { filas: filas.slice(pagina * 20, (pagina + 1) * 20), mas: resultados.some(r => r.mas) || filas.length > (pagina + 1) * 20, error: null }
+        guardarCache(filtroCache, resultado); setVista({ clave, ...resultado })
+      }
     }).catch(e => { if (vivo) setVista({ clave, filas: [], mas: false, error: c.signal.aborted ? 'La consulta tardó demasiado. Actualiza para reintentar.' : e instanceof Error ? e.message : 'No se pudieron consultar los reportes.' }) })
       .finally(() => window.clearTimeout(limite))
     return () => { vivo = false; c.abort(); window.clearTimeout(limite) }
-  }, [clave, filtros, pagina])
-  const actual = vista?.clave === clave ? vista : null
+  }, [clave, filtros, pagina, filtroCache])
+  const actual = vista?.clave === clave ? vista : cacheTabla.leer(filtroCache)
   const elegido = seleccion?.clave === clave ? seleccion.fila : null
   return <section className="panel-informacion supervision-tecnicos">
-    <div className="planta-encabezado"><h2>Reportes técnicos</h2><button type="button" className="boton-secundario" disabled={!actual} onClick={() => setRecarga(n => n + 1)}>Actualizar reportes</button></div>
-    <div className="planta-tabla-scroll"><table className="planta-tabla supervision-tabla-tecnicos"><caption>Reportes técnicos por fecha operativa; hasta 20 por página.</caption><thead><tr><th>Fecha</th><th>Turno</th><th>Área</th><th>Operador</th><th>Acciones</th></tr></thead><tbody>
-      {actual?.filas.map(r => <tr key={`${r.area}:${r.id}`}><td>{r.fechaOperativa.split('-').reverse().join('/')}</td><td>{nombresTurno[r.turno]}</td><td>{nombreArea(r.area)}</td><td>{r.operador}</td><td><button type="button" className="boton-secundario" aria-expanded={elegido?.id === r.id && elegido.area === r.area} onClick={() => setSeleccion(elegido?.id === r.id && elegido.area === r.area ? null : { clave, fila: r })}>Ver</button></td></tr>)}
-    </tbody></table></div>
+    <div className="planta-encabezado"><h2>Reportes técnicos</h2><button type="button" className="boton-secundario" disabled={!actual} onClick={() => setRecarga(n => n + 1)} data-actualizar="true" aria-label="Actualizar reportes" title="Actualizar reportes"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button></div>
+    <div className="supervision-tarjetas-reportes">
+      {actual?.filas.map(r => {
+        const abierto = elegido?.id === r.id && elegido.area === r.area
+        const detalleId = `${id}-detalle-${r.area}-${r.id}`
+        return <details key={`${r.area}:${r.id}`} className="bc-reporte-historico co-acordeon-historial" open={abierto}
+          onToggle={e => {
+            if (e.currentTarget.open === abierto) return
+            if (e.currentTarget.open && alAbrir) { e.currentTarget.open = false; alAbrir(r); return }
+            setSeleccion(e.currentTarget.open ? { clave, fila: r, desplazar: true } : null)
+          }}>
+          <ResumenHistorial fecha={r.fechaOperativa} titulo="Reporte técnico" operador={r.operador} turno={r.turno} adicional={nombreArea(r.area)} />
+          {abierto && <div id={detalleId}><DetalleSeleccionado fila={r} desplazar={seleccion?.desplazar !== false} cerrar={() => setSeleccion(null)} /></div>}
+        </details>
+      })}
+    </div>
     {!actual ? <p role="status">Consultando reportes…</p> : actual.error ? <p role="alert" className="mensaje-error">{actual.error}</p> : !actual.filas.length && <p>No hay reportes técnicos para esta consulta.</p>}
     <nav className="planta-paginacion" aria-label="Páginas de reportes técnicos"><span>{actual && !actual.error ? `${actual.filas.length} reportes en esta página` : ''}</span><button className="boton-secundario" type="button" disabled={!actual || pagina === 0} onClick={() => setNavegacion({ filtro, pagina: pagina - 1 })}>Anterior</button><span>Página {pagina + 1}</span><button className="boton-secundario" type="button" disabled={!actual?.mas} onClick={() => setNavegacion({ filtro, pagina: pagina + 1 })}>Siguiente</button></nav>
-    {elegido && <DetalleSeleccionado key={`${clave}:${elegido.area}:${elegido.id}`} fila={elegido} cerrar={() => setSeleccion(null)} />}
   </section>
 }
 
-function DetalleSeleccionado({ fila, cerrar }: { fila: Fila; cerrar: () => void }) {
-  const ref = useRef<HTMLElement>(null)
+function DetalleSeleccionado({ fila, cerrar, desplazar = true }: { fila: Fila; cerrar: () => void; desplazar?: boolean }) {
+  const elemento = useRef<HTMLElement>(null)
+  useEffect(() => {
+    if (!desplazar) return
+    const temporizador = window.setTimeout(() => elemento.current?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }), 260)
+    return () => window.clearTimeout(temporizador)
+  }, [fila.id, desplazar])
   const [intento, setIntento] = useState(0)
   const [vista, setVista] = useState<{ intento: number; detalle: Detalle | null; error: string | null } | null>(null)
   useEffect(() => {
-    ref.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
     let vivo = true
     const c = new AbortController(), limite = window.setTimeout(() => c.abort(), 15000)
     const cargar = async (): Promise<Detalle> => fila.area === 'calderas'
@@ -80,7 +108,7 @@ function DetalleSeleccionado({ fila, cerrar }: { fila: Fila; cerrar: () => void 
     return () => { vivo = false; c.abort(); window.clearTimeout(limite) }
   }, [fila, intento])
   const actual = vista?.intento === intento ? vista : null
-  return <section ref={ref} className="supervision-detalle-reporte" aria-label={`Detalle técnico de ${nombreArea(fila.area)}`}>
+  return <section ref={elemento} className="supervision-detalle-reporte" aria-label={`Detalle técnico de ${nombreArea(fila.area)}`}>
     <div className="planta-encabezado"><div><h3>Reporte técnico de {nombreArea(fila.area)}</h3><p>{fila.fechaOperativa.split('-').reverse().join('/')} · {nombresTurno[fila.turno]} · {fila.operador}</p></div><button type="button" className="boton-secundario" onClick={cerrar}>Cerrar detalle</button></div>
     {!actual ? <p role="status">Consultando mediciones del reporte…</p> : actual.error ? <><p role="alert" className="mensaje-error">{actual.error}</p><button type="button" className="boton-secundario" onClick={() => setIntento(n => n + 1)}>Reintentar detalle</button></> : actual.detalle?.area === 'calderas' ? <div className="bc-panel"><DetalleReporteCalderasPlanta reporte={actual.detalle.reporte} /></div> : actual.detalle?.area === 'ptar' ? <div className="bpt-panel"><DetalleReportePTARPlanta reporte={actual.detalle.reporte} /></div> : null}
   </section>

@@ -14,7 +14,7 @@ interface CapturaReporte {
 
 /** Presenta el resultado del guardado existente; no envía solicitudes por su cuenta. */
 export function GuardadoReporteTecnico({ captura, descripcionId, alIntentar }: {
-  captura: CapturaReporte; descripcionId: string; alIntentar: () => void
+  captura: CapturaReporte; descripcionId: string; alIntentar: () => boolean | void
 }) {
   const id = useId()
   const dialogo = useRef<HTMLDialogElement>(null)
@@ -39,10 +39,10 @@ export function GuardadoReporteTecnico({ captura, descripcionId, alIntentar }: {
 
   async function guardar() {
     if (procesando.current || captura.guardando || !captura.puedeGuardar || captura.reporte) return
+    if (alIntentar() === false) return
     procesando.current = true
     setResultado({ terminado: false })
     try {
-      alIntentar()
       const confirmado = await captura.guardar()
       setResultado({ terminado: true, confirmado: confirmado === true })
     } catch (error) {
