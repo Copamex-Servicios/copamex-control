@@ -24,7 +24,7 @@ export function ControlPozos() {
       const datos = usePozosStore.getState()
       return activo && document.visibilityState === 'visible'
         && obtenerContextoPozos() !== null && !datos.guardando
-        && datos.estadoCarga !== 'cargando'
+        && (datos.estadoCarga === 'error' || datos.estadoCarga === 'sin-cuenta')
     }
 
     const actualizarAlVolver = () => {

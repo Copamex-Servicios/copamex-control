@@ -90,9 +90,6 @@
 .co-layout .co-planta-referencia :is(.bc-campo,.bpt-campo) { font-size:14px; }
 .co-layout .co-planta-referencia .supervision-detalle-reporte { margin-top:14px; padding-top:14px; }
 .co-layout .co-planta-referencia .supervision-detalle-reporte .planta-encabezado p { font-size:13px; }
-.co-layout .co-planta-referencia .planta-reporte-detalle :is(dt,.pcr-metadatos,.pcr-formato-anterior,.pcr-estado,.pcr-presion-equipo,.pcr-pila-datos dt) { font-size:13px; line-height:1.4; }
-.co-layout .co-planta-referencia .planta-reporte-detalle :is(.pcr-dato dd,.pcr-narrativa,.pcr-equipo>dt,.pcr-presion-equipo strong,.pcr-pila h6) { font-size:14px; }
-.co-layout .co-planta-referencia .planta-reporte-detalle .pcr-secciones { padding:8px; gap:10px; }
 .co-layout .co-planta-referencia .supervision-monitor :is(header span,.monitor-concesion-datos span,.monitor-concesion-pie) { font-size:13px; line-height:1.4; }
 .co-layout .co-planta-referencia :is(button,input,select,summary):focus-visible { outline:2px solid var(--co-primary); outline-offset:2px; }
 @media(max-width:1100px) {
@@ -140,3 +137,45 @@
  .co-layout .co-planta-referencia .supervision-fila-detalle { display:block; width:100%; }
  .co-layout .co-planta-referencia .supervision-tabla-tecnicos .supervision-fila-detalle>td { display:block; width:100%!important; box-sizing:border-box; padding:10px; }
 }
+
+/* Consulta operativa: lenguaje visual uniforme y reportes compactos. */
+.co-layout .co-planta-referencia .vista-planta { gap:12px; }
+.co-layout .co-planta-referencia .vista-planta .panel-informacion { padding:16px; border-radius:8px; border-color:var(--co-border); font-family:var(--co-font); color:var(--co-text); }
+.co-layout .co-planta-referencia .vista-planta :is(.bc-panel,.bpt-panel) { padding:0; border:0; background:transparent; border-radius:0; }
+.co-layout .co-planta-referencia .vista-planta .planta-encabezado { margin-bottom:10px; }
+.co-layout .co-planta-referencia .vista-planta :is(input,select,button,textarea) { font-family:var(--co-font); border-radius:6px; }
+.co-layout .co-planta-referencia .vista-planta :is(.estado-seccion,.planta-modulo) { border-radius:6px; padding:4px 8px; font-size:12px; }
+.co-layout .co-planta-referencia .vista-planta :is(.bc-historial-tecnico,.bpt-historial-tecnico) { display:grid; grid-template-columns:minmax(0,1fr); gap:8px; align-items:start; margin:0; }
+.co-layout .co-planta-referencia .vista-planta :is(.bc-historial-tecnico,.bpt-historial-tecnico)>:not(details) { grid-column:1 / -1; margin-top:0; margin-bottom:0; }
+.co-layout .co-planta-referencia .vista-planta details.co-acordeon-historial { margin:0; border-radius:8px; border-color:var(--co-border); }
+.co-layout .co-planta-referencia .vista-planta details.co-acordeon-historial[open] { grid-column:1 / -1; }
+.co-layout .co-planta-referencia .vista-planta details.co-acordeon-historial > summary.co-resumen-historial { grid-template-columns:96px minmax(0,1fr) auto auto; gap:10px; padding:10px 12px; min-height:64px; font-family:var(--co-font); font-size:13px; color:var(--co-text); }
+.co-layout .co-planta-referencia .vista-planta details.co-acordeon-historial > summary.co-resumen-historial :is(time,strong,small,.co-resumen-identidad > span) { font-family:var(--co-font); font-size:13px; }
+.co-layout .co-planta-referencia .vista-planta details.co-acordeon-historial > summary.co-resumen-historial .co-resumen-turno { border-radius:6px; padding:4px 8px; font-size:12px; }
+.co-layout .co-planta-referencia .vista-planta details.co-acordeon-historial > summary.co-resumen-historial .co-resumen-accion { border:1px solid var(--co-border); border-radius:6px; padding:6px 8px; color:var(--co-primary); font-size:12px; font-weight:500; text-align:center; }
+.co-layout .co-planta-referencia .vista-planta .planta-tabla :is(th,td) { padding:8px 12px; }
+.co-layout .co-planta-referencia .vista-planta .planta-tabla .boton-secundario { min-height:32px; padding:6px 8px; font-size:12px; border-color:var(--co-border); color:var(--co-primary); }
+
+@media(max-width:650px) {
+ .co-layout .co-planta-referencia .vista-planta .panel-informacion { padding:12px; }
+ .co-layout .co-planta-referencia .vista-planta details.co-acordeon-historial > summary.co-resumen-historial { grid-template-columns:minmax(0,1fr) auto; }
+}
+
+.co-layout .co-planta-referencia .vista-planta .planta-tabla .planta-modulo { font-weight:700; }
+
+.co-layout .co-planta-referencia .vista-planta .planta-reportes-unificados :is(.bc-filtros-tecnicos,.bpt-filtros-tecnicos) { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.co-layout .co-planta-referencia .vista-planta .planta-reportes-unificados :is(.bc-filtros-tecnicos,.bpt-filtros-tecnicos)>label { display:flex; flex-direction:column; gap:4px; min-width:0; font-size:13px; font-weight:600; }
+.co-layout .co-planta-referencia .vista-planta .planta-reportes-unificados :is(.bc-historial-cabecera,.bpt-historial-cabecera) { justify-content:flex-end; }
+@media(max-width:800px) {
+ .co-layout .co-planta-referencia .vista-planta .planta-reportes-unificados :is(.bc-filtros-tecnicos,.bpt-filtros-tecnicos) { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:450px) {
+ .co-layout .co-planta-referencia .vista-planta .planta-reportes-unificados :is(.bc-filtros-tecnicos,.bpt-filtros-tecnicos) { grid-template-columns:minmax(0,1fr); }
+}
+
+/* Tarjetas de consulta administrativa alineadas con los historiales operativos. */
+.co-layout .supervision-tarjetas-reportes { display:grid; grid-template-columns:minmax(0,1fr); gap:8px; }
+.co-layout .supervision-tarjetas-reportes details.co-acordeon-historial { margin:0; }
+.co-layout .supervision-tarjetas-reportes .co-resumen-historial { padding:12px 14px; }
+.co-layout .supervision-tarjetas-reportes .supervision-detalle-reporte { padding:12px; min-width:0; }
+.co-layout .supervision-tarjetas-reportes .supervision-detalle-reporte :is(.bc-panel,.bpt-panel) { padding:0; border:0; }

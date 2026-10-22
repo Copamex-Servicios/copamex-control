@@ -6,8 +6,8 @@ import '../components/diseno/calderasVisual.css'
 import { AppLayout } from '../components/diseno/AppLayout'
 import { InicioDashboard } from '../components/diseno/InicioDashboard'
 import type { AccesoVisual } from '../components/diseno/tipos'
-import { lazy, useRef, useState } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
+import { lazy, Suspense, useRef, useState, type ReactNode } from 'react'
+import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import type { RolUsuario } from '../lib/tiposAuth'
 
@@ -65,15 +65,26 @@ const paginas: Record<Exclude<VistaInicio, 'inicio'>, Pagina> = {
   },
 }
 
-export function Inicio({ vista = 'inicio' }: PropsInicio = {}) {
+// Limpiar las vistas conservadas al cambiar de cuenta, rol o acceso.
+export function Inicio(props: PropsInicio = {}) {
+  const { perfil, estado, sesion } = useAuth()
+  if (estado !== 'autenticado' || !perfil?.activo || perfil.id !== sesion?.user.id) return null
+  return <ContenidoInicio key={perfil.id + ':' + perfil.rol} {...props} />
+}
+function VistaConservada({ activa, children }: { activa: boolean; children: ReactNode }) {
+  const [visitada, setVisitada] = useState(activa)
+  if (activa && !visitada) setVisitada(true)
+  if (!activa && !visitada) return null
+  return <div hidden={!activa} style={{ display: activa ? 'contents' : 'none' }}><Suspense fallback={<p role="status">Cargando módulo…</p>}>{children}</Suspense></div>
+}
+function ContenidoInicio({ vista = 'inicio' }: PropsInicio = {}) {
   const { sesion, perfil, estado, cerrarSesion } = useAuth()
-  const ubicacion = useLocation()
-  const [seleccionPTAR, cambiarPTAR] = useState({ clave: ubicacion.key, modulo: 'bitacora' as ModuloOperativo, revision: 0 })
-  const moduloPTAR = seleccionPTAR.clave === ubicacion.key ? seleccionPTAR.modulo : 'bitacora'
-  const setModuloPTAR = (modulo: ModuloOperativo) => cambiarPTAR(anterior => ({ clave: ubicacion.key, modulo, revision: anterior.revision + 1 }))
-  const [seleccionCalderas, cambiarCalderas] = useState({ clave: ubicacion.key, modulo: 'bitacora' as ModuloOperativo, revision: 0 })
-  const moduloCalderas = seleccionCalderas.clave === ubicacion.key ? seleccionCalderas.modulo : 'bitacora'
-  const setModuloCalderas = (modulo: ModuloOperativo) => cambiarCalderas(anterior => ({ clave: ubicacion.key, modulo, revision: anterior.revision + 1 }))
+  const [seleccionPTAR, cambiarPTAR] = useState({ modulo: 'bitacora' as ModuloOperativo, revision: 0 })
+  const moduloPTAR = seleccionPTAR.modulo
+  const setModuloPTAR = (modulo: ModuloOperativo) => cambiarPTAR(anterior => ({ modulo, revision: anterior.revision + 1 }))
+  const [seleccionCalderas, cambiarCalderas] = useState({ modulo: 'bitacora' as ModuloOperativo, revision: 0 })
+  const moduloCalderas = seleccionCalderas.modulo
+  const setModuloCalderas = (modulo: ModuloOperativo) => cambiarCalderas(anterior => ({ modulo, revision: anterior.revision + 1 }))
   const [error, setError] = useState<string | null>(null)
   const [cerrando, setCerrando] = useState(false)
   const salidaActiva = useRef(false)
@@ -121,9 +132,16 @@ export function Inicio({ vista = 'inicio' }: PropsInicio = {}) {
       : [{ id: 'bitacora', nombre: 'Bitácora', icono: 'bitacora' }, { id: 'ptar', nombre: 'Proceso PTAR', icono: 'ptar' }, { id: 'calidad', nombre: 'Calidad de agua', icono: 'calidad' }]
     return <AppLayout accesos={visuales} nombre={perfil.nombre} rol={nombresRol[perfil.rol]} titulo={pagina?.titulo ?? 'Inicio'} cerrando={cerrando} alSalir={() => { void salir() }} submenu={operativo ? { titulo: vista === 'calderas' ? 'MÓDULO CALDERAS' : 'MÓDULO PTAR', seleccion, opciones, alSeleccionar: id => { if (opciones.some(o => o.id === id)) { if (vista === 'calderas') setModuloCalderas(id as ModuloOperativo); else setModuloPTAR(id as ModuloOperativo) } } } : undefined}>
       {error && <p className="mensaje-error" role="alert">{error}</p>}
-      {vista === 'inicio' ? <InicioDashboard accesos={visuales} nombre={perfil.nombre} rol={nombresRol[perfil.rol]} admin={perfil.rol === 'admin'} />
-        : operativo ? <div className="co-calderas"><PanelOperativo key={perfil.id + ':' + vista} area={vista} rol={perfil.rol} seleccionExterna={seleccion} solicitudDesplazamiento={vista === 'calderas' ? seleccionCalderas.revision : seleccionPTAR.revision} alSeleccionar={vista === 'calderas' ? setModuloCalderas : setModuloPTAR} /></div>
-        : <div className={vista === 'planta' ? 'co-consulta co-planta-referencia' : 'co-consulta'}><PageHeader titulo={vista === 'planta' ? 'Planta' : 'Reportes'} descripcion={vista === 'planta' ? 'Consulta de registros operativos de Calderas y PTAR.' : undefined} icono={vista === 'planta' ? 'planta' : 'reportes'} />{vista === 'planta' ? <PanelPlanta key={perfil.id} /> : <PanelReportes key={perfil.id} />}</div>}
+      <VistaConservada activa={vista === 'inicio'}><InicioDashboard accesos={visuales} nombre={perfil.nombre} rol={nombresRol[perfil.rol]} admin={perfil.rol === 'admin'} /></VistaConservada>
+      {(['calderas', 'ptar'] as const).filter(area => paginas[area].roles.includes(perfil.rol)).map(area => <VistaConservada key={area} activa={vista === area}>
+        <div className="co-calderas"><PanelOperativo key={perfil.id + ':' + area} area={area} rol={perfil.rol}
+          seleccionExterna={area === 'calderas' ? moduloCalderas : moduloPTAR}
+          solicitudDesplazamiento={area === 'calderas' ? seleccionCalderas.revision : seleccionPTAR.revision}
+          alSeleccionar={area === 'calderas' ? setModuloCalderas : setModuloPTAR} /></div>
+      </VistaConservada>)}
+      {paginas.planta.roles.includes(perfil.rol) && <VistaConservada activa={vista === 'planta'}><div className="co-consulta co-planta-referencia"><PageHeader titulo="Planta" descripcion="Consulta de registros operativos de Calderas y PTAR." icono="planta" /><PanelPlanta key={perfil.id} /></div></VistaConservada>}
+      {vista === 'reportes' && <div className="co-consulta"><PageHeader titulo="Reportes" icono="reportes" /><PanelReportes key={perfil.id} /></div>}
+
     </AppLayout>
   }
 

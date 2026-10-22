@@ -2,15 +2,9 @@ import './calderasReferencia.css'
 import './operativoReferencia.css'
 import './operativoCompacto.css'
 import { PageHeader } from '../diseno/Elementos'
-import { useEffect, useId, useRef, useState } from 'react'
-import type { KeyboardEvent } from 'react'
+import { lazy, Suspense, useEffect, useId, useRef, useState } from 'react'
+import type { KeyboardEvent, ReactNode } from 'react'
 import { ConsultaTurno } from '../turno/ConsultaTurno'
-import { PanelBitacoraPTAR } from '../bitacora/PanelBitacoraPTAR'
-import { PanelBitacoraCalderas } from '../bitacora/PanelBitacoraCalderas'
-import { PanelPozos } from '../pozos/PanelPozos'
-import { PanelUF } from '../uf/PanelUF'
-import { PanelCalidad } from '../calidad/PanelCalidad'
-import { PanelPTAR } from '../ptar/PanelPTAR'
 import { EncabezadoOperativo } from './EncabezadoOperativo'
 import { useInformacionDia } from '../../hooks/useInformacionDia'
 import { useTurno } from '../../hooks/useTurno'
@@ -22,6 +16,21 @@ import { usePTAR } from '../../hooks/usePTAR'
 import { useRelojServidor } from '../../hooks/useRelojServidor'
 import type { AreaOperativa } from '../../lib/tiposTurno'
 import type { RolUsuario } from '../../lib/tiposAuth'
+
+const PanelBitacoraPTAR = lazy(() => import('../bitacora/PanelBitacoraPTAR').then(m => ({ default: m.PanelBitacoraPTAR })))
+const PanelBitacoraCalderas = lazy(() => import('../bitacora/PanelBitacoraCalderas').then(m => ({ default: m.PanelBitacoraCalderas })))
+const PanelPozos = lazy(() => import('../pozos/PanelPozos').then(m => ({ default: m.PanelPozos })))
+const PanelUF = lazy(() => import('../uf/PanelUF').then(m => ({ default: m.PanelUF })))
+const PanelCalidad = lazy(() => import('../calidad/PanelCalidad').then(m => ({ default: m.PanelCalidad })))
+const PanelPTAR = lazy(() => import('../ptar/PanelPTAR').then(m => ({ default: m.PanelPTAR })))
+
+// Montar al visitar por primera vez; conservar después los borradores y filtros.
+function ModuloVisitado({ activo, children }: { activo: boolean; children: ReactNode }) {
+  const [visitado, setVisitado] = useState(activo)
+  if (activo && !visitado) setVisitado(true)
+  if (!activo && !visitado) return null
+  return <Suspense fallback={<p role="status">Cargando módulo…</p>}>{children}</Suspense>
+}
 
 export type ModuloOperativo = 'bitacora' | 'pozos' | 'uf' | 'calidad' | 'ptar'
 interface Apartado { id: ModuloOperativo; nombre: string; simbolo: string }
@@ -158,11 +167,13 @@ export function PanelOperativo({ area, rol, seleccionExterna, alSeleccionar, sol
 
         {opciones.map(a => <div key={a.id} id={`${id}-panel-${a.id}`} role={seleccionExterna !== undefined ? 'region' : 'tabpanel'} aria-label={seleccionExterna !== undefined ? a.nombre : undefined} aria-labelledby={seleccionExterna !== undefined ? undefined : `${id}-tab-${a.id}`}
           hidden={actual.id !== a.id} tabIndex={0} className="contenido-modulo">
+          <ModuloVisitado activo={actual.id === a.id}>
           {a.id === 'bitacora' && (area === 'calderas' ? <PanelBitacoraCalderas /> : <PanelBitacoraPTAR />)}
           {a.id === 'pozos' && <PanelPozos />}
           {a.id === 'uf' && <PanelUF />}
           {a.id === 'calidad' && <PanelCalidad area={area} horaServidor={reloj.hora} />}
           {a.id === 'ptar' && <PanelPTAR />}
+          </ModuloVisitado>
         </div>)}
       </div>
     </div>

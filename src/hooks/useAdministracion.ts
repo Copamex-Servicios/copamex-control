@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
+import { cacheConsultas } from '../lib/cacheConsultas'
 import { useAuth } from './useAuth'
 import { consultarAdministracion, establecerPendienteAdmin, exigirAdmin, guardarAdministracion, pendienteAdmin, ErrorAdmin } from '../lib/administracion'
 import type { DatosAdmin, FilaAdmin, SolicitudAdmin, TablaAdmin } from '../lib/administracion'
+
+const cache = cacheConsultas<DatosAdmin>('administracion')
 
 export function useAdministracion() {
   const { estado, perfil, sesion } = useAuth()
@@ -11,16 +14,17 @@ export function useAdministracion() {
   const escribiendo = useRef(false)
   useEffect(() => {
     if (!cuenta) return
+    const guardarCache = cache.preparar()
     const controller = new AbortController()
     let vivo = true, cargando = false, otraConsulta = false
     async function cargar() {
       if (!vivo) return
       if (cargando) { otraConsulta = true; return }
       cargando = true
-      setVista(v => v.cuenta === cuenta ? { ...v, cargando: true, error: v.pendiente ? v.error : null } : { cuenta, datos: null, cargando: true, error: null, mensaje: null, guardando: false, pendiente: pendienteAdmin(cuenta!) })
+      setVista(v => v.cuenta === cuenta ? { ...v, cargando: true, error: v.pendiente ? v.error : null } : { cuenta, datos: cache.leer(cuenta!), cargando: true, error: null, mensaje: null, guardando: false, pendiente: pendienteAdmin(cuenta!) })
       try {
         const datos = await consultarAdministracion(cuenta!, controller.signal)
-        if (vivo) setVista(v => ({ ...v, datos, cargando: false }))
+        if (vivo) { guardarCache(cuenta!, datos); setVista(v => ({ ...v, datos, cargando: false })) }
       } catch { if (vivo) setVista(v => ({ ...v, cargando: false, error: 'No se pudo actualizar Administración. Revisa la conexión y vuelve a intentar.' })) }
       finally { cargando = false; if (otraConsulta && vivo) { otraConsulta = false; void cargar() } }
     }
@@ -55,6 +59,6 @@ export function useAdministracion() {
     if (!cuenta || pendienteAdmin(cuenta)) return null
     return enviar(Object.freeze({ cuenta, tabla, id: original?.id ?? crypto.randomUUID(), valores: Object.freeze({ ...valores }), original: original ? Object.freeze({ ...original }) : null }))
   }
-  const actual = cuenta && vista.cuenta === cuenta ? vista : { cuenta, datos: null, cargando: !!cuenta, error: null, mensaje: null, guardando: false, pendiente: cuenta ? pendienteAdmin(cuenta) : null }
+  const actual = cuenta && vista.cuenta === cuenta ? vista : { cuenta, datos: cuenta ? cache.leer(cuenta) : null, cargando: !!cuenta, error: null, mensaje: null, guardando: false, pendiente: cuenta ? pendienteAdmin(cuenta) : null }
   return { ...actual, guardar, actualizar: () => actualizarRef.current(), reintentar: async () => cuenta && pendienteAdmin(cuenta) ? enviar(pendienteAdmin(cuenta)!) : null }
 }

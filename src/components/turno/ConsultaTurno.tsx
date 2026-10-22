@@ -1,3 +1,4 @@
+import { RefreshCw } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useAuthStore } from '../../stores/authStore'
 import { consultarDatosTurno, ErrorTurnos } from '../../lib/turnos'
@@ -122,9 +123,7 @@ function ConsultaAutorizada({ area, cuentaId }: PropsConsultaTurno & { cuentaId:
       <div className="cabecera-turno">
         <h2>Consulta del turno</h2>
         <button className="boton-secundario" type="button" disabled={vista.estado === 'cargando'}
-          onClick={() => setRevision((anterior) => anterior + 1)}>
-          {vista.estado === 'error' ? 'Reintentar consulta' : 'Actualizar'}
-        </button>
+          onClick={() => setRevision((anterior) => anterior + 1)} data-actualizar="true" aria-label={vista.estado === 'error' ? 'Reintentar consulta' : 'Actualizar'} title="Actualizar"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button>
       </div>
       {vista.estado === 'cargando' && <p role="status">Consultando el turno…</p>}
       {vista.estado === 'error' && <p className="mensaje-error" role="alert">{vista.mensaje}</p>}

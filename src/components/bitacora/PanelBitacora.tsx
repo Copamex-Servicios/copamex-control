@@ -32,7 +32,7 @@ function ContenidoBitacora({ datos, area, referencia, historialTecnico, ocultarC
   }
   return <section className={`panel-informacion panel-bitacora${referencia ? ' bitacora-modulo' : ''}`} aria-label={`Bitácora de ${area === 'calderas' ? 'Calderas' : 'PTAR'}`}>
     {!ocultarObservaciones && <div className="cabecera-turno"><h2>Bitácora</h2><button className="boton-secundario" type="button"
-      disabled={guardando || estadoCarga === 'cargando'} onClick={() => { void actualizarBitacora() }}>{referencia && <RefreshCw className="bitacora-actualizar-icono" aria-hidden="true" />}Actualizar Bitácora</button></div>}
+      disabled={guardando || estadoCarga === 'cargando'} onClick={() => { void actualizarBitacora() }} data-actualizar="true" aria-label="Actualizar Bitácora" title="Actualizar Bitácora"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button></div>}
     
     
     {!ocultarObservaciones && mensajeAccion && <p className={confirmado ? 'mensaje-exito' : 'mensaje-error'} role={confirmado ? 'status' : 'alert'}>{mensajeAccion}</p>}

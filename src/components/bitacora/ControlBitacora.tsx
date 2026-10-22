@@ -24,7 +24,7 @@ export function ControlBitacora() {
       const datos = useBitacoraStore.getState()
       return activo && document.visibilityState === 'visible'
         && obtenerContextoBitacora() !== null && !datos.guardando
-        && datos.estadoCarga !== 'cargando'
+        && (datos.estadoCarga === 'error' || datos.estadoCarga === 'sin-cuenta')
     }
 
     const actualizarAlVolver = () => {

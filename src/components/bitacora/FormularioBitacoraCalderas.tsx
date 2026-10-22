@@ -1,5 +1,6 @@
+import { useValidacionReporte } from '../../hooks/useValidacionReporte'
 import { GuardadoReporteTecnico } from './GuardadoReporteTecnico'
-import { useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import type { KeyboardEvent, ReactNode } from 'react'
 import { equiposCalderas, pilasCalderas, equiposAguaCalderas } from '../../lib/tiposBitacoraCalderas'
 import type { CampoCalderas, EstadoCalderas, EstadoCompresor, EstadoUFBitacora } from '../../lib/tiposBitacoraCalderas'
@@ -22,7 +23,24 @@ function Apartado({ indice, activo, prefijo, children }: { indice: number; activ
 type CamposFormulario = Pick<ReturnType<typeof useReporteCalderas>, 'borrador' | 'cambiarBorrador' | 'editable' | 'reporte' | 'unidadPresion'>
 export function FormularioBitacoraCalderas({ captura, observaciones }: { captura: ReturnType<typeof useReporteCalderas> | CamposFormulario; observaciones: ReactNode }) {
   const prefijo = useId()
+  const { raiz: raizValidacion, faltas: faltasValidacion, revisar: revisarValidacion, alCambiar: actualizarValidacion } = useValidacionReporte()
   const [activo, setActivo] = useState(0)
+  const tabsRef = useRef<HTMLDivElement>(null)
+  const desplazarPendiente = useRef(false)
+  function mostrarSeccion(indice: number) {
+    desplazarPendiente.current = true
+    setActivo(indice)
+    if (indice === activo) desplazarASeccion()
+  }
+  function desplazarASeccion() {
+    tabsRef.current?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })
+    desplazarPendiente.current = false
+  }
+  useEffect(() => {
+    if (!desplazarPendiente.current) return
+    const frame = window.requestAnimationFrame(desplazarASeccion)
+    return () => window.cancelAnimationFrame(frame)
+  }, [activo])
   const { borrador, cambiarBorrador: setBorrador, editable: habilitado } = captura
   const operacion = 'guardar' in captura ? captura : null
   const ayudaGuardado = operacion?.guardando ? 'Esperando confirmación del servidor…' : captura.reporte ? null
@@ -36,23 +54,24 @@ export function FormularioBitacoraCalderas({ captura, observaciones }: { captura
     else if (evento.key === 'End') siguiente = pestanas.length - 1
     else return
     evento.preventDefault()
-    setActivo(siguiente)
-    evento.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[siguiente]?.focus()
+    mostrarSeccion(siguiente)
+    evento.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[siguiente]?.focus({ preventScroll: true })
   }
   function medir(campo: CampoCalderas, valor: string) {
     setBorrador(b => ({ ...b, mediciones: { ...b.mediciones, [campo]: valor } }))
   }
   function medicion(campo: CampoCalderas, nombre: string, unidad: string) {
-    return <label className="bc-campo" htmlFor={`${prefijo}-${campo}`}><span>{nombre} <small>({unidad})</small></span>
-      <input id={`${prefijo}-${campo}`} type="number" step="any" inputMode="decimal" value={borrador.mediciones[campo]}
-        disabled={!habilitado} onChange={e => medir(campo, e.target.value)} /></label>
+    return <label className="bc-campo" htmlFor={`${prefijo}-${campo}`}><span>{nombre}</span>
+      <span className="bc-control-unidad"><input aria-label={`${nombre} (${unidad})`} id={`${prefijo}-${campo}`} type="number" step="any" inputMode="decimal" value={borrador.mediciones[campo]}
+        disabled={!habilitado} onChange={e => medir(campo, e.target.value)} /><span className="bc-unidad" aria-hidden="true">{unidad}</span></span></label>
   }
-  return <div className="bc-formulario">
-    <div className="bc-tabs" role="tablist" aria-label="Secciones de Bitácora de Calderas">
+  return <div ref={raizValidacion} onChangeCapture={actualizarValidacion} className="bc-formulario">
+    {faltasValidacion.length > 0 && <p className="reporte-aviso-campos" role="alert">Completa todos los campos</p>}
+    <div ref={tabsRef} className="bc-tabs" role="tablist" aria-label="Secciones de Bitácora de Calderas">
       {pestanas.map((pestana, indice) => <button key={pestana.titulo} type="button" role="tab"
         id={`${prefijo}-tab-${indice}`} aria-controls={`${prefijo}-panel-${indice}`}
         aria-selected={activo === indice} tabIndex={activo === indice ? 0 : -1}
-        onClick={() => setActivo(indice)} onKeyDown={e => navegar(e, indice)}>
+        onClick={() => mostrarSeccion(indice)} onKeyDown={e => navegar(e, indice)}>
         <span>{pestana.nombre}</span>
       </button>)}
     </div>
@@ -69,10 +88,10 @@ export function FormularioBitacoraCalderas({ captura, observaciones }: { captura
               onChange={e => setBorrador(b => ({ ...b, equipos: { ...b.equipos, [equipo.id]: { ...b.equipos[equipo.id], estado: e.target.value as EstadoCalderas } } }))}>
               <option value="">Selecciona</option>{['Servicio', 'Reserva', 'Mantenimiento'].map(v => <option key={v}>{v}</option>)}
             </select></label>
-          {equipo.id.startsWith('sulzer_') && <label className="bc-campo" htmlFor={`${prefijo}-${equipo.id}-presion`}><span className="bc-sr">Presión <small>{borrador.equipos[equipo.id].estado === 'Servicio' ? 'en Servicio' : '(opcional)'}</small></span>
-            <input aria-label={`Presión de ${equipo.nombre}, ${captura.unidadPresion}`} id={`${prefijo}-${equipo.id}-presion`} type="number" step="any" inputMode="decimal" aria-describedby={captura.reporte?.versionFormato === 1 ? `${prefijo}-unidades` : undefined}
-              disabled={!habilitado} placeholder={captura.unidadPresion}
-              value={borrador.equipos[equipo.id].presion} onChange={e => setBorrador(b => ({ ...b, equipos: { ...b.equipos, [equipo.id]: { ...b.equipos[equipo.id], presion: e.target.value } } }))} />
+          {equipo.id.startsWith('sulzer_') && <label className="bc-campo" htmlFor={`${prefijo}-${equipo.id}-presion`}><span className="bc-sr">Presión</span>
+            <span className="bc-control-unidad"><input aria-label={`Presión de ${equipo.nombre}, ${captura.unidadPresion}`} id={`${prefijo}-${equipo.id}-presion`} type="number" step="any" inputMode="decimal" aria-describedby={captura.reporte?.versionFormato === 1 ? `${prefijo}-unidades` : undefined}
+              disabled={!habilitado}
+              value={borrador.equipos[equipo.id].presion} onChange={e => setBorrador(b => ({ ...b, equipos: { ...b.equipos, [equipo.id]: { ...b.equipos[equipo.id], presion: e.target.value } } }))} /><span className="bc-unidad" aria-hidden="true">{captura.unidadPresion}</span></span>
           </label>}
         </div>)}
       </fieldset>)}
@@ -109,10 +128,10 @@ export function FormularioBitacoraCalderas({ captura, observaciones }: { captura
       {pilasCalderas.map(pila => <div className="bc-pila" key={pila.id}><h3>{pila.nombre}</h3>
         {([{ campo: 'nivel', titulo: 'Nivel', unidad: '%', tipo: 'number' }, { campo: 'bomba', titulo: 'Bomba', unidad: '#', tipo: 'text' },
           { campo: 'presion', titulo: 'Presión', unidad: 'kg/cm²', tipo: 'number' }] as const).map(c =>
-          <label className="bc-campo" key={c.campo} htmlFor={`${prefijo}-${pila.id}-${c.campo}`}><span>{c.titulo} <small>({c.unidad})</small></span>
-            <input id={`${prefijo}-${pila.id}-${c.campo}`} type={c.tipo} step={c.tipo === 'number' ? 'any' : undefined}
+          <label className="bc-campo" key={c.campo} htmlFor={`${prefijo}-${pila.id}-${c.campo}`}><span>{c.titulo}</span>
+            <span className="bc-control-unidad"><input aria-label={`${pila.nombre} · ${c.titulo} (${c.unidad})`} id={`${prefijo}-${pila.id}-${c.campo}`} type={c.tipo} step={c.tipo === 'number' ? 'any' : undefined}
               inputMode={c.tipo === 'number' ? 'decimal' : undefined} value={borrador.pilas[pila.id][c.campo]}
-              onChange={e => setBorrador(b => ({ ...b, pilas: { ...b.pilas, [pila.id]: { ...b.pilas[pila.id], [c.campo]: e.target.value } } }))} />
+              onChange={e => setBorrador(b => ({ ...b, pilas: { ...b.pilas, [pila.id]: { ...b.pilas[pila.id], [c.campo]: e.target.value } } }))} /><span className="bc-unidad" aria-hidden="true">{c.unidad}</span></span>
           </label>)}
       </div>)}
     </fieldset></Apartado>
@@ -129,17 +148,24 @@ export function FormularioBitacoraCalderas({ captura, observaciones }: { captura
             <span>{e.nombre}</span>
           </label>)}
         </fieldset>)}</div>
-      <label className="bc-campo bc-ancho" htmlFor={`${prefijo}-reporte-relevante`}><span>Reporte relevante del turno <small>({!operacion && !captura.reporte?.borrador.reporteRelevante ? 'opcional' : 'obligatorio'})</small></span>
-        <textarea aria-label={`Reporte relevante del turno (${!operacion && !captura.reporte?.borrador.reporteRelevante ? 'opcional' : 'obligatorio'})`} id={`${prefijo}-reporte-relevante`} rows={4} required={!!operacion || !!captura.reporte?.borrador.reporteRelevante} maxLength={4000} disabled={!habilitado || captura.reporte?.versionFormato === 1} value={borrador.reporteRelevante}
+      <label className="bc-campo bc-ancho" htmlFor={`${prefijo}-reporte-relevante`}><span>Reporte relevante del turno</span>
+        <textarea aria-label="Reporte relevante del turno" id={`${prefijo}-reporte-relevante`} rows={4} required={!!operacion || !!captura.reporte?.borrador.reporteRelevante} maxLength={4000} disabled={!habilitado || captura.reporte?.versionFormato === 1} value={borrador.reporteRelevante}
           onChange={e => setBorrador(b => ({ ...b, reporteRelevante: e.target.value }))} /></label>
     </Apartado>
     <Apartado indice={6} activo={activo} prefijo={prefijo}>{observaciones}</Apartado>
     {operacion?.mensaje && operacion.mensaje !== 'Reporte técnico registrado. Solo Administración puede corregirlo.' && <p className="bc-ayuda" role={operacion.estado === 'error' || (!captura.reporte && !operacion.guardando) ? 'alert' : 'status'}>{operacion.mensaje}</p>}
     {operacion && activo < pestanas.length - 1 && <footer className="bc-acciones"><span className="bc-ayuda" id={`${prefijo}-guardado`} hidden={!ayudaGuardado}>{ayudaGuardado}</span>
       {activo < pestanas.length - 2 ? <button type="button" className="boton-primario" disabled={operacion.guardando}
-        onClick={() => { setActivo(activo + 1); document.getElementById(`${prefijo}-tab-${activo + 1}`)?.focus() }}>Siguiente</button>
+        onClick={() => { mostrarSeccion(activo + 1); document.getElementById(`${prefijo}-tab-${activo + 1}`)?.focus({ preventScroll: true }) }}>Siguiente</button>
       : <GuardadoReporteTecnico captura={operacion} descripcionId={`${prefijo}-guardado`} alIntentar={() => {
-        if (!operacion.pendiente && !borrador.reporteRelevante.trim()) { setActivo(5); window.setTimeout(() => document.getElementById(`${prefijo}-reporte-relevante`)?.focus(), 0) }
+        if (operacion.pendiente) return true
+        const faltas = revisarValidacion()
+        if (faltas.length) {
+          mostrarSeccion(faltas[0].seccion)
+          window.requestAnimationFrame(() => faltas[0].campo.focus({ preventScroll: true }))
+          return false
+        }
+        return true
       }} />}
     </footer>}
   </div>

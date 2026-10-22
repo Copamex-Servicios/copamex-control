@@ -1,5 +1,5 @@
-import { ResumenHistorial } from '../diseno/ResumenHistorial'
 import { RefreshCw } from 'lucide-react'
+import { ResumenHistorial } from '../diseno/ResumenHistorial'
 import { useId } from 'react'
 import '../diseno/acordeonHistorial.css'
 import '../operativo/medicionesVisual.css'
@@ -44,9 +44,7 @@ function ContenidoUF({ datos }: PropsContenidoUF) {
       <div className="cabecera-turno">
         <h2>Ultrafiltración</h2>
         <button className="boton-secundario" type="button" disabled={guardando || estadoCarga === 'cargando'}
-          onClick={() => { void actualizarUF() }}>
-          <RefreshCw className="mediciones-actualizar" aria-hidden="true" />Actualizar UF
-        </button>
+          onClick={() => { void actualizarUF() }} data-actualizar="true" aria-label="Actualizar UF" title="Actualizar UF"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button>
       </div>
       
       

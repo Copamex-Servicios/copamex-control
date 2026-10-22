@@ -1,3 +1,4 @@
+import { RefreshCw } from 'lucide-react'
 import './plantaReferencia.css'
 import { ReportesTecnicosPlanta } from './ReportesTecnicosPlanta'
 import { useMemo, useState } from 'react'
@@ -36,8 +37,9 @@ function ConsultaPlantaOperativa() {
     catch (e) { setErrorFiltro(e instanceof Error ? e.message : 'Revisa los filtros.') }
   }
   return <div className="vista-planta">
+    <ReportesTecnicosPlanta />
     <section className="panel-informacion planta-filtros" aria-labelledby="filtros-planta">
-      <div className="planta-encabezado"><div><h2 id="filtros-planta">Consulta de registros</h2></div><button type="button" className="boton-secundario" onClick={actualizar} disabled={cargando}>{cargando ? 'Consultando…' : 'Actualizar'}</button></div>
+      <div className="planta-encabezado"><div><h2 id="filtros-planta">Consulta de registros</h2></div><button type="button" className="boton-secundario" onClick={actualizar} disabled={cargando} data-actualizar="true" aria-label={cargando ? 'Consultando…' : 'Actualizar'} title="Actualizar"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button></div>
       <form onSubmit={e => { e.preventDefault(); aplicar() }} className="planta-formulario">
         <label>Desde<input type="date" required value={edicion.desde} onChange={e => setEdicion({ ...edicion, desde: e.target.value })} /></label>
         <label>Hasta<input type="date" required value={edicion.hasta} onChange={e => setEdicion({ ...edicion, hasta: e.target.value })} /></label>
@@ -54,10 +56,10 @@ function ConsultaPlantaOperativa() {
     {problemas.length > 0 && <p className="mensaje-error" role="alert">Consulta parcial: no se pudo cargar {problemas.join(', ')}. Pulsa Actualizar para reintentar.</p>}
     {incompletas.length > 0 && <p className="planta-aviso" role="status">Consulta limitada en {incompletas.join(', ')} (hasta 1,000 capturas por módulo). Reduce el período para consultar todos los registros.</p>}
 
-    <ReportesTecnicosPlanta />
+
 
     <section className="panel-informacion" aria-labelledby="historial-planta">
-      <div className="planta-encabezado"><div><h2 id="historial-planta">Actividad y registros</h2></div><span className="estado-seccion">Solo consulta</span></div>
+      <div className="planta-encabezado"><div><h2 id="historial-planta">Actividad y registros</h2></div></div>
       <div className="planta-busqueda"><label>Módulo<select value={modulo} onChange={e => { setModulo(e.target.value as ModuloPlanta | 'todos'); setPagina(1); setDetalle(null) }}><option value="todos">Todos los módulos</option>{modulosPlanta.map(m => <option key={m} value={m}>{nombresModulo[m]}</option>)}</select></label><label>Buscar operador o contenido<input type="search" placeholder="Operador o captura técnica…" value={busqueda} onChange={e => { setBusqueda(e.target.value); setPagina(1); setDetalle(null) }} /></label></div>
       <p className="ayuda-turno" aria-live="polite">{visibles.length} registros encontrados</p>
       <div className="planta-tabla-scroll" tabIndex={0} role="region" aria-label="Registros de Planta, tabla desplazable"><table className="planta-tabla planta-tabla-registros" role="table"><caption>Capturas ordenadas de la más reciente a la más antigua. Horarios de México.</caption><thead><tr><th scope="col">Fecha y hora</th><th scope="col">Área / turno</th><th scope="col">Operador</th><th scope="col">Módulo</th><th scope="col">Resumen</th><th scope="col">Detalle</th></tr></thead><tbody>

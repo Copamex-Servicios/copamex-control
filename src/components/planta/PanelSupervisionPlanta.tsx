@@ -1,4 +1,6 @@
+import { RefreshCw } from 'lucide-react'
 import { useEffect, useId, useState } from 'react'
+import { cacheConsultas } from '../../lib/cacheConsultas'
 import { useAuth } from '../../hooks/useAuth'
 import { consultarTurnos, filtrosInicialesPlanta, nombresTurno, validarFiltrosPlanta } from '../../lib/planta'
 import type { FiltrosPlanta } from '../../lib/planta'
@@ -112,22 +114,25 @@ async function consultarResumenArea(area: AreaOperativa, cuenta: string, filtros
     ultima: capturas.status === 'fulfilled' && tecnicos.status === 'fulfilled' ? fechas.at(-1) ?? null : null,
   }
 }
+const cacheResumen = cacheConsultas<ResumenArea[]>('resumen-supervision')
 function ResumenSupervision({ filtros, cuenta, revision }: { filtros: FiltrosPlanta; cuenta: string; revision: number }) {
   const [recarga, setRecarga] = useState(0)
+  const filtroCache = JSON.stringify([filtros, cuenta])
   const clave = JSON.stringify([filtros, cuenta, revision, recarga])
   const [vista, setVista] = useState<{ clave: string; filas: ResumenArea[] } | null>(null)
   useEffect(() => {
+    const guardarCache = cacheResumen.preparar()
     let vivo = true
     const c = new AbortController(), limite = window.setTimeout(() => c.abort(), 20000)
     void Promise.all(areasSupervision(filtros.area).map(a => consultarResumenArea(a, cuenta, filtros, c.signal)))
-      .then(filas => { if (vivo) setVista({ clave, filas }) }).finally(() => window.clearTimeout(limite))
+      .then(filas => { if (vivo) { guardarCache(filtroCache, filas); setVista({ clave, filas }) } }).finally(() => window.clearTimeout(limite))
     return () => { vivo = false; c.abort(); window.clearTimeout(limite) }
-  }, [clave, cuenta, filtros])
-  const filas = vista?.clave === clave ? vista.filas : null
+  }, [clave, cuenta, filtros, filtroCache])
+  const filas = vista?.clave === clave ? vista.filas : cacheResumen.leer(filtroCache)
   return <div className="supervision-resumen">
 
     <section className="panel-informacion">
-      <div className="planta-encabezado"><h2>Resumen por área</h2><button type="button" className="boton-secundario" disabled={!filas} onClick={() => setRecarga(n => n + 1)}>Actualizar resumen</button></div>
+      <div className="planta-encabezado"><h2>Resumen por área</h2><button type="button" className="boton-secundario" disabled={!filas} onClick={() => setRecarga(n => n + 1)} data-actualizar="true" aria-label="Actualizar resumen" title="Actualizar resumen"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button></div>
       <div className="planta-tabla-scroll"><table className="planta-tabla supervision-tabla-resumen"><thead><tr><th>Área</th><th>Turnos registrados</th><th>Capturas vigentes</th><th>Reportes técnicos</th><th>Última captura</th></tr></thead>
         <tbody>{areasSupervision(filtros.area).map(area => { const f = filas?.find(r => r.area === area); return <tr key={area}><th scope="row">{nombreAreaSupervision(area)}</th><td>{!f ? '…' : f.turnos ? `${f.turnos.numero}${f.turnos.limitado ? '+' : ''}` : 'No disponible'}</td><td>{!f ? '…' : f.capturas ?? 'No disponible'}</td><td>{!f ? '…' : f.tecnicos ?? 'No disponible'}</td><td>{!f ? '…' : f.ultima ? horaSupervision(f.ultima) : f.capturas === null || f.tecnicos === null ? 'No disponible' : 'Sin capturas'}</td></tr> })}</tbody>
       </table></div>

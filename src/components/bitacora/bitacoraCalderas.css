@@ -106,3 +106,50 @@
 
 .co-layout .bc-panel .bc-acciones:has(> [hidden]) { justify-content: flex-end; }
 .co-layout .bc-panel .bc-acciones:has(> [hidden]):not(:has(> button)) { padding-top: 0; gap: 0; }
+
+/* Densidad de la Bitácora, manteniendo colores, tipografía y agrupaciones. */
+.co-layout .bc-panel { padding:16px 18px; }
+.co-layout .bc-panel .bc-cabecera { margin-bottom:10px; }
+.co-layout .bc-panel .bc-ayuda { margin-bottom:8px; }
+.co-layout .bc-panel .bc-formulario { gap:8px; }
+.co-layout .bc-panel .bc-tabs { scroll-margin-top:16px; }
+.co-layout .bc-panel .bc-tabs button { min-height:40px; padding:7px 6px; }
+.co-layout .bc-panel .bc-contenido { padding:12px; }
+.co-layout .bc-panel .bc-titulo-seccion { margin-bottom:8px; }
+.co-layout .bc-panel .bc-grupos-equipos { gap:16px; }
+.co-layout .bc-panel .bc-equipo { padding:7px 0; gap:8px; }
+.co-layout .bc-panel .bc-equipos legend { margin-bottom:6px; }
+.co-layout .bc-panel .bc-pila { padding:8px 0; gap:6px 10px; }
+.co-layout .bc-panel .bc-mediciones { gap:10px 14px; }
+.co-layout .bc-panel .bc-campo { gap:4px; }
+.co-layout .bc-panel .bc-campo :is(input,select) { min-height:36px; padding:6px 9px; }
+.co-layout .bc-panel .bc-campo textarea { min-height:72px; padding:7px 9px; }
+.co-layout .bc-panel .bc-servicios { gap:10px; margin:8px 0; }
+.co-layout .bc-panel .bc-servicio-grupo { padding:6px 10px; gap:6px 16px; }
+.co-layout .bc-panel .bc-acciones { padding-top:4px; gap:8px; }
+.co-layout .bc-panel .bc-acciones button,
+.co-layout .bc-panel .bc-historial-cabecera button { min-height:36px; padding:7px 12px; }
+.co-layout .bc-panel .bc-historial-tecnico { margin-bottom:8px; }
+.co-layout .bc-panel .bc-historial-cabecera { margin-bottom:8px; }
+.co-layout .bc-panel .bc-filtros-tecnicos { margin-bottom:10px; gap:10px; }
+.co-layout .bc-panel .bc-reporte-historico { margin-bottom:7px; }
+.co-layout .bc-panel details.bc-reporte-historico > summary.co-resumen-historial { min-height:64px; padding:10px 14px; row-gap:4px; }
+.co-layout .bc-panel .bc-seccion:not([hidden]) > .bc-contenido { animation:bc-aparecer 180ms ease-out; }
+@keyframes bc-aparecer { from { opacity:.65; } to { opacity:1; } }
+@media(pointer:coarse) {
+  .co-layout .bc-panel .bc-tabs button,
+  .co-layout .bc-panel .bc-campo :is(input,select),
+  .co-layout .bc-panel .bc-acciones button { min-height:44px; }
+}
+@media(max-width:600px) {
+  .co-layout .bc-panel { padding:12px; }
+  .co-layout .bc-panel .bc-contenido { padding:10px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .co-layout .bc-panel .bc-seccion:not([hidden]) > .bc-contenido { animation:none; }
+}
+
+/* Unidades fijas a la derecha, independientes del valor capturado. */
+.co-layout .bc-panel .bc-control-unidad { display:block; position:relative; min-width:0; }
+.co-layout .bc-panel .bc-control-unidad input { padding-right:76px; }
+.co-layout .bc-panel .bc-control-unidad .bc-unidad { position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:13px; font-weight:400; color:#526581; pointer-events:none; }

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { cacheConsultas } from '../lib/cacheConsultas'
 import { useAuth } from './useAuth'
 import { useAuthStore } from '../stores/authStore'
 import { supabase } from '../lib/supabase'
@@ -6,14 +7,17 @@ import { consultarPlanta } from '../lib/planta'
 import type { DatosPlanta, FiltrosPlanta } from '../lib/planta'
 
 interface EstadoPlanta { clave: string; datos: DatosPlanta | null; cargando: boolean; error: boolean; actualizado: string | null; conectado: boolean }
+const cache = cacheConsultas<{ datos: DatosPlanta; actualizado: string }>('planta')
 export function usePlanta(filtros: FiltrosPlanta) {
   const { perfil, sesion, estado } = useAuth()
   const cuenta = estado === 'autenticado' && perfil?.activo === true && perfil.id === sesion?.user.id ? perfil.id : null
   const clave = JSON.stringify([cuenta, filtros.desde, filtros.hasta, filtros.area, filtros.turno])
   const [vista, establecer] = useState<EstadoPlanta>({ clave: '', datos: null, cargando: false, error: false, actualizado: null, conectado: false })
+  const anterior = cuenta ? cache.leer(clave) : null
   const solicitar = useRef<() => void>(() => {})
   useEffect(() => {
     if (!cuenta) return
+    const guardarCache = cache.preparar()
     const signal = new AbortController()
     let vigente = true, trabajando = false, pendiente = false, debounce: ReturnType<typeof setTimeout> | null = null
     const valida = () => {
@@ -26,10 +30,14 @@ export function usePlanta(filtros: FiltrosPlanta) {
       if (trabajando) { if (repetirSiOcupado) pendiente = true; return }
       pendiente = false
       trabajando = true
-      establecer(v => v.clave === clave ? { ...v, cargando: true } : { clave, datos: null, cargando: true, error: false, actualizado: null, conectado: false })
+      establecer(v => v.clave === clave ? { ...v, cargando: true } : { clave, datos: cache.leer(clave)?.datos ?? null, cargando: true, error: false, actualizado: cache.leer(clave)?.actualizado ?? null, conectado: false })
       try {
         const datos = await consultarPlanta(filtros, signal.signal)
-        if (valida()) establecer(v => ({ ...v, clave, datos, cargando: false, error: false, actualizado: new Date().toISOString() }))
+        if (valida()) {
+          const actualizado = new Date().toISOString()
+          guardarCache(clave, { datos, actualizado })
+          establecer(v => ({ ...v, clave, datos, cargando: false, error: false, actualizado }))
+        }
       } catch {
         if (valida()) establecer(v => ({ ...v, cargando: false, error: true }))
       } finally {
@@ -74,6 +82,6 @@ export function usePlanta(filtros: FiltrosPlanta) {
       void supabase.removeChannel(channel)
     }
   }, [cuenta, clave, filtros])
-  const actual = cuenta && vista.clave === clave ? vista : { clave, datos: null, cargando: !!cuenta, error: false, actualizado: null, conectado: false }
+  const actual = cuenta && vista.clave === clave ? vista : { clave, datos: anterior?.datos ?? null, cargando: !!cuenta, error: false, actualizado: anterior?.actualizado ?? null, conectado: false }
   return { ...actual, actualizar: () => solicitar.current() }
 }

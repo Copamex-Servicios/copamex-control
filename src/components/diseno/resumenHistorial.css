@@ -21,7 +21,7 @@
 }
 .co-layout details.co-acordeon-historial > summary.co-resumen-historial .co-resumen-fecha small { text-transform:capitalize; }
 .co-layout details.co-acordeon-historial > summary.co-resumen-historial .co-resumen-turno {
-  padding:4px 11px; border-radius:20px; font-size:14px; font-weight:600;
+  padding:4px 8px; border-radius:6px; font-size:14px; font-weight:600;
   background:#e7efff; color:#174b93; white-space:nowrap; justify-self:end;
 }
 .co-layout details.co-acordeon-historial > summary.co-resumen-historial .co-resumen-turno[data-turno="tarde"] { background:#fff0db; color:#854200; }

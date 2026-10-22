@@ -12,10 +12,11 @@ export function ReportesTecnicosPlanta() {
 }
 function Consulta() {
   const [area, setArea] = useState<'calderas' | 'ptar'>('calderas')
-  return <section className="panel-informacion" aria-labelledby="reportes-tecnicos-planta">
-    <div className="planta-encabezado"><h2 id="reportes-tecnicos-planta">Reportes técnicos</h2><span className="estado-seccion">Solo consulta</span></div>
-    <div className="planta-busqueda planta-filtro-reportes"><label>Área del reporte <select aria-label="Área del reporte" value={area} onChange={e => setArea(e.target.value as typeof area)}><option value="calderas">Calderas</option><option value="ptar">PTAR</option></select></label></div>
-    {area === 'calderas' ? <div className="bc-panel"><HistorialReportesCalderas compartido actualizacion="planta" /></div>
-      : <div className="bpt-panel"><HistorialReportesPTAR compartido actualizacion="planta" /></div>}
+  const filtroArea = <label>Área del reporte <select aria-label="Área del reporte" value={area} onChange={e => setArea(e.target.value as typeof area)}><option value="calderas">Calderas</option><option value="ptar">PTAR</option></select></label>
+  return <section className="panel-informacion planta-reportes-unificados" aria-labelledby="reportes-tecnicos-planta">
+    <div className="planta-encabezado"><h2 id="reportes-tecnicos-planta">Reportes técnicos</h2></div>
+
+    {area === 'calderas' ? <div className="bc-panel"><HistorialReportesCalderas compartido actualizacion="planta" filtroArea={filtroArea} /></div>
+      : <div className="bpt-panel"><HistorialReportesPTAR compartido actualizacion="planta" filtroArea={filtroArea} /></div>}
   </section>
 }

@@ -51,3 +51,20 @@ export const useTurnoStore = create<TurnoStore>()((set) => ({
   establecerEstado: (datos) => set(datos),
   limpiar: () => set(crearEstadoInicial()),
 }))
+
+// Las confirmaciones son temporales; los errores y operaciones pendientes permanecen visibles.
+let temporizadorConfirmacion: ReturnType<typeof setTimeout> | undefined
+useTurnoStore.subscribe((actual, anterior) => {
+  if (actual.mensajeAccion === anterior.mensajeAccion && actual.cuentaId === anterior.cuentaId) return
+  clearTimeout(temporizadorConfirmacion)
+  temporizadorConfirmacion = undefined
+  if (actual.mensajeAccion !== 'Turno guardado.' && actual.mensajeAccion !== 'Cierre confirmado.') return
+  const { cuentaId, mensajeAccion } = actual
+  temporizadorConfirmacion = setTimeout(() => {
+    const vigente = useTurnoStore.getState()
+    if (vigente.cuentaId === cuentaId && vigente.mensajeAccion === mensajeAccion
+      && !vigente.accionEnCurso && !vigente.solicitudPendiente) {
+      useTurnoStore.setState({ mensajeAccion: null })
+    }
+  }, 4000)
+})

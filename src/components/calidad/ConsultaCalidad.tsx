@@ -1,3 +1,4 @@
+import { RefreshCw } from 'lucide-react'
 import { ResumenHistorial } from '../diseno/ResumenHistorial'
 import { useEffect, useId, useState } from 'react'
 import { consultarHistorialCalidad } from '../../lib/calidad'
@@ -32,7 +33,7 @@ export function ConsultaCalidad() {
   }, [revision])
   const visibles = registros.filter(r => area === 'todas' || r.turno.area === area)
   return <section className="panel-informacion panel-calidad co-consulta-muestras-calidad">
-    <div className="planta-encabezado"><h2>Calidad de agua</h2><button type="button" className="boton-secundario" disabled={cargando} onClick={() => setRevision(v => v + 1)}>{cargando ? 'Actualizando…' : 'Actualizar'}</button></div>
+    <div className="planta-encabezado"><h2>Calidad de agua</h2><button type="button" className="boton-secundario" disabled={cargando} onClick={() => setRevision(v => v + 1)} data-actualizar="true" aria-label={cargando ? 'Actualizando…' : 'Actualizar'} title="Actualizar"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button></div>
     <label>Área <select value={area} onChange={e => setArea(e.target.value)}><option value="todas">Ambas áreas</option><option value="calderas">Calderas</option><option value="ptar">PTAR</option></select></label>
     <p className="texto-secundario">Últimas 20 muestras de cada área · Solo consulta</p>
     {error && <p className="mensaje-error" role="alert">{error}</p>}

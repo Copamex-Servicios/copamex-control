@@ -1,5 +1,5 @@
-import { ResumenHistorial } from '../diseno/ResumenHistorial'
 import { RefreshCw } from 'lucide-react'
+import { ResumenHistorial } from '../diseno/ResumenHistorial'
 import '../operativo/medicionesVisual.css'
 import { useId, useState } from 'react'
 import '../diseno/acordeonHistorial.css'
@@ -45,9 +45,7 @@ function ContenidoPozos({ datos }: PropsContenidoPozos) {
       <div className="cabecera-turno">
         <h2>Pozos</h2>
         <button className="boton-secundario" type="button" disabled={guardando || estadoCarga === 'cargando'}
-          onClick={() => { setRevisionConcesion(n => n + 1); void actualizarPozos() }}>
-          <RefreshCw className="mediciones-actualizar" aria-hidden="true" />Actualizar Pozos
-        </button>
+          onClick={() => { setRevisionConcesion(n => n + 1); void actualizarPozos() }} data-actualizar="true" aria-label="Actualizar Pozos" title="Actualizar Pozos"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button>
       </div>
       <MonitorConcesionPozos revision={revisionConcesion} />
       

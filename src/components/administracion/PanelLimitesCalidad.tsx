@@ -1,3 +1,4 @@
+import { RefreshCw } from 'lucide-react'
 import './limitesReferencia.css'
 import { useRef, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
@@ -7,7 +8,7 @@ import type { CambioLimite } from '../../lib/limitesCalidad'
 import type { DatosAdmin } from '../../lib/administracion'
 interface Celda { punto: string; parametro: string; original: string | null; minimo: string; maximo: string; inicialMin: string; inicialMax: string }
 interface Edicion { cuenta: string; celdas: Record<string, Celda> }
-export function PanelLimitesCalidad({ datos }: { datos: DatosAdmin | null }) {
+export function PanelLimitesCalidad({ datos, cargandoCatalogos = false }: { datos: DatosAdmin | null; cargandoCatalogos?: boolean }) {
  const { perfil } = useAuth()
  const { cuenta, limites, cargando, error, actualizar } = useLimitesCalidad(true)
  const [edicion, setEdicion] = useState<Edicion | null>(null)
@@ -18,7 +19,7 @@ export function PanelLimitesCalidad({ datos }: { datos: DatosAdmin | null }) {
  const pendiente = cuenta ? pendienteLimite(cuenta) : null
  const disenoPendiente = cuenta ? pendienteDisenoLimite(cuenta) : false
  const bloqueado = !!pendiente || disenoPendiente || !!estado?.guardando
- const disponible = !!datos && !datos.puntos_muestreo.error && !datos.parametros_calidad.error && !datos.puntos_muestreo.limitada && !datos.parametros_calidad.limitada
+ const disponible = !cargandoCatalogos && !!datos && !datos.puntos_muestreo.error && !datos.parametros_calidad.error && !datos.puntos_muestreo.limitada && !datos.parametros_calidad.limitada
  const puntos = (datos?.puntos_muestreo.filas ?? []).filter(p => p.activo)
  const parametros = (datos?.parametros_calidad.filas ?? []).filter(p => p.activo)
  function celda(punto: string, parametro: string): Celda {
@@ -76,11 +77,12 @@ export function PanelLimitesCalidad({ datos }: { datos: DatosAdmin | null }) {
  if (!cuenta || perfil?.rol !== 'admin') return null
  return <section className="panel-informacion admin-contenido co-limites-referencia">
   <header className="co-limites-encabezado"><div><h2>Límites de Calidad</h2></div>
-   <div className="co-limites-acciones"><button type="button" className="boton-secundario" disabled={cargando || bloqueado} onClick={actualizar}><span aria-hidden="true">↻</span>Actualizar límites</button>
+   <div className="co-limites-acciones"><button type="button" className="boton-secundario" disabled={cargando || bloqueado} onClick={actualizar} data-actualizar="true" aria-label="Actualizar límites" title="Actualizar límites"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button>
    <button type="button" className="boton-principal" disabled={!!editor || bloqueado || cargando || !!error || !disponible} onClick={abrir}><span aria-hidden="true">✎</span>Editar límites</button></div>
   </header>
+  {!datos && cargandoCatalogos && <p role="status">Cargando límites…</p>}
   {editor && <div className="co-limites-modo"><span>Modo edición activado</span></div>}
-  {!disponible && <p className="mensaje-error" role="alert">Actualiza los catálogos de Administración antes de editar límites.</p>}
+  {!disponible && !cargandoCatalogos && <p className="mensaje-error" role="alert">Actualiza los catálogos de Administración antes de editar límites.</p>}
   {error && <p className="mensaje-error" role="alert">{error}</p>}
   {estado?.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
   {estado?.mensaje && <p className="mensaje-exito" role="status">{estado.mensaje}</p>}

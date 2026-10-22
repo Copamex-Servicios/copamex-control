@@ -1,3 +1,4 @@
+import '../bitacora/historialFichaTecnica.css'
 import type { ReporteTecnicoCalderas } from '../../lib/bitacoraTecnicaCalderas'
 import { equiposAguaCalderas, equiposCalderas, pilasCalderas } from '../../lib/tiposBitacoraCalderas'
 import { fechaHoraBitacora } from '../../lib/formatoBitacora'
@@ -6,7 +7,7 @@ import { Seccion, Estado, Dato } from './PresentacionReportePlanta'
 /** Presentación de consulta exclusiva de las tarjetas de Calderas en Planta. */
 export function DetalleReporteCalderasPlanta({ reporte }: { reporte: ReporteTecnicoCalderas }) {
   const b = reporte.borrador, m = b.mediciones
-  return <div className="bc-detalle-tecnico planta-calderas-detalle planta-reporte-detalle">
+  return <div className="bc-detalle-tecnico planta-calderas-detalle planta-reporte-detalle reporte-ficha-nueva">
     <div className="pcr-metadatos">
       <p>Registrado: {fechaHoraBitacora(reporte.creadoEn)} (México) · Revisión {reporte.revision}</p>
       <span>Solo consulta</span>

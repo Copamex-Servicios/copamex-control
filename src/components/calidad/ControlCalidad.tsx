@@ -24,7 +24,7 @@ export function ControlCalidad() {
       const datos = useCalidadStore.getState()
       return activo && document.visibilityState === 'visible'
         && obtenerContextoCalidad() !== null && !datos.guardando
-        && datos.estadoCarga !== 'cargando'
+        && (datos.estadoCarga === 'error' || datos.estadoCarga === 'sin-cuenta')
     }
 
     const actualizarAlVolver = () => {

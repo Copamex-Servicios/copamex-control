@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { cacheConsultas } from '../lib/cacheConsultas'
 import { useAuthStore } from '../stores/authStore'
 import { usePozosStore } from '../stores/pozosStore'
 import { consultarConcesionPozos } from '../lib/concesionPozos'
@@ -8,6 +9,8 @@ function anioMexico(): number {
   return Number(new Intl.DateTimeFormat('en', { timeZone: 'America/Mexico_City', year: 'numeric' }).format(new Date()))
 }
 interface Vista { clave: string; resumen: ResumenConcesion | null; error: string | null; cargando: boolean; actualizadoEn: string | null }
+
+const cache = cacheConsultas<Vista>('concesion')
 
 export function useConcesionPozos(revision: number) {
   const auth = useAuthStore()
@@ -32,24 +35,28 @@ export function useConcesionPozos(revision: number) {
   }, [])
 
   useEffect(() => {
+    const guardarCache = cache.preparar()
     if (!cuenta) return
     const control = new AbortController()
     // Agrupa la actualización del historial y de la lectura actual, y foco/visibilidad.
     const timer = window.setTimeout(() => {
-      setVista({ clave, resumen: null, error: null, cargando: true, actualizadoEn: null })
+      setVista(v => ({ ...(v.clave === clave ? v : cache.leer(clave) ?? { clave, resumen: null, actualizadoEn: null }), error: null, cargando: true }))
       void consultarConcesionPozos(anio, control.signal).then(resumen => {
-        if (!control.signal.aborted) setVista({ clave, resumen, error: null, cargando: false, actualizadoEn: new Date().toISOString() })
+        if (!control.signal.aborted) {
+          const siguiente = { clave, resumen, error: null, cargando: false, actualizadoEn: new Date().toISOString() }
+          guardarCache(clave, siguiente); setVista(siguiente)
+        }
       }).catch(error => {
-        if (!control.signal.aborted) setVista({ clave, resumen: null, error: error instanceof Error ? error.message : 'No se pudo consultar el acumulado.', cargando: false, actualizadoEn: null })
+        if (!control.signal.aborted) setVista(v => ({ ...(v.clave === clave ? v : cache.leer(clave) ?? { clave, resumen: null, actualizadoEn: null }), error: error instanceof Error ? error.message : 'No se pudo consultar el acumulado.', cargando: false }))
       }).finally(() => { window.clearTimeout(limite) })
     }, 200)
     const limite = window.setTimeout(() => {
-      setVista({ clave, resumen: null, error: 'La consulta anual tardó demasiado. Actualiza Pozos para reintentar.', cargando: false, actualizadoEn: null })
+      setVista(v => ({ ...(v.clave === clave ? v : cache.leer(clave) ?? { clave, resumen: null, actualizadoEn: null }), error: 'La consulta anual tardó demasiado. Actualiza Pozos para reintentar.', cargando: false }))
       control.abort()
     }, 20000)
     return () => { window.clearTimeout(timer); window.clearTimeout(limite); control.abort() }
   }, [cuenta, clave, anio, historial, lecturaActual, revision, recarga])
 
-  const actual = cuenta && vista.clave === clave ? vista : { resumen: null, error: null, cargando: true, actualizadoEn: null }
+  const actual = cuenta && vista.clave === clave ? vista : (cuenta ? cache.leer(clave) : null) ?? { resumen: null, error: null, cargando: true, actualizadoEn: null }
   return { ...actual, anio }
 }

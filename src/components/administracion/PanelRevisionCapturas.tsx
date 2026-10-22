@@ -1,3 +1,4 @@
+import { RefreshCw } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { fechaMexicoAdmin } from '../../lib/administracion'
@@ -73,7 +74,7 @@ export function PanelRevisionCapturas({ area, supervision }: { area?: AreaOperat
   async function guardar(){if(!cuenta||!editor||editor.accion==='ver'||bloqueado)return;try{await enviar(prepararRevision(cuenta,editor.captura,editor.accion,editor.campos,editor.motivo))}catch(e){setOperacion({cuenta,error:e instanceof Error?e.message:'Revisa los datos.',mensaje:null,guardando:false})}}
   if(!cuenta)return null
   return <section className={`panel-informacion${supervision?' supervision-registros':''}`}>
-    <div className="planta-encabezado"><div><h2>{contexto ? 'Registros' : 'Gestión de registros'}</h2></div><button className="boton-secundario" disabled={bloqueado||actual.cargando} type="button" onClick={()=>setRevision(n=>n+1)}>Actualizar</button></div>
+    <div className="planta-encabezado"><div><h2>{contexto ? 'Registros' : 'Gestión de registros'}</h2></div><button className="boton-secundario" disabled={bloqueado||actual.cargando} type="button" onClick={()=>setRevision(n=>n+1)} data-actualizar="true" aria-label="Actualizar" title="Actualizar"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button></div>
     <form onSubmit={e=>{e.preventDefault();aplicar()}}><fieldset disabled={bloqueado} className={`admin-campos${supervision?' supervision-filtros-registros':''}`}>
       <label>Desde<input type="date" value={borrador.desde} onChange={e=>setBorrador({...borrador,desde:e.target.value})}/></label><label>Hasta<input type="date" value={borrador.hasta} onChange={e=>setBorrador({...borrador,hasta:e.target.value})}/></label>
       {!contexto && <label>Área<select value={borrador.area} onChange={e=>setBorrador({...borrador,area:e.target.value})}><option value="todas">Ambas áreas</option><option value="calderas">Calderas</option><option value="ptar">PTAR</option></select></label>}

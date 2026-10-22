@@ -1,12 +1,20 @@
+import { RefreshCw } from 'lucide-react'
+import { cacheConsultas } from '../../lib/cacheConsultas'
 import { ResumenHistorial } from '../diseno/ResumenHistorial'
 import { DetalleReportePTARPlanta } from '../planta/DetalleReportePTARPlanta'
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import '../diseno/acordeonHistorial.css'
 import './historialFichaTecnica.css'
 import { consultarDetalleReportePTAR, consultarHistorialReportesPTAR } from '../../lib/bitacoraTecnicaPTAR'
 import type { FiltrosReportesPTAR, ReporteTecnicoPTAR, ResumenReportePTAR } from '../../lib/bitacoraTecnicaPTAR'
 function ReporteHistorico({ resumen, compartido, grupo }: { resumen: ResumenReportePTAR; compartido: boolean; grupo: string }) {
   const [abierto, setAbierto] = useState(false)
+  const elemento = useRef<HTMLDetailsElement>(null)
+  useEffect(() => {
+    if (!abierto) return
+    const temporizador = window.setTimeout(() => elemento.current?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }), 260)
+    return () => window.clearTimeout(temporizador)
+  }, [abierto])
   const [intento, setIntento] = useState(0)
   const [reporte, setReporte] = useState<ReporteTecnicoPTAR | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -20,7 +28,7 @@ function ReporteHistorico({ resumen, compartido, grupo }: { resumen: ResumenRepo
       : e instanceof Error ? e.message : 'No se pudo consultar el detalle técnico.') })
     return () => { vigente = false; window.clearTimeout(limite); control.abort() }
   }, [abierto, intento, resumen.id, resumen.turnoId, compartido])
-  return <details className="bpt-reporte-historico co-acordeon-historial" name={grupo} onToggle={e => {
+  return <details ref={elemento} className="bpt-reporte-historico co-acordeon-historial" name={grupo} onToggle={e => {
     if (e.currentTarget.open) { setReporte(null); setError(null) }
     setAbierto(e.currentTarget.open)
   }}>
@@ -31,26 +39,31 @@ function ReporteHistorico({ resumen, compartido, grupo }: { resumen: ResumenRepo
   </details>
 }
 
-export function HistorialReportesPTAR({ actualizacion, compartido = false }: { actualizacion: string; compartido?: boolean }) {
+const cacheHistorial = cacheConsultas<{ filas: ResumenReportePTAR[]; hayMas: boolean; error: string | null }>('historial-PTAR')
+
+export function HistorialReportesPTAR({ actualizacion, compartido = false, filtroArea }: { actualizacion: string; compartido?: boolean; filtroArea?: ReactNode }) {
   const grupoHistorial = useId()
   const [filtros, setFiltros] = useState<FiltrosReportesPTAR>({ desde: '', hasta: '', turno: 'todos' })
   const [pagina, setPagina] = useState(0), [intento, setIntento] = useState(0)
   const clave = `${filtros.desde}:${filtros.hasta}:${filtros.turno}:${pagina}:${intento}:${actualizacion}`
+  const filtroCache = JSON.stringify([filtros, pagina, compartido])
   const [resultado, setResultado] = useState<{ clave: string; filas: ResumenReportePTAR[]; hayMas: boolean; error: string | null } | null>(null)
   useEffect(() => {
+    const guardarCache = cacheHistorial.preparar()
     let vigente = true
     const control = new AbortController(), limite = window.setTimeout(() => control.abort(), 15000)
     void consultarHistorialReportesPTAR({ desde: filtros.desde, hasta: filtros.hasta, turno: filtros.turno }, pagina, control.signal, compartido).then(r => {
-      if (vigente) setResultado({ ...r, clave, error: null })
+      if (vigente) { guardarCache(filtroCache, { ...r, error: null }); setResultado({ ...r, clave, error: null }) }
     }).catch(e => { if (vigente) setResultado({ clave, filas: [], hayMas: false, error: control.signal.aborted ? 'La consulta tardó demasiado. Reintenta.'
       : e instanceof Error ? e.message : 'No se pudo consultar el historial técnico.' }) })
     return () => { vigente = false; window.clearTimeout(limite); control.abort() }
-  }, [clave, filtros.desde, filtros.hasta, filtros.turno, pagina, compartido])
-  const datos = resultado?.clave === clave ? resultado : null
+  }, [clave, filtros.desde, filtros.hasta, filtros.turno, pagina, compartido, filtroCache])
+  const datos = resultado?.clave === clave ? resultado : cacheHistorial.leer(filtroCache)
   return <section className="bpt-historial-tecnico" aria-label="Reportes técnicos de PTAR">
-    <div className="bpt-historial-cabecera"><h4>Reportes técnicos</h4><button type="button" className="boton-secundario"
-      disabled={!datos} onClick={() => { setPagina(0); setIntento(n => n + 1) }}>Actualizar reportes</button></div>
+    <div className="bpt-historial-cabecera">{!filtroArea && <h4>Reportes técnicos</h4>}<button type="button" className="boton-secundario"
+      disabled={!datos} onClick={() => { setPagina(0); setIntento(n => n + 1) }} data-actualizar="true" aria-label="Actualizar reportes" title="Actualizar reportes"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button></div>
     <div className="bpt-filtros-tecnicos">
+      {filtroArea}
       <label className="bpt-campo"><span>Desde</span><input type="date" value={filtros.desde}
         onChange={e => { setPagina(0); setFiltros(f => ({ ...f, desde: e.target.value })) }} /></label>
       <label className="bpt-campo"><span>Hasta</span><input type="date" value={filtros.hasta}

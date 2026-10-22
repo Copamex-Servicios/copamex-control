@@ -2,54 +2,56 @@
 .co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico)[open] { border-color:#a9c2e3; }
 .co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico)[open] > summary.co-resumen-historial { background:#edf3fb; }
 .co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) > summary.co-resumen-historial :is(time,strong) { font-size:16px; font-weight:650; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) > .planta-reporte-detalle {
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva {
   container:historial-ficha / inline-size; min-width:0; padding:20px; background:#f5f8fc; font-family:var(--co-font);
 }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-metadatos { display:none; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-secciones { padding:0; gap:18px; background:transparent; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-seccion {
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-metadatos { display:none; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-secciones { padding:0; gap:18px; background:transparent; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-seccion {
   padding:0; border:1px solid var(--co-border); border-radius:10px; background:#fff; overflow:hidden;
 }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-seccion > h5 {
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-seccion > h5 {
   margin:0; padding:12px 18px; background:#e8f0fb; border:0; border-bottom:1px solid #d4e2f5;
   color:var(--co-text); font-size:16px; font-weight:650; line-height:1.4; letter-spacing:0;
 }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) :is(.pcr-datos,.pcr-equipos) {
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva :is(.pcr-datos,.pcr-equipos) {
   display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 28px; margin:0; padding:4px 18px 10px;
 }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-dato {
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-dato {
   display:flex; align-items:baseline; justify-content:space-between; gap:12px; min-width:0;
   padding:14px 0; border:0; border-bottom:1px solid #e8eef7;
 }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) dt { color:#17365d; font-size:14px; font-weight:400; line-height:1.5; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-dato dt { flex:1; min-width:0; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-dato dd {
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva dt { color:#17365d; font-size:14px; font-weight:400; line-height:1.5; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-dato dt { flex:1; min-width:0; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-dato dd {
   flex-shrink:0; max-width:58%; margin:0; text-align:right; color:var(--co-text); font-size:20px; font-weight:650; line-height:1.4;
 }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-unidad { font-size:13px; font-weight:400; color:#345578; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-dato dd.pcr-vacio { color:var(--co-muted); font-size:14px; font-weight:400; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-estado { padding:4px 11px; font-size:13px; font-weight:600; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-equipo { padding:14px 0; border:0; border-bottom:1px solid #e8eef7; border-radius:0; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-equipo > dt { font-size:14px; font-weight:500; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-presion-equipo { font-size:13px; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-presion-equipo strong { font-size:18px; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) :is(.pcr-ancho,.pcr-ultrafiltracion > .pcr-dato:last-child) { grid-column:1/-1; display:block; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) :is(.pcr-ancho,.pcr-ultrafiltracion > .pcr-dato:last-child) dd { max-width:none; margin-top:5px; font-size:14px; font-weight:400; text-align:left; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-pilas { grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; padding:16px 18px; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-pila { padding:0; border:0; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-pila h6 { font-size:14px; margin-bottom:10px; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-pila-datos .pcr-dato { display:block; padding:0; border:0; border-inline-start:1px solid #e5edf8; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-pila-datos .pcr-dato:first-child { border-inline-start:0; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-pila-datos dt { padding:7px 4px; font-size:13px; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-pila-datos dd { max-width:none; padding:8px 4px; text-align:center; font-size:18px; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-seccion:first-child { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; padding:0 0 2px; border:0; border-radius:0; background:transparent; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-seccion:first-child > h5 { padding:0; border:0; background:transparent; font-size:13px; text-transform:uppercase; letter-spacing:.04em; }
-.co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-narrativa { flex:1 1 240px; margin:0; padding:0; border-radius:0; background:transparent; font-size:15px; font-weight:400; line-height:1.5; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-unidad { font-size:13px; font-weight:400; color:#345578; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-dato dd.pcr-vacio { color:var(--co-muted); font-size:14px; font-weight:400; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-estado { padding:4px 11px; font-size:13px; font-weight:600; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-equipo { padding:14px 0; border:0; border-bottom:1px solid #e8eef7; border-radius:0; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-equipo > dt { font-size:14px; font-weight:500; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-presion-equipo { font-size:13px; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-presion-equipo strong { font-size:18px; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva :is(.pcr-ancho,.pcr-ultrafiltracion > .pcr-dato:last-child) { grid-column:1/-1; display:block; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva :is(.pcr-ancho,.pcr-ultrafiltracion > .pcr-dato:last-child) dd { max-width:none; margin-top:5px; font-size:14px; font-weight:400; text-align:left; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-pilas { grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; padding:16px 18px; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-pila { padding:0; border:0; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-pila h6 { font-size:14px; margin-bottom:10px; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-pila-datos .pcr-dato { display:block; padding:0; border:0; border-inline-start:1px solid #e5edf8; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-pila-datos .pcr-dato:first-child { border-inline-start:0; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-pila-datos dt { padding:7px 4px; font-size:13px; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-pila-datos dd { max-width:none; padding:8px 4px; text-align:center; font-size:18px; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-seccion:first-child { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; padding:0 0 2px; border:0; border-radius:0; background:transparent; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-seccion:first-child > h5 { padding:0; border:0; background:transparent; font-size:13px; text-transform:uppercase; letter-spacing:.04em; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-narrativa { flex:1 1 240px; margin:0; padding:0; border-radius:0; background:transparent; font-size:15px; font-weight:400; line-height:1.5; }
 @container historial-ficha (max-width:620px) {
-  .co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) :is(.pcr-datos,.pcr-equipos,.pcr-pilas) { grid-template-columns:minmax(0,1fr); }
-  .co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) .pcr-seccion > h5 { padding:10px 12px; }
-  .co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) :is(.pcr-datos,.pcr-equipos) { padding:2px 12px 8px; }
+  .co-layout .planta-reporte-detalle.reporte-ficha-nueva :is(.pcr-datos,.pcr-equipos,.pcr-pilas) { grid-template-columns:minmax(0,1fr); }
+  .co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-seccion > h5 { padding:10px 12px; }
+  .co-layout .planta-reporte-detalle.reporte-ficha-nueva :is(.pcr-datos,.pcr-equipos) { padding:2px 12px 8px; }
 }
 @media(max-width:600px) {
-  .co-layout details.co-acordeon-historial:is(.bc-reporte-historico,.bpt-reporte-historico) > .planta-reporte-detalle { padding:12px; }
+  .co-layout .planta-reporte-detalle.reporte-ficha-nueva { padding:12px; }
 }
+
+.co-layout details.co-acordeon-historial, .co-layout .supervision-detalle-reporte { scroll-margin-top:16px; }

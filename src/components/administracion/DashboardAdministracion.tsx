@@ -1,3 +1,4 @@
+import { RefreshCw } from 'lucide-react'
 import { Card, StatusBadge } from '../diseno/Elementos'
 import { useDashboardAdministracion } from '../../hooks/useDashboardAdministracion'
 import { modulosArea, nombresModuloDashboard } from '../../lib/dashboardAdministracion'
@@ -22,9 +23,9 @@ export function DashboardAdministracion() {
   ]
   return <div className="co-admin-dashboard" aria-busy={cargando}>
     <div className="planta-encabezado co-dashboard-barra"><div><h2>Dashboard</h2><p className="ayuda-turno">{datos ? <>Actualizado <Hora fecha={datos.consultado} /> · México</> : 'Estado actual del sistema'}</p></div>
-      <button className="boton-secundario" type="button" disabled={cargando} onClick={actualizar}>{cargando ? 'Actualizando…' : 'Actualizar'}</button></div>
+      <button className="boton-secundario" type="button" disabled={cargando} onClick={actualizar} data-actualizar="true" aria-label={cargando ? 'Actualizando…' : 'Actualizar'} title="Actualizar"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button></div>
     {error && <p className="mensaje-error" role="alert">{error}</p>}
-    <div className="co-dashboard-indicadores">{indicadores.map(({ titulo, numero }) => <Card key={titulo} className="co-dashboard-indicador"><div><span>{titulo}</span></div><strong className={typeof numero === 'string' ? 'co-dashboard-indicador-estado' : undefined}>{cargando ? '…' : numero === null || numero === undefined ? '—' : typeof numero === 'string' ? numero : numero.toLocaleString('es-MX')}</strong></Card>)}</div>
+    <div className="co-dashboard-indicadores">{indicadores.map(({ titulo, numero }) => <Card key={titulo} className="co-dashboard-indicador"><div><span>{titulo}</span></div><strong className={typeof numero === 'string' ? 'co-dashboard-indicador-estado' : undefined}>{cargando && !datos ? '…' : numero === null || numero === undefined ? '—' : typeof numero === 'string' ? numero : numero.toLocaleString('es-MX')}</strong></Card>)}</div>
     {datos?.abiertas.error && <p className="mensaje-error" role="alert">{datos.abiertas.error}</p>}
     {datos?.capturas.error && <p className="mensaje-error" role="alert">{datos.capturas.error}</p>}
     <section className="panel-informacion" aria-labelledby="dashboard-estado"><h2 id="dashboard-estado">Estado actual por área</h2>

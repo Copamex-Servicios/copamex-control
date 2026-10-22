@@ -108,3 +108,4 @@
  .co-layout .co-operativo-referencia[data-area="ptar"] .bpt-filtros-tecnicos { grid-template-columns:minmax(0,1fr); }
  .co-layout .co-operativo-referencia[data-area="ptar"] .bpt-destinos { gap:0 16px; }
 }
+.co-layout .bpt-panel .bpt-tabs { scroll-margin-top:16px; }

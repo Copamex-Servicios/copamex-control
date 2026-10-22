@@ -1,5 +1,5 @@
-import { ResumenHistorial } from '../diseno/ResumenHistorial'
 import { RefreshCw } from 'lucide-react'
+import { ResumenHistorial } from '../diseno/ResumenHistorial'
 import type { useInformacionDia } from '../../hooks/useInformacionDia'
 import './calidadReferencia.css'
 import { useId, useState } from 'react'
@@ -37,7 +37,7 @@ function ContenidoCalidad({ datos, area, informacion, horaServidor }: { datos: R
   }
   return <section className="calidad-referencia" aria-label={`Calidad de ${area === 'calderas' ? 'Calderas' : 'PTAR'}`}>
     <header className="calidad-encabezado"><div className="calidad-encabezado-titulo"><div><h2>Calidad</h2></div></div><button className="boton-secundario" type="button"
-      disabled={guardando || estadoCarga === 'cargando'} onClick={() => { void actualizarCalidad() }}><RefreshCw aria-hidden="true" />Actualizar Calidad</button></header>
+      disabled={guardando || estadoCarga === 'cargando'} onClick={() => { void actualizarCalidad() }} data-actualizar="true" aria-label="Actualizar Calidad" title="Actualizar Calidad"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button></header>
     {informacion && rol === area && <aside className="calidad-produccion" aria-label="Objetivos de producción actual"><div><h3>Objetivos de producción actual</h3>
       {informacion.datos?.produccion.error ? <p role="alert">No se pudo consultar la producción.</p>
         : !informacion.datos ? <p role="status">Consultando producción…</p>
