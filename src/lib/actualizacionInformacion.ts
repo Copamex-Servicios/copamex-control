@@ -1,6 +1,7 @@
 const evento = 'copamex:informacion-actualizada'
 const canal = 'copamex:informacion-dia'
-export const intervaloInformacion = 10000
+// Un minuto entre consultas automáticas para pantallas que permanecen abiertas 24/7.
+export const intervaloInformacion = 60000
 
 // Solo comunica que hay cambios: se consultan los datos con la sesión y RLS vigentes.
 export function notificarInformacionActualizada(): void {

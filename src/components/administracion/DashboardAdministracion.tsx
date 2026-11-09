@@ -1,4 +1,5 @@
 import { RefreshCw } from 'lucide-react'
+import { createPortal } from 'react-dom'
 import { StatusBadge } from '../diseno/Elementos'
 import { useDashboardAdministracion } from '../../hooks/useDashboardAdministracion'
 import { modulosArea, nombresModuloDashboard } from '../../lib/dashboardAdministracion'
@@ -6,16 +7,17 @@ import { nombresTurno } from '../../lib/planta'
 import { useInformacionDia } from '../../hooks/useInformacionDia'
 import { InformacionDelDia } from '../operativo/InformacionDelDia'
 import { ResumenPendientesDashboard } from './ResumenPendientesDashboard'
+import { AlmacenamientoDashboard } from './AlmacenamientoDashboard'
 import './dashboardAdministracion.css'
 
-export function DashboardAdministracion() {
+export function DashboardAdministracion({ contenedorAcciones }: { contenedorAcciones: HTMLDivElement | null }) {
   const { cuenta, datos, cargando, error, actualizar } = useDashboardAdministracion()
   const informacionDia = useInformacionDia('todas', datos?.fecha ?? null)
   if (!cuenta) return null
   const activos = datos?.turnos.valor
   const completo = activos && activos.total === activos.filas.length
   return <div className="co-admin-dashboard" aria-busy={cargando}>
-    <div className="co-dashboard-barra"><button className="boton-secundario" type="button" disabled={cargando} onClick={actualizar} data-actualizar="true" aria-label={cargando ? 'Actualizando…' : 'Actualizar'} title="Actualizar"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button></div>
+    {contenedorAcciones && createPortal(<button className="boton-secundario" type="button" disabled={cargando} onClick={actualizar} data-actualizar="true" aria-label={cargando ? 'Actualizando dashboard…' : 'Actualizar dashboard'} title="Actualizar dashboard"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button>, contenedorAcciones)}
     {error && <p className="mensaje-error" role="alert">{error}</p>}
     <div className="co-dashboard-cuerpo">
     <section className="panel-informacion co-dashboard-estado" aria-labelledby="dashboard-estado"><h2 id="dashboard-estado">Estado actual por área</h2>
@@ -38,6 +40,7 @@ export function DashboardAdministracion() {
     </section>
     <div className="co-dashboard-dia"><InformacionDelDia fecha={datos?.fecha ?? null} informacion={informacionDia} compacto />
       <ResumenPendientesDashboard key={`${cuenta}:${datos?.fecha ?? ''}:${datos?.consultado ?? ''}`} cuenta={cuenta} fecha={datos?.fecha ?? null} />
+      {datos && <AlmacenamientoDashboard cuenta={cuenta} revision={String(datos.consultado)} />}
     </div>
     </div>
   </div>

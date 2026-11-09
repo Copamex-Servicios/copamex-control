@@ -1,7 +1,23 @@
 /* Alcance exclusivo del Dashboard; conserva tarjetas, badges y botones del sistema. */
+.co-layout .co-dashboard-almacenamiento { margin-top:14px; padding:16px; border:1px solid var(--co-border,#d3e0f3); border-radius:10px; background:#fff; color:var(--co-text,#002d72); }
+.co-layout .co-dashboard-almacenamiento .co-almacenamiento-encabezado { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 16px; }
+.co-layout .co-dashboard-almacenamiento .co-almacenamiento-encabezado h2 { display:flex; align-items:center; gap:8px; margin:0; font-size:16px; }
+.co-layout .co-dashboard-almacenamiento .co-almacenamiento-encabezado > span { font-size:14px; font-variant-numeric:tabular-nums; }
+.co-layout .co-dashboard-almacenamiento progress { display:block; appearance:none; width:100%; height:8px; margin:12px 0 8px; overflow:hidden; border:0; border-radius:999px; background:#e0eaf7; accent-color:#0864df; }
+.co-layout .co-dashboard-almacenamiento progress::-webkit-progress-bar { background:#e0eaf7; border-radius:999px; }
+.co-layout .co-dashboard-almacenamiento progress::-webkit-progress-value { background:#0864df; border-radius:999px; }
+.co-layout .co-dashboard-almacenamiento progress::-moz-progress-bar { background:#0864df; border-radius:999px; }
+.co-layout .co-dashboard-almacenamiento[data-tono="medio"] progress { accent-color:#c47710; }
+.co-layout .co-dashboard-almacenamiento[data-tono="medio"] progress::-webkit-progress-value { background:#c47710; }
+.co-layout .co-dashboard-almacenamiento[data-tono="medio"] progress::-moz-progress-bar { background:#c47710; }
+.co-layout .co-dashboard-almacenamiento[data-tono="alto"] progress { accent-color:#bf3030; }
+.co-layout .co-dashboard-almacenamiento[data-tono="alto"] progress::-webkit-progress-value { background:#bf3030; }
+.co-layout .co-dashboard-almacenamiento[data-tono="alto"] progress::-moz-progress-bar { background:#bf3030; }
+.co-layout .co-dashboard-almacenamiento .co-almacenamiento-detalle { display:flex; justify-content:space-between; flex-wrap:wrap; gap:4px 12px; font-size:12px; color:#4c648a; }
 .co-layout .co-admin-dashboard { display:grid; gap:16px; min-width:0; }
-.co-layout .co-admin-dashboard .co-dashboard-barra { display:flex; justify-content:flex-end; align-items:center; margin:0; }
-.co-layout .co-admin-dashboard .co-dashboard-barra button { display:grid; place-items:center; width:42px; min-width:42px; height:42px; padding:8px; border:1px solid #c7dcfa; border-radius:7px; background:#fff; color:#0057d8; }
+.co-layout .co-admin-tabs > .co-admin-acciones-dashboard { display:flex; align-items:center; flex:0 0 auto; }
+.co-layout .co-admin-tabs > .co-admin-acciones-dashboard[hidden] { display:none; }
+.co-layout .co-admin-tabs .co-admin-acciones-dashboard > button { display:grid; place-items:center; width:42px; min-width:42px; min-height:42px; height:42px; padding:8px; border:1px solid #c7dcfa; border-radius:7px; background:#fff; color:#0057d8; }
 .co-layout .co-admin-dashboard h2 { font-size:20px; }
 .co-layout .co-admin-dashboard h3 { margin:0; font-size:17px; }
 .co-layout .co-admin-dashboard .ayuda-turno { margin:6px 0 0; font-size:14px; line-height:1.4; }

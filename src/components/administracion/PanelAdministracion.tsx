@@ -29,14 +29,16 @@ export function PanelAdministracion({ soloGestion = false }: { soloGestion?: boo
   const [vista, setVista] = useState<'dashboard' | 'catalogos' | 'capturas'>('dashboard')
   const [catalogosAbiertos, setCatalogosAbiertos] = useState(false)
   const [capturasAbiertas, setCapturasAbiertas] = useState(false)
+  const [accionesDashboard, setAccionesDashboard] = useState<HTMLDivElement | null>(null)
   if (soloGestion) return <CatalogosAdministracion soloGestion />
   return <div className="admin-panel co-admin-referencia">
     <nav className="acciones-turno co-admin-tabs" aria-label="Tipo de administración">
       <button type="button" className={vista === 'dashboard' ? 'boton-principal' : 'boton-secundario'} aria-pressed={vista === 'dashboard'} onClick={() => setVista('dashboard')}>Dashboard</button>
       <button type="button" className={vista === 'catalogos' ? 'boton-principal' : 'boton-secundario'} aria-pressed={vista === 'catalogos'} onClick={() => { setCatalogosAbiertos(true); setVista('catalogos') }}>Catálogos y avisos</button>
       <button type="button" className={vista === 'capturas' ? 'boton-principal' : 'boton-secundario'} aria-pressed={vista === 'capturas'} onClick={() => { setCapturasAbiertas(true); setVista('capturas') }}>Capturas</button>
+      <div ref={setAccionesDashboard} className="co-admin-acciones-dashboard" hidden={vista !== 'dashboard'} />
     </nav>
-    {vista === 'dashboard' && <DashboardAdministracion />}
+    {vista === 'dashboard' && <DashboardAdministracion contenedorAcciones={accionesDashboard} />}
     {catalogosAbiertos && <div hidden={vista !== 'catalogos'}><CatalogosAdministracion /></div>}
     {capturasAbiertas && <div hidden={vista !== 'capturas'}><GestionRegistrosAdministracion /></div>}
   </div>
