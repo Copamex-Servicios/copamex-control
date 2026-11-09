@@ -1,15 +1,17 @@
+import { ConsultaMuestrasCalidad } from '../calidad/ConsultaMuestrasCalidad'
 import { RefreshCw } from 'lucide-react'
 import './plantaReferencia.css'
 import { ReportesTecnicosPlanta } from './ReportesTecnicosPlanta'
-import { useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { ResumenHistorial } from '../diseno/ResumenHistorial'
+import '../diseno/acordeonHistorial.css'
 import { usePlanta } from '../../hooks/usePlanta'
-import { capturasPlanta, filtrarCapturas, filtrosInicialesPlanta, modulosPlanta, nombresModulo, nombresTurno, resumenCaptura, validarFiltrosPlanta } from '../../lib/planta'
+import { capturasPlanta, filtrarCapturas, filtrosInicialesPlanta, modulosPlanta, nombresModulo, nombresTurno, validarFiltrosPlanta } from '../../lib/planta'
 import type { FiltrosPlanta, ModuloPlanta } from '../../lib/planta'
 import { DetallePlanta } from './DetallePlanta'
 import { useAuth } from '../../hooks/useAuth'
 import { PanelSupervisionPlanta } from './PanelSupervisionPlanta'
 
-const fecha = (v: string) => v.split('-').reverse().join('/')
 const instante = (v: string) => new Intl.DateTimeFormat('es-MX', { timeZone: 'America/Mexico_City', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v))
 const nombreArea = (v: string) => v === 'calderas' ? 'Calderas' : 'PTAR'
 export function PanelPlanta() {
@@ -18,6 +20,9 @@ export function PanelPlanta() {
 }
 
 function ConsultaPlantaOperativa() {
+  const id = useId()
+  const [pestana, setPestana] = useState<'reportes' | 'registros' | 'calidad'>('reportes')
+  const [calidadAbierta, setCalidadAbierta] = useState(false)
   const [filtros, setFiltros] = useState<FiltrosPlanta>(() => filtrosInicialesPlanta())
   const [edicion, setEdicion] = useState(filtros)
   const [errorFiltro, setErrorFiltro] = useState<string | null>(null)
@@ -26,7 +31,7 @@ function ConsultaPlantaOperativa() {
   const [pagina, setPagina] = useState(1)
   const [detalle, setDetalle] = useState<string | null>(null)
   const { datos, cargando, error, actualizado, conectado, actualizar } = usePlanta(filtros)
-  const capturas = useMemo(() => datos ? capturasPlanta(datos) : [], [datos])
+  const capturas = useMemo(() => datos ? capturasPlanta(datos).filter(c => c.modulo !== 'calidad') : [], [datos])
   const visibles = useMemo(() => filtrarCapturas(capturas, modulo, busqueda), [capturas, modulo, busqueda])
   const paginas = Math.max(1, Math.ceil(visibles.length / 20)), actual = Math.min(pagina, paginas)
   const filas = visibles.slice((actual - 1) * 20, actual * 20)
@@ -37,7 +42,28 @@ function ConsultaPlantaOperativa() {
     catch (e) { setErrorFiltro(e instanceof Error ? e.message : 'Revisa los filtros.') }
   }
   return <div className="vista-planta">
-    <ReportesTecnicosPlanta />
+    <div className="pestanas-modulos" role="tablist" aria-label="Consultas de la operación">
+      {([['reportes', 'Reportes técnicos'], ['registros', 'Consulta de registros'], ['calidad', 'Calidad de agua']] as const).map(([clave, nombre], indice) => <button
+        key={clave} type="button" role="tab" id={`${id}-${clave}-tab`} aria-controls={`${id}-${clave}`}
+        aria-selected={pestana === clave} tabIndex={pestana === clave ? 0 : -1} onClick={() => { setPestana(clave); if (clave === 'calidad') setCalidadAbierta(true) }}
+        onKeyDown={e => {
+          let siguiente: number | null = null
+          if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') siguiente = (indice + (e.key === 'ArrowRight' ? 1 : 2)) % 3
+          if (e.key === 'Home') siguiente = 0
+          if (e.key === 'End') siguiente = 2
+          if (siguiente === null) return
+          e.preventDefault(); setPestana((['reportes', 'registros', 'calidad'] as const)[siguiente]); if (siguiente === 2) setCalidadAbierta(true)
+          e.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[siguiente]?.focus()
+        }}>{nombre}</button>)}
+    </div>
+    <div id={`${id}-reportes`} role="tabpanel" aria-labelledby={`${id}-reportes-tab`} hidden={pestana !== 'reportes'}>
+      <ReportesTecnicosPlanta />
+    </div>
+    <div id={`${id}-calidad`} role="tabpanel" aria-labelledby={`${id}-calidad-tab`} hidden={pestana !== 'calidad'}>
+      {calidadAbierta && <ConsultaMuestrasCalidad />}
+    </div>
+    <div id={`${id}-registros`} role="tabpanel" aria-labelledby={`${id}-registros-tab`} hidden={pestana !== 'registros'}>
+    <div className="vista-planta">
     <section className="panel-informacion planta-filtros" aria-labelledby="filtros-planta">
       <div className="planta-encabezado"><div><h2 id="filtros-planta">Consulta de registros</h2></div><button type="button" className="boton-secundario" onClick={actualizar} disabled={cargando} data-actualizar="true" aria-label={cargando ? 'Consultando…' : 'Actualizar'} title="Actualizar"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button></div>
       <form onSubmit={e => { e.preventDefault(); aplicar() }} className="planta-formulario">
@@ -60,23 +86,34 @@ function ConsultaPlantaOperativa() {
 
     <section className="panel-informacion" aria-labelledby="historial-planta">
       <div className="planta-encabezado"><div><h2 id="historial-planta">Actividad y registros</h2></div></div>
-      <div className="planta-busqueda"><label>Módulo<select value={modulo} onChange={e => { setModulo(e.target.value as ModuloPlanta | 'todos'); setPagina(1); setDetalle(null) }}><option value="todos">Todos los módulos</option>{modulosPlanta.map(m => <option key={m} value={m}>{nombresModulo[m]}</option>)}</select></label><label>Buscar operador o contenido<input type="search" placeholder="Operador o captura técnica…" value={busqueda} onChange={e => { setBusqueda(e.target.value); setPagina(1); setDetalle(null) }} /></label></div>
+      <div className="planta-busqueda"><label>Módulo<select value={modulo} onChange={e => { setModulo(e.target.value as ModuloPlanta | 'todos'); setPagina(1); setDetalle(null) }}><option value="todos">Todos los módulos</option>{modulosPlanta.filter(m => m !== 'ptar' && m !== 'calidad').map(m => <option key={m} value={m}>{nombresModulo[m]}</option>)}</select></label><label>Buscar operador o contenido<input type="search" placeholder="Operador o captura técnica…" value={busqueda} onChange={e => { setBusqueda(e.target.value); setPagina(1); setDetalle(null) }} /></label></div>
       <p className="ayuda-turno" aria-live="polite">{visibles.length} registros encontrados</p>
-      <div className="planta-tabla-scroll" tabIndex={0} role="region" aria-label="Registros de Planta, tabla desplazable"><table className="planta-tabla planta-tabla-registros" role="table"><caption>Capturas ordenadas de la más reciente a la más antigua. Horarios de México.</caption><thead><tr><th scope="col">Fecha y hora</th><th scope="col">Área / turno</th><th scope="col">Operador</th><th scope="col">Módulo</th><th scope="col">Resumen</th><th scope="col">Detalle</th></tr></thead><tbody>
+      <div className="planta-registros-desplegables">
         {filas.map(e => {
           const clave = `${e.modulo}:${e.registro.lectura.id}`, abierto = detalle === clave
-          return <FilaPlanta key={clave} captura={e} abierto={abierto} cambiar={() => setDetalle(abierto ? null : clave)} />
+          return <FilaPlanta key={clave} captura={e} abierto={abierto} grupo={`${id}-capturas`} cambiar={abrir => setDetalle(actual => abrir ? clave : actual === clave ? null : actual)} />
         })}
-      </tbody></table></div>
+      </div>
       {!filas.length && <p className="planta-vacio">{cargando && !datos ? 'Consultando registros…' : !datos ? 'La consulta todavía no está disponible.' : problemas.length && !capturas.length ? 'No se pudieron consultar todas las fuentes. Actualiza para reintentar.' : 'No hay capturas que coincidan con esta consulta.'}</p>}
       <div className="planta-paginacion"><button type="button" className="boton-secundario" disabled={actual <= 1} onClick={() => { setPagina(actual - 1); setDetalle(null) }}>Anterior</button><span>Página {actual} de {paginas}</span><button type="button" className="boton-secundario" disabled={actual >= paginas} onClick={() => { setPagina(actual + 1); setDetalle(null) }}>Siguiente</button></div>
     </section>
-
-
+    </div>
+    </div>
   </div>
 }
 
-function FilaPlanta({ captura: e, abierto, cambiar }: { captura: import('../../lib/planta').CapturaPlanta; abierto: boolean; cambiar: () => void }) {
-  const l = e.registro.lectura, t = e.registro.turno, detalleId = `detalle-planta-${e.modulo}-${l.id}`
-  return <><tr><td data-label="Fecha y hora"><time dateTime={l.capturado_en}>{instante(l.capturado_en)}</time><small>Operativa: {fecha(t.fecha_operativa)}</small></td><td data-label="Área / turno">{nombreArea(t.area)}<small>{nombresTurno[t.turno]}</small></td><td data-label="Operador">{e.registro.operadorNombre}</td><td data-label="Módulo"><span className={`planta-modulo modulo-${e.modulo}`}>{nombresModulo[e.modulo]}</span></td><td data-label="Resumen"><span className="planta-resumen-captura">{resumenCaptura(e)}</span></td><td><button type="button" className="boton-secundario" aria-expanded={abierto} aria-controls={detalleId} onClick={cambiar} aria-label={`${abierto ? 'Ocultar' : 'Ver'} captura de ${nombresModulo[e.modulo]}, ${e.registro.operadorNombre}, ${instante(l.capturado_en)}`}>{abierto ? 'Ocultar' : 'Ver'}</button></td></tr><tr hidden={!abierto} id={detalleId} className="planta-detalle"><td colSpan={6}>{abierto && <DetallePlanta captura={e} />}</td></tr></>
+function FilaPlanta({ captura: e, abierto, cambiar, grupo }: { captura: import('../../lib/planta').CapturaPlanta; abierto: boolean; cambiar: (abrir: boolean) => void; grupo: string }) {
+  const elemento = useRef<HTMLDetailsElement>(null)
+  const l = e.registro.lectura, t = e.registro.turno
+  useEffect(() => {
+    if (!abierto) return
+    const temporizador = window.setTimeout(() => elemento.current?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }), 260)
+    return () => window.clearTimeout(temporizador)
+  }, [abierto])
+  return <details ref={elemento} className="planta-registro-desplegable co-acordeon-historial" name={grupo} open={abierto}
+    onToggle={e => { if (e.currentTarget.open !== abierto) cambiar(e.currentTarget.open) }}>
+    <ResumenHistorial fecha={t.fecha_operativa} titulo={e.modulo==='pozos'?'Lectura de pozos':e.modulo==='uf'?`Lectura de ultrafiltración · ${nombreArea(t.area)}`:nombresModulo[e.modulo]} operador={e.registro.operadorNombre} turno={t.turno}
+      adicional={e.modulo==='pozos'||e.modulo==='uf'?undefined:`${nombreArea(t.area)} · Captura: ${instante(l.capturado_en)}`} />
+    {abierto && <div className="planta-registro-contenido"><DetallePlanta captura={e} /></div>}
+  </details>
 }

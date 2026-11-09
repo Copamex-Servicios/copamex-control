@@ -1,5 +1,6 @@
 import { Save, Trash2 } from 'lucide-react'
 import { useId, useRef, useState } from 'react'
+import { mayusculasNota } from '../../lib/notasOperativas'
 import type { FormEvent } from 'react'
 import { ErrorPTAR, validarCamposPTAR } from '../../lib/ptar'
 import { formatearNumeroPTAR } from '../../lib/formatoPTAR'
@@ -19,7 +20,7 @@ export function FormularioPTAR({ original, deshabilitado, alGuardar }: Props) {
   const bloqueado = deshabilitado || enviando || confirmado
   function cambiar(campo: keyof CamposPTAR, valor: string) {
     if (bloqueado || activo.current) return
-    setCampos(c => ({ ...c, [campo]: valor })); setError(null)
+    setCampos(c => ({ ...c, [campo]: campo === 'notas' ? mayusculasNota(valor) : valor })); setError(null)
   }
   async function guardar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()

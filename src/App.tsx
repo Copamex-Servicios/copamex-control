@@ -33,9 +33,11 @@ function App() {
           <Route path="/ptar" element={<Inicio vista="ptar" />} />
           <Route path="/calidad" element={<Inicio vista="calidad" />} />
           <Route path="/gestion" element={<Inicio vista="gestion" />} />
+          <Route path="/novedades" element={<Inicio vista="novedades" />} />
           <Route path="/calidad/limites" element={<Inicio vista="limites" />} />
           <Route path="/reportes" element={<Inicio vista="reportes" />} />
           <Route path="/administracion" element={<Inicio vista="administracion" />} />
+          <Route path="/bitacora-administrativa" element={<Inicio vista="bitacora_admin" />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

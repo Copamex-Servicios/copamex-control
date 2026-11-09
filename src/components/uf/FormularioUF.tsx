@@ -1,5 +1,6 @@
-import { GrupoMediciones } from '../operativo/GrupoMediciones'
+import './formularioUF.css'
 import { useId, useRef, useState } from 'react'
+import { mayusculasNota } from '../../lib/notasOperativas'
 import type { FormEvent, ReactNode } from 'react'
 import { calcularConsumosUF, calcularResultadosUF, ErrorUF, validarCamposUF } from '../../lib/uf'
 import type { CamposUF, ValoresUF } from '../../lib/tiposUF'
@@ -67,7 +68,7 @@ export function FormularioUF({
 
   function cambiar(campo: keyof CamposUF, valor: string): void {
     if (bloqueado || envioActivo.current) return
-    setCampos((anteriores) => ({ ...anteriores, [campo]: valor }))
+    setCampos((anteriores) => ({ ...anteriores, [campo]: campo === 'notas' ? mayusculasNota(valor) : valor }))
     setError(null)
   }
 
@@ -108,52 +109,51 @@ export function FormularioUF({
   try { resultados = calcularResultadosUF(validarCamposUF(campos)) } catch { /* Faltan lecturas válidas. */ }
 
   return (
-    <form className="formulario-turno formulario-uf formulario-mediciones" onSubmit={guardar} aria-busy={enviando} aria-describedby={error ? `${id}-error` : undefined}>
+    <form className="formulario-turno formulario-uf" onSubmit={guardar} aria-busy={enviando} aria-describedby={error ? `${id}-error` : undefined}>
       <fieldset className="campos-turno" disabled={bloqueado}>
         <legend>{correccion ? 'Corregir lecturas de UF' : 'Lecturas de UF'}</legend>
-        <div className="mediciones-grupos">
+        <div className="uf-captura-tabla"><table>
+          <thead><tr><th scope="col">Medidor</th><th scope="col">Lectura inicial (m³)</th><th scope="col">Lectura final (m³)</th><th scope="col">Consumo (m³)</th></tr></thead>
+          <tbody>
           {consumos.map(({ medidor, etiqueta, inicial, final, valor }, indice) => (
-            <GrupoMediciones key={medidor} titulo={medidor === 1 ? 'Alimentación' : 'Aceptación'}>
-              <div className="mediciones-entradas">
+            <tr key={medidor}>
+              <th scope="row">{medidor === 1 ? 'Alimentación' : 'Aceptación'}</th>
                 {lecturas.slice(indice * 2, indice * 2 + 2).map(({ campo, nombre, etiqueta }) => (
-                  <div className="campo-turno" key={campo}>
-                    <label htmlFor={`${id}-${nombre}`}>{etiqueta}</label>
+                  <td key={campo}>
                     <input id={`${id}-${nombre}`} name={nombre} type="text" inputMode="decimal"
-                      autoComplete="off" required value={campos[campo]}
+                      aria-label={etiqueta} placeholder="0.00" autoComplete="off" required value={campos[campo]}
                       onChange={(evento) => cambiar(campo, evento.target.value)} />
-                  </div>
+                  </td>
                 ))}
-              </div>
-              <div className="campo-turno mediciones-resultado">
-                <label htmlFor={`${id}-consumo-${medidor}`}>{etiqueta} (m³)</label>
-                <output id={`${id}-consumo-${medidor}`} htmlFor={`${id}-${inicial} ${id}-${final}`}>
-                  {valor === null ? 'Completa las dos lecturas' : `${valor} m³`}
-                </output>
-              </div>
-            </GrupoMediciones>
+              <td><output id={`${id}-consumo-${medidor}`} aria-label={`${etiqueta} (m³)`} htmlFor={`${id}-${inicial} ${id}-${final}`}>
+                {valor ?? '—'}
+              </output></td>
+            </tr>
           ))}
-          <GrupoMediciones titulo="Rechazo (m³)">
-            <output id={`${id}-rechazo`} aria-label="Rechazo (m³)">{resultados ? `${resultados.rechazo} m³` : 'Completa las cuatro lecturas'}</output>
-          </GrupoMediciones>
-          <GrupoMediciones titulo="Rendimiento (%)">
-            <output id={`${id}-rendimiento`} aria-label="Rendimiento (%)">{resultados === null ? 'Completa las cuatro lecturas'
-              : resultados.rendimiento === null ? 'Sin alimentación: no aplica'
-                : `${resultados.rendimiento.toLocaleString('es-MX', { maximumFractionDigits: 2 })} %`}</output>
-          </GrupoMediciones>
-        </div>
-        <div className="campo-turno campo-turno-ancho">
-          <label htmlFor={`${id}-notas`}>Notas (opcional)</label>
-          <textarea id={`${id}-notas`} name="notas" rows={3} value={campos.notas}
-            onChange={(evento) => cambiar('notas', evento.target.value)} />
+          </tbody>
+        </table></div>
+        <div className="uf-captura-resultados">
+          <div><h3>Rechazo</h3><output id={`${id}-rechazo`} aria-label="Rechazo (m³)"><strong>{resultados?.rechazo ?? '—'}</strong><span>m³</span></output></div>
+          <div><h3>Rendimiento</h3><output id={`${id}-rendimiento`} aria-label="Rendimiento (%)"><strong>{resultados === null ? '—'
+            : resultados.rendimiento === null ? 'No aplica'
+              : resultados.rendimiento.toLocaleString('es-MX', { maximumFractionDigits: 2 })}</strong><span>%</span></output>
+            {resultados && resultados.rendimiento === null && <p>Sin alimentación</p>}
+          </div>
         </div>
       </fieldset>
 
       {error && <p id={`${id}-error`} className="mensaje-error" role="alert">{error}</p>}
       {confirmado && <p className="mensaje-exito" role="status">{correccion ? 'Corrección confirmada.' : 'Lectura guardada.'}</p>}
-      <div className="acciones-turno">
+      <div className="uf-captura-pie">
+        <div className="campo-turno">
+          <label htmlFor={`${id}-notas`}>Notas (opcional)</label>
+          <textarea id={`${id}-notas`} name="notas" rows={1} placeholder="Escribe una nota corta" value={campos.notas} disabled={bloqueado}
+            onChange={(evento) => cambiar('notas', evento.target.value)} />
+        </div>
+        <div className="acciones-turno">
         {accionSecundaria}
         <button className="boton-primario" type="submit" disabled={bloqueado}>
-          {enviando ? 'Guardando…' : correccion ? 'Guardar corrección' : 'Guardar lectura de UF'}
+          {enviando ? 'Guardando…' : correccion ? 'Guardar corrección' : 'Guardar'}
         </button>
         {alCancelar && (
           <button className="boton-secundario" type="button" onClick={alCancelar}
@@ -161,6 +161,7 @@ export function FormularioUF({
             Cancelar
           </button>
         )}
+      </div>
       </div>
     </form>
   )

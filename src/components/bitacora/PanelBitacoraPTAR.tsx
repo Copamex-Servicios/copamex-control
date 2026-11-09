@@ -12,7 +12,7 @@ export function PanelBitacoraPTAR() {
   if (!datos.cuentaId || (datos.rol !== 'ptar' && datos.rol !== 'admin') || datos.estadoCarga === 'sin-cuenta') return null
   const observaciones = <HistorialReportesPTAR key={`${datos.cuentaId}:${datos.rol}`} actualizacion={`${captura.reporte?.id ?? ''}:${captura.reporte?.revision ?? ''}`} />
   return <section className="panel-informacion bpt-panel" aria-label="Bitácora de PTAR">
-    <header className="bpt-cabecera"><h2>Bitácora de PTAR</h2></header>
+    {datos.rol === 'admin' && <header className="bpt-cabecera"><h2>Bitácora de PTAR</h2></header>}
     {datos.rol === 'admin' ? <div className="bpt-contenido bpt-consulta">
       {observaciones}
     </div> : <>

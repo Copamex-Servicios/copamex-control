@@ -1,5 +1,7 @@
 import { supabase } from './supabase'
+import { normalizarNota } from './notasOperativas'
 import { esFechaOperativa, esTipoTurno } from './turnos'
+import { etiquetaOperadoresTurno, leerNombreOperadorAcompanante, relacionOperadorAcompanante, relacionOperadorPrincipal } from './tiposTurno'
 import type { AreaOperativa as AreaPlanta } from './tiposTurno'
 import type { CamposCalidad, CatalogosCalidad, LecturaCalidad, RegistroCalidad,
   ResultadoCalidad, SolicitudGuardadoCalidad, ValoresCalidad } from './tiposCalidad'
@@ -43,7 +45,7 @@ export function validarCamposCalidad(campos: CamposCalidad): ValoresCalidad {
     resultados.push({ id: '', punto_id, parametro_id, valor: valor === 0 ? 0 : valor })
   }
   if (!resultados.length) throw new ErrorCalidad('Escribe al menos un resultado de Calidad.')
-  return { resultados, notas: campos.notas.trim() || null }
+  return { resultados, notas: normalizarNota(campos.notas) }
 }
 export function extraerValoresCalidad(m: LecturaCalidad): ValoresCalidad {
   return { notas: m.notas, resultados: m.resultados.map(({ id, punto_id, parametro_id, valor }) => ({ id, punto_id, parametro_id, valor })) }
@@ -66,28 +68,42 @@ function leerResultado(v: unknown, muestraId: string, incierto: boolean): Result
   return { id, muestra_id, punto_id, parametro_id, valor, limite_min_aplicado: min, limite_max_aplicado: max, fuera_norma: esperado,
     punto: { id: punto_id, nombre: p.nombre, area: p.area as AreaPlanta | null }, parametro: { id: parametro_id, nombre: q.nombre, unidad: q.unidad as string | null } }
 }
-export function leerRegistroCalidad(v: unknown, incierto = false): RegistroCalidad {
-  const m = objeto(v, incierto), t = objeto(m.turno, incierto), o = objeto(t.operador, incierto)
+// La confirmación de guardado contiene la muestra, pero no los nombres de ambos operadores.
+// Las relaciones de presentación se validan por separado al consultar el historial.
+function leerLecturaCalidad(v: unknown, incierto: boolean): LecturaCalidad {
+  const m = objeto(v, incierto)
   const { id, turno_id, hora_muestra, notas, capturado_en, recibido_en, creado_por, eliminado_en, eliminado_por } = m
-  const { id: idTurno, fecha_operativa, area, turno, operador_id, iniciado_por, iniciado_en, finalizado_en, notas_cierre } = t
   if (!uuid(id) || !uuid(turno_id) || !uuid(creado_por) || !instante(capturado_en) || !instante(recibido_en)
     || Date.parse(recibido_en) < Date.parse(capturado_en) || eliminado_en !== null || eliminado_por !== null
     || typeof hora_muestra !== 'string' || !/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d{1,6})?$/.test(hora_muestra)
-    || (notas !== null && typeof notas !== 'string') || idTurno !== turno_id || !esFechaOperativa(fecha_operativa)
-    || (area !== 'calderas' && area !== 'ptar') || !esTipoTurno(turno) || !uuid(operador_id) || iniciado_por !== creado_por
-    || !instante(iniciado_en) || Date.parse(capturado_en) < Date.parse(iniciado_en)
-    || (finalizado_en !== null && (!instante(finalizado_en) || Date.parse(finalizado_en) < Date.parse(capturado_en)))
-    || (notas_cierre !== null && typeof notas_cierre !== 'string') || o.id !== operador_id || typeof o.nombre !== 'string' || !o.nombre.trim()
+    || (notas !== null && typeof notas !== 'string')
     || !Array.isArray(m.resultados) || !m.resultados.length) throw new ErrorCalidad('No se pudo comprobar la muestra y su turno. Actualiza.', incierto)
   const resultados = m.resultados.map(r => leerResultado(r, id, incierto))
   if (new Set(resultados.map(r => r.id)).size !== resultados.length
     || new Set(resultados.map(r => claveResultadoCalidad(r.punto_id, r.parametro_id))).size !== resultados.length) {
     throw new ErrorCalidad('La muestra contiene resultados repetidos. Actualiza.', incierto)
   }
-  return { lectura: { id, turno_id, hora_muestra, notas, capturado_en, recibido_en, creado_por, eliminado_en, eliminado_por, resultados },
-    turno: { id: idTurno, fecha_operativa, area, turno, operador_id, iniciado_por: creado_por, iniciado_en, finalizado_en, notas_cierre }, operadorNombre: o.nombre }
+  return { id, turno_id, hora_muestra, notas, capturado_en, recibido_en, creado_por, eliminado_en, eliminado_por, resultados }
 }
-const seleccion = 'id,turno_id,hora_muestra,notas,capturado_en,recibido_en,creado_por,eliminado_en,eliminado_por,turno:turnos_operativos!inner(id,fecha_operativa,area,turno,operador_id,iniciado_por,iniciado_en,finalizado_en,notas_cierre,operador:operadores!inner(id,nombre)),resultados:resultados_calidad(id,muestra_id,punto_id,parametro_id,valor,limite_min_aplicado,limite_max_aplicado,fuera_norma,punto:puntos_muestreo(id,nombre,area),parametro:parametros_calidad(id,nombre,unidad))'
+export function leerRegistroCalidad(v: unknown, incierto = false): RegistroCalidad {
+  const m = objeto(v, incierto), t = objeto(m.turno, incierto), o = objeto(t.operador, incierto)
+  const acompananteNombre = leerNombreOperadorAcompanante(t)
+  const lectura = leerLecturaCalidad(m, incierto)
+  const { turno_id, creado_por, capturado_en } = lectura
+  const { id: idTurno, fecha_operativa, area, turno, operador_id, operador_acompanante_id, iniciado_por, iniciado_en, finalizado_en, notas_cierre } = t
+  if (idTurno !== turno_id || !esFechaOperativa(fecha_operativa)
+    || (area !== 'calderas' && area !== 'ptar') || !esTipoTurno(turno) || !uuid(operador_id)
+    || (operador_acompanante_id !== null && !uuid(operador_acompanante_id)) || iniciado_por !== creado_por
+    || !instante(iniciado_en) || Date.parse(capturado_en) < Date.parse(iniciado_en)
+    || (finalizado_en !== null && (!instante(finalizado_en) || Date.parse(finalizado_en) < Date.parse(capturado_en)))
+    || (notas_cierre !== null && typeof notas_cierre !== 'string') || o.id !== operador_id || typeof o.nombre !== 'string' || !o.nombre.trim()) {
+    throw new ErrorCalidad('No se pudo comprobar la muestra y su turno. Actualiza.', incierto)
+  }
+  return { lectura,
+    turno: { id: idTurno, fecha_operativa, area, turno, operador_id, operador_acompanante_id, iniciado_por: creado_por, iniciado_en, finalizado_en, notas_cierre }, operadorNombre: etiquetaOperadoresTurno(o.nombre, acompananteNombre) }
+}
+const seleccion = `id,turno_id,hora_muestra,notas,capturado_en,recibido_en,creado_por,eliminado_en,eliminado_por,turno:turnos_operativos!inner(id,fecha_operativa,area,turno,operador_id,operador_acompanante_id,iniciado_por,iniciado_en,finalizado_en,notas_cierre,${relacionOperadorPrincipal},${relacionOperadorAcompanante}),resultados:resultados_calidad(id,muestra_id,punto_id,parametro_id,valor,limite_min_aplicado,limite_max_aplicado,fuera_norma,punto:puntos_muestreo(id,nombre,area),parametro:parametros_calidad(id,nombre,unidad))`
+export { seleccion as seleccionRegistroCalidad }
 function fallo(error: unknown, mensaje: string, mutacion = false): never {
   const e = error && typeof error === 'object' ? error as Record<string, unknown> : {}
   const codigo = typeof e.code === 'string' ? e.code : ''
@@ -156,7 +172,7 @@ export async function guardarLecturaCalidad(cuentaId: string, solicitud: Solicit
       p_notas: valores.notas?.trim() || null, p_original: original ? originalCalidad(original) : null,
     }).abortSignal(signal)
     if (error) fallo(error,'No se pudo confirmar la muestra. Reintenta la misma solicitud.',true)
-    const m = leerRegistroCalidad(data,true).lectura
+    const m = leerLecturaCalidad(data,true)
     const orden = (v: ValoresCalidad) => JSON.stringify(v.resultados.slice().sort((a,b) => a.id.localeCompare(b.id)))
     if (m.id !== solicitud.id || m.turno_id !== solicitud.turnoId || m.creado_por !== cuentaId || m.notas !== (valores.notas?.trim() || null)
       || orden(extraerValoresCalidad(m)) !== orden(valores) || (original && (m.hora_muestra !== original.hora_muestra

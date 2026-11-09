@@ -1,3 +1,4 @@
+import { ConsultaMuestrasCalidad } from '../calidad/ConsultaMuestrasCalidad'
 import { RefreshCw } from 'lucide-react'
 import { useEffect, useId, useState } from 'react'
 import { cacheConsultas } from '../../lib/cacheConsultas'
@@ -11,7 +12,7 @@ import { MonitorConcesionPozos } from '../pozos/MonitorConcesionPozos'
 import { TablaReportesSupervision } from './TablaReportesSupervision'
 import './supervisionPlanta.css'
 
-const pestanas = { resumen: 'Resumen', tecnicos: 'Reportes técnicos' } as const
+const pestanas = { resumen: 'Resumen', tecnicos: 'Reportes t\u00e9cnicos', calidad: 'Calidad de agua' } as const
 type Pestana = keyof typeof pestanas
 const areasSupervision = (area: FiltrosPlanta['area']): AreaOperativa[] => area === 'todas' ? ['calderas', 'ptar'] : [area]
 const nombreAreaSupervision = (area: AreaOperativa) => area === 'calderas' ? 'Calderas' : 'PTAR'
@@ -61,7 +62,7 @@ export function PanelSupervisionPlanta() {
     </div>
     {abiertas.map(p => <div key={`${perfil.id}:${p}`} id={`${id}-${p}`} role="tabpanel" aria-labelledby={`${id}-${p}-tab`} hidden={pestana !== p}>
       {p === 'resumen' ? <ResumenSupervision filtros={filtros} cuenta={perfil.id} revision={revision} />
-        : <TablaReportesSupervision filtros={filtros} revision={revision} />}
+        : p === 'calidad' ? <ConsultaMuestrasCalidad filtrosIniciales={filtros} actualizacion={String(revision)} /> : <TablaReportesSupervision filtros={filtros} revision={revision} />}
     </div>)}
   </div>
 }

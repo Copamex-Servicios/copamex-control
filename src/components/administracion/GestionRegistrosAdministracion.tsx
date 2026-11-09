@@ -1,4 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { ConsultaMuestrasCalidad } from '../calidad/ConsultaMuestrasCalidad'
+import '../bitacora/bitacoraCalderas.css'
+import '../bitacora/bitacoraPTAR.css'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { filtrosInicialesPlanta, nombresTurno, validarFiltrosPlanta } from '../../lib/planta'
 import { fechaMexicoAdmin } from '../../lib/administracion'
@@ -6,6 +9,7 @@ import { exigirAdminRevision } from '../../lib/revisionCapturas'
 import { consultarTecnicoAdmin, consultarHistorialTecnico, guardarCorreccionTecnica, leerDetalleTecnico, pendienteTecnica, prepararCorreccionTecnica } from '../../lib/revisionTecnica'
 import type { DetalleTecnicoAdmin, FilaTecnicaAdmin } from '../../lib/revisionTecnica'
 import { ConsolidadoReportesTecnicos } from './ConsolidadoReportesTecnicos'
+import { PendientesTecnicos } from './PendientesTecnicos'
 import { DetalleReporteCalderasPlanta } from '../planta/DetalleReporteCalderasPlanta'
 import { DetalleReportePTARPlanta } from '../planta/DetalleReportePTARPlanta'
 import { FormularioBitacoraCalderas } from '../bitacora/FormularioBitacoraCalderas'
@@ -13,8 +17,37 @@ import { FormularioBitacoraPTAR } from '../bitacora/FormularioBitacoraPTAR'
 import './gestionRegistros.css'
 
 const hora = (v: string) => fechaMexicoAdmin(v).replace('T', ' ')
+const PanelPozos = lazy(() => import('../pozos/PanelPozos').then(m => ({ default: m.PanelPozos })))
+const PanelUF = lazy(() => import('../uf/PanelUF').then(m => ({ default: m.PanelUF })))
+const seccionesCapturas = [
+  { id: 'tecnicos', nombre: 'Reportes técnicos' },
+  { id: 'calidad', nombre: 'Calidad de agua' },
+  { id: 'pozos', nombre: 'Pozos' },
+  { id: 'uf', nombre: 'UF' },
+] as const
+type SeccionCapturas = typeof seccionesCapturas[number]['id']
+
 export function GestionRegistrosAdministracion() {
-  return <div className="gestion-registros"><ReportesTecnicosAdmin /></div>
+  const [seccion, setSeccion] = useState<SeccionCapturas>('tecnicos')
+  const [abiertas, setAbiertas] = useState<SeccionCapturas[]>(['tecnicos'])
+  function abrirSeccion(id: SeccionCapturas) {
+    setSeccion(id)
+    setAbiertas(actuales => actuales.includes(id) ? actuales : [...actuales, id])
+  }
+  return <div className="gestion-registros">
+    <nav className="gestion-capturas-tabs" aria-label="Consultas de capturas">
+      {seccionesCapturas.map(item => <button key={item.id} type="button" aria-pressed={seccion === item.id}
+        onClick={() => abrirSeccion(item.id)}>{item.nombre}</button>)}
+    </nav>
+    <div hidden={seccion !== 'tecnicos'}><ReportesTecnicosAdmin /></div>
+    {abiertas.includes('calidad') && <div hidden={seccion !== 'calidad'}><ConsultaMuestrasCalidad exportacionDiaria /></div>}
+    {abiertas.includes('pozos') && <div className="co-operativo-referencia" hidden={seccion !== 'pozos'}>
+      <Suspense fallback={<p role="status">Cargando Pozos…</p>}><PanelPozos /></Suspense>
+    </div>}
+    {abiertas.includes('uf') && <div className="co-operativo-referencia" hidden={seccion !== 'uf'}>
+      <Suspense fallback={<p role="status">Cargando UF…</p>}><PanelUF /></Suspense>
+    </div>}
+  </div>
 }
 function PresentarTecnico({ detalle }: { detalle: DetalleTecnicoAdmin }) {
   return detalle.area === 'calderas' ? <div className="bc-panel"><DetalleReporteCalderasPlanta reporte={detalle.reporte} /></div>
@@ -31,9 +64,9 @@ function HistorialTecnico({ cuenta, detalle }: { cuenta: string; detalle: Detall
     return () => { vivo = false; control.abort(); window.clearTimeout(limite) }
   }, [cuenta, detalle, pagina])
   const actual = vista?.pagina === pagina ? vista : null
-  return <section className="revision-historial"><h3>Historial administrativo</h3>
+  return <section className="revision-historial"><h3>Historial de modificaciones</h3>
     {!actual ? <p role="status">Consultando…</p> : actual.error ? <p role="alert" className="mensaje-error">{actual.error}</p> : <>
-      {!actual.datos?.filas.length && <p>Sin correcciones administrativas registradas.</p>}
+      {!actual.datos?.filas.length && <p>Sin correcciones registradas.</p>}
       {actual.datos?.filas.map(r => <details className="revision-evento" key={r.id}>
         <summary>Corrección · {hora(r.creado_en)} · {r.responsable_nombre}</summary><p className="notas-turno"><strong>Motivo:</strong> {r.motivo}</p>
         <details><summary>Antes</summary><PresentarTecnico detalle={leerDetalleTecnico(r.antes, detalle.fila)} /></details>
@@ -82,7 +115,10 @@ function ReportesTecnicosAdmin() {
         <EditorTecnico key={`${cuenta}:${fila.id}`} cuenta={cuenta} detalle={detalle} cerrar={() => { setFila(null); setVista(null); setRevision(n => n + 1) }} guardado={d => { setVista({ clave, detalle: d, error: null }) }} />}
       {!detalle && <button type="button" className="boton-secundario" onClick={() => setFila(null)}>Cerrar detalle</button>}
     </section>}
-    <div hidden={!!fila}><ConsolidadoReportesTecnicos key={`${cuenta}:${JSON.stringify(filtros)}:${revision}`} cuenta={cuenta} filtros={filtros} corregir={setFila} /></div>
+    <div hidden={!!fila}>
+      <PendientesTecnicos key={`pendientes:${cuenta}:${JSON.stringify(filtros)}:${revision}`} cuenta={cuenta} filtros={filtros} corregir={setFila} actualizar={() => setRevision(n => n+1)} />
+      <ConsolidadoReportesTecnicos key={`${cuenta}:${JSON.stringify(filtros)}:${revision}`} cuenta={cuenta} filtros={filtros} corregir={setFila} />
+    </div>
   </div>
 }
 function EditorTecnico({ cuenta, detalle, cerrar, guardado }: { cuenta: string; detalle: DetalleTecnicoAdmin; cerrar: () => void; guardado: (d: DetalleTecnicoAdmin) => void }) {

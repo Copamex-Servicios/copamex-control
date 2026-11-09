@@ -1,5 +1,6 @@
 import { GrupoMediciones } from '../operativo/GrupoMediciones'
 import { useId, useRef, useState } from 'react'
+import { mayusculasNota } from '../../lib/notasOperativas'
 import type { FormEvent, ReactNode } from 'react'
 import { calcularConsumosPozos, ErrorPozos, validarCamposPozos } from '../../lib/pozos'
 import type { CamposPozos, ValoresPozos } from '../../lib/tiposPozos'
@@ -67,7 +68,7 @@ export function FormularioPozos({
 
   function cambiar(campo: keyof CamposPozos, valor: string): void {
     if (bloqueado || envioActivo.current) return
-    setCampos((anteriores) => ({ ...anteriores, [campo]: valor }))
+    setCampos((anteriores) => ({ ...anteriores, [campo]: campo === 'notas' ? mayusculasNota(valor) : valor }))
     setError(null)
   }
 
@@ -143,7 +144,7 @@ export function FormularioPozos({
       <div className="acciones-turno">
         {accionSecundaria}
         <button className="boton-primario" type="submit" disabled={bloqueado}>
-          {enviando ? 'Guardando…' : correccion ? 'Guardar corrección' : 'Guardar lectura de Pozos'}
+          {enviando ? 'Guardando…' : correccion ? 'Guardar corrección' : 'Guardar'}
         </button>
         {alCancelar && (
           <button className="boton-secundario" type="button" onClick={alCancelar}

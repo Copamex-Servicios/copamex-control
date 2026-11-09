@@ -1,0 +1,41 @@
+/* Detalles de consulta compartidos. No alcanza formularios ni otras fichas. */
+.co-layout .co-detalle-agua { container:detalle-agua / inline-size; min-width:0; padding:18px; background:#f5f8fc; color:var(--co-text); font-family:var(--co-font); font-size:14px; line-height:1.5; }
+.co-layout .co-detalle-agua * { font-family:inherit; box-sizing:border-box; }
+.co-layout .co-planta-referencia .vista-planta .planta-registro-contenido:has(>.co-detalle-agua) { padding:0; }
+.co-layout .co-detalle-agua .agua-metadatos { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:8px 20px; margin:0 0 12px; font-size:13px; }
+.co-layout .co-detalle-agua .agua-metadatos strong { font-weight:650; }
+.co-layout .co-detalle-agua .agua-notas { min-width:0; white-space:pre-wrap; overflow-wrap:anywhere; color:#345578; }
+.co-layout .co-detalle-agua .agua-resultados { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); margin:0 0 14px; padding:0; overflow:hidden; background:#fff; border:1px solid var(--co-border); border-radius:12px; }
+.co-layout .co-detalle-agua .agua-resultados>div { min-width:0; padding:14px 18px; border-right:1px solid var(--co-border); }
+.co-layout .co-detalle-agua .agua-resultados>div:last-child { border-right:0; }
+.co-layout .co-detalle-agua .agua-resultados dt { margin:0; font-size:13px; font-weight:400; color:#345578; }
+.co-layout .co-detalle-agua .agua-resultados dd { margin:2px 0 0; font-size:26px; line-height:1.25; font-weight:700; overflow-wrap:anywhere; }
+.co-layout .co-detalle-agua small { font-size:13px; font-weight:400; white-space:nowrap; }
+.co-layout .co-detalle-agua .agua-resultados .agua-rendimiento { color:#005bd3; background:#edf3ff; }
+.co-layout .co-detalle-agua .agua-rendimiento dt { color:inherit; }
+.co-layout .co-detalle-agua .agua-resultados .agua-sin-rendimiento { font-size:14px; font-weight:400; }
+.co-layout .co-detalle-agua .agua-tabla { overflow:hidden; border:1px solid var(--co-border); border-radius:12px; background:#fff; }
+.co-layout .co-detalle-agua table { width:100%; table-layout:fixed; border-collapse:collapse; font:inherit; color:inherit; }
+.co-layout .co-detalle-agua table :is(th,td) { padding:12px 18px; text-align:left; font-size:14px; line-height:1.5; white-space:normal; overflow-wrap:anywhere; }
+.co-layout .co-detalle-agua thead th { color:#345578; background:#fff; font-weight:400; }
+.co-layout .co-detalle-agua tbody :is(th,td) { border-top:1px solid var(--co-border); }
+.co-layout .co-detalle-agua tbody th,.co-layout .co-detalle-agua td strong { font-weight:700; }
+.co-layout .co-detalle-agua tr>:last-child { text-align:right; }
+.co-layout .co-detalle-agua .agua-pie { margin:12px 0 0; color:#345578; }
+.co-layout .co-detalle-agua .agua-tabla:focus-visible { outline:2px solid var(--co-primary); outline-offset:2px; }
+@container detalle-agua (max-width:560px) {
+  .co-layout .co-detalle-agua .agua-resultados { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .co-layout .co-detalle-agua .agua-resultados>div { padding:12px; border-bottom:1px solid var(--co-border); }
+  .co-layout .co-detalle-agua .agua-resultados>div:nth-child(even) { border-right:0; }
+  .co-layout .co-detalle-agua .agua-resultados>div:nth-last-child(-n+2) { border-bottom:0; }
+  .co-layout .co-detalle-agua .agua-resultados dd { font-size:23px; }
+  .co-layout .co-detalle-agua thead { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+  .co-layout .co-detalle-agua tbody tr { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); padding:8px 12px; border-top:1px solid var(--co-border); }
+  .co-layout .co-detalle-agua tbody tr:first-child { border-top:0; }
+  .co-layout .co-detalle-agua tbody th { grid-column:1 / -1; }
+  .co-layout .co-detalle-agua tbody :is(th,td) { border:0; padding:5px 0; }
+  .co-layout .co-detalle-agua tbody td { display:flex; flex-direction:column; gap:3px; }
+  .co-layout .co-detalle-agua tbody td::before { content:attr(data-label); color:#345578; font-size:12px; font-weight:400; }
+  .co-layout .co-detalle-agua tbody td:last-child { grid-column:1 / -1; flex-direction:row; justify-content:space-between; align-items:baseline; }
+}
+@media(max-width:600px) { .co-layout .co-detalle-agua { padding:12px; } }

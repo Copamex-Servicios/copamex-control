@@ -2,6 +2,7 @@ import { Save, Trash2 } from 'lucide-react'
 import { useLimitesCalidad } from '../../hooks/useLimitesCalidad'
 import { evaluarLimite, textoLimite } from '../../lib/limitesCalidad'
 import { useId, useRef, useState } from 'react'
+import { mayusculasNota } from '../../lib/notasOperativas'
 import type { FormEvent } from 'react'
 import { claveResultadoCalidad, ErrorCalidad, validarCamposCalidad } from '../../lib/calidad'
 import { formatearNumeroCalidad } from '../../lib/formatoCalidad'
@@ -108,14 +109,14 @@ export function FormularioCalidad({ area, catalogos, original, deshabilitado, al
         <label htmlFor={`${id}-notas`}>Notas de la muestra (opcional)</label>
         <textarea id={`${id}-notas`} rows={2} placeholder="Observaciones de la captura…" value={campos.notas} onChange={e => {
           if (bloqueado || activo.current) return
-          const notas = e.target.value; setCampos(c => ({ ...c, notas })); setError(null)
+          const notas = mayusculasNota(e.target.value); setCampos(c => ({ ...c, notas })); setError(null)
         }} />
       </div>
     </fieldset>
     
     {error && <p className="mensaje-error" role="alert">{error}</p>}
-    <div className="acciones-turno calidad-acciones"><button type="button" className="boton-secundario" disabled={bloqueado} onClick={limpiar}><Trash2 aria-hidden="true" />Limpiar formulario</button><button className="boton-primario" type="submit" disabled={bloqueado || celdas.length === 0}>
-      <Save aria-hidden="true" />{enviando ? 'Guardando…' : original ? 'Guardar corrección' : 'Guardar registro técnico'}
+    <div className="acciones-turno calidad-acciones"><button type="button" className="boton-secundario" disabled={bloqueado} onClick={limpiar}><Trash2 aria-hidden="true" />Limpiar</button><button className="boton-primario" type="submit" disabled={bloqueado || celdas.length === 0}>
+      <Save aria-hidden="true" />{enviando ? 'Guardando…' : original ? 'Guardar' : 'Guardar'}
     </button></div>
   </form>
 }

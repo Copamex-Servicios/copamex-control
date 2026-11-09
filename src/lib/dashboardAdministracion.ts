@@ -5,6 +5,7 @@ import { leerAlerta } from './alertas'
 import type { Alerta } from './alertas'
 import { leerTurnoPlanta, nombresModulo } from './planta'
 import type { TurnoPlanta } from './planta'
+import { etiquetaOperadoresTurno, leerNombreOperadorAcompanante, relacionOperadorAcompanante, relacionOperadorPrincipal } from './tiposTurno'
 
 export interface FuenteDashboard<T> { valor: T | null; error: string | null }
 export interface TurnoDashboard extends TurnoPlanta { completados: ModuloDashboard[] }
@@ -20,14 +21,14 @@ export interface DatosDashboard {
   actividadParcial: boolean
 }
 export const modulosArea: Record<'calderas' | 'ptar', readonly ModuloDashboard[]> = {
-  calderas: ['reporte_calderas', 'pozos', 'uf', 'calidad'], ptar: ['reporte_ptar', 'ptar', 'calidad'],
+  calderas: ['reporte_calderas', 'pozos', 'uf', 'calidad'], ptar: ['reporte_ptar'],
 }
 export const nombresModuloDashboard = { ...nombresModulo, reporte_calderas: 'Reporte técnico', reporte_ptar: 'Reporte técnico' }
 const tablas = { reporte_calderas: 'bitacora_calderas', reporte_ptar: 'bitacora_ptar', pozos: 'lecturas_pozos', uf: 'lecturas_uf', calidad: 'muestras_calidad', ptar: 'lecturas_ptar' } as const
 export type ModuloDashboard = keyof typeof tablas
 const modulos = Object.keys(tablas) as ModuloDashboard[]
 const tecnico = (m: ModuloDashboard) => m === 'reporte_calderas' || m === 'reporte_ptar'
-const columnasTurno = 'id,fecha_operativa,area,turno,operador_id,iniciado_por,iniciado_en,finalizado_en,notas_cierre,operador:operadores!inner(id,nombre)'
+const columnasTurno = `id,fecha_operativa,area,turno,operador_id,operador_acompanante_id,iniciado_por,iniciado_en,finalizado_en,notas_cierre,${relacionOperadorPrincipal},${relacionOperadorAcompanante}`
 const columnasAlerta = 'id,registro_id,mensaje,valor,limite,estado,creado_en,actualizado_en,origen_estado,detalle,reconocido_por,reconocido_en,cerrado_por,cerrado_en,comentario'
 const texto = (v: unknown): v is string => typeof v === 'string' && !!v.trim()
 const fecha = (v: unknown): v is string => texto(v) && Number.isFinite(Date.parse(v))
@@ -46,6 +47,7 @@ function conteo(r: { count: number | null; error: unknown }): number {
 async function fuente<T>(consulta: PromiseLike<T>, error: string): Promise<FuenteDashboard<T>> {
   try { return { valor: await consulta, error: null } } catch { return { valor: null, error } }
 }
+
 
 // Un módulo tiene avance cuando existe al menos una captura vigente en ese turno.
 // Los embeds se limitan a un ID por módulo y turno: no se descarga el historial.
@@ -84,13 +86,15 @@ async function contarCapturas(m: ModuloDashboard, desde: string, hasta: string, 
 }
 async function capturasRecientes(m: ModuloDashboard, signal: AbortSignal): Promise<ActividadDashboard[]> {
   const campo = tecnico(m) ? 'creado_en' : 'capturado_en'
-  let q = supabase.from(tablas[m]).select(`id,${campo},turno:turnos_operativos!inner(area,operador:operadores!inner(nombre))`)
+  let q = supabase.from(tablas[m]).select(`id,${campo},turno:turnos_operativos!inner(area,operador_acompanante_id,${relacionOperadorPrincipal},${relacionOperadorAcompanante})`)
   if (!tecnico(m)) q = q.is('eliminado_en', null)
   const r = await q.order(campo, { ascending: false }).order('id').limit(5).abortSignal(signal)
   return filas(r).map(v => {
     const t = objeto(v.turno), o = objeto(t.operador)
     if (!texto(v.id) || !fecha(v[campo]) || !texto(o.nombre) || !['calderas', 'ptar'].includes(String(t.area))) throw new Error('Actividad inválida.')
-    return { id: `${m}:${v.id}`, fecha: v[campo] as string, tipo: nombresModuloDashboard[m], descripcion: `Captura registrada · ${t.area === 'calderas' ? 'Calderas' : 'PTAR'} · ${o.nombre}` }
+    const nombreAcompanante = leerNombreOperadorAcompanante(t)
+    const equipo = etiquetaOperadoresTurno(o.nombre, nombreAcompanante)
+    return { id: `${m}:${v.id}`, fecha: v[campo] as string, tipo: nombresModuloDashboard[m], descripcion: `Captura registrada · ${t.area === 'calderas' ? 'Calderas' : 'PTAR'} · ${equipo}` }
   })
 }
 async function movimientosTurno(cierre: boolean, signal: AbortSignal): Promise<ActividadDashboard[]> {

@@ -1,7 +1,9 @@
 import { supabase } from './supabase'
+import { normalizarNota } from './notasOperativas'
 import { esFechaOperativa, esTipoTurno } from './turnos'
 import type { CamposPozos, LecturaPozos, ValoresPozos } from './tiposPozos'
 import type { TurnoOperativo } from './tiposTurno'
+import { etiquetaOperadoresTurno, leerNombreOperadorAcompanante, relacionOperadorAcompanante, relacionOperadorPrincipal } from './tiposTurno'
 
 export interface RegistroPozos {
   lectura: LecturaPozos
@@ -29,8 +31,8 @@ export class ErrorPozos extends Error {
 }
 
 const columnasLectura = 'id,turno_id,pozo1_ini,pozo1_fin,consumo_pozo1,pozo2_ini,pozo2_fin,consumo_pozo2,notas,capturado_en,recibido_en,creado_por,eliminado_en,eliminado_por'
-const columnasTurno = 'id,fecha_operativa,area,turno,operador_id,iniciado_por,iniciado_en,finalizado_en,notas_cierre'
-const seleccion = `${columnasLectura},turno:turnos_operativos!inner(${columnasTurno},operador:operadores!inner(id,nombre))`
+const columnasTurno = 'id,fecha_operativa,area,turno,operador_id,operador_acompanante_id,iniciado_por,iniciado_en,finalizado_en,notas_cierre'
+const seleccion = `${columnasLectura},turno:turnos_operativos!inner(${columnasTurno},${relacionOperadorPrincipal},${relacionOperadorAcompanante})`
 
 function esUuid(valor: unknown): valor is string {
   return typeof valor === 'string'
@@ -98,7 +100,7 @@ export function validarCamposPozos(campos: CamposPozos): ValoresPozos {
     pozo1_fin: leerCampo(campos.pozo1Final, 'la lectura final del Pozo 1'),
     pozo2_ini: leerCampo(campos.pozo2Inicial, 'la lectura inicial del Pozo 2'),
     pozo2_fin: leerCampo(campos.pozo2Final, 'la lectura final del Pozo 2'),
-    notas: campos.notas.trim() || null,
+    notas: normalizarNota(campos.notas),
   }
   comprobarValores(valores)
   return valores
@@ -177,10 +179,12 @@ function leerRegistro(valor: unknown): RegistroPozos {
   const lectura = leerLectura(datos)
   const t = fila(datos.turno)
   const o = fila(t.operador)
-  const { id, fecha_operativa, area, turno, operador_id, iniciado_por,
+  const acompananteNombre = leerNombreOperadorAcompanante(t)
+  const { id, fecha_operativa, area, turno, operador_id, operador_acompanante_id, iniciado_por,
     iniciado_en, finalizado_en, notas_cierre } = t
   if (!esUuid(id) || id !== lectura.turno_id || !esFechaOperativa(fecha_operativa)
     || area !== 'calderas' || !esTipoTurno(turno) || !esUuid(operador_id)
+    || (operador_acompanante_id !== null && !esUuid(operador_acompanante_id))
     || !esUuid(iniciado_por) || iniciado_por !== lectura.creado_por
     || !esInstante(iniciado_en) || Date.parse(lectura.capturado_en) < Date.parse(iniciado_en)
     || (finalizado_en !== null && (!esInstante(finalizado_en)
@@ -191,9 +195,9 @@ function leerRegistro(valor: unknown): RegistroPozos {
   }
   return {
     lectura,
-    turno: { id, fecha_operativa, area, turno, operador_id, iniciado_por,
+    turno: { id, fecha_operativa, area, turno, operador_id, operador_acompanante_id, iniciado_por,
       iniciado_en, finalizado_en, notas_cierre },
-    operadorNombre: o.nombre,
+    operadorNombre: etiquetaOperadoresTurno(o.nombre, acompananteNombre),
   }
 }
 

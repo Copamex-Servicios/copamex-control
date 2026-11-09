@@ -28,9 +28,11 @@ export function PanelTurno({ area, referencia = false }: PropsPanelTurno) {
   const ocupado = accionEnCurso !== null
   const bloqueado = ocupado || solicitudPendiente !== null || estadoCarga !== 'listo'
   const pertenece = turno?.iniciado_por === cuentaId
-  const nombreOperador = turno
-    ? operadores.find((operador) => operador.id === turno.operador_id)?.nombre
-    : null
+  const operadorPrincipal = turno ? operadores.find((operador) => operador.id === turno.operador_id)?.nombre : null
+  const operadorAcompanante = turno?.operador_acompanante_id
+    ? operadores.find((operador) => operador.id === turno.operador_acompanante_id)?.nombre : null
+  const nombreOperador = operadorPrincipal && operadorAcompanante
+    ? `${operadorPrincipal} · ${operadorAcompanante}` : operadorPrincipal
   const confirmado = mensajeAccion === 'Turno guardado.' || mensajeAccion === 'Cierre confirmado.'
 
   return (
@@ -58,7 +60,7 @@ export function PanelTurno({ area, referencia = false }: PropsPanelTurno) {
           ) : (
             <dl className="datos-turno">
               <div><dt>Operación</dt><dd>{solicitudPendiente.accion === 'cambiar' ? 'Cambio de turno' : 'Inicio de turno'}</dd></div>
-              <div><dt>Operador entrante</dt><dd>{solicitudPendiente.solicitud.nombreOperador}</dd></div>
+              <div><dt>Operadores entrantes</dt><dd>{solicitudPendiente.solicitud.nombreOperador} · {solicitudPendiente.solicitud.nombreOperadorAcompanante}</dd></div>
               <div><dt>Tipo de turno</dt><dd>{nombresTurno[solicitudPendiente.solicitud.tipoTurno]}</dd></div>
               <div><dt>Fecha operativa</dt><dd>Asignada automáticamente al iniciar</dd></div>
             </dl>

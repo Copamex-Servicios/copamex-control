@@ -34,7 +34,7 @@ async function leer<T>(
   } catch { return { elementos: [], error: true } }
 }
 
-export async function consultarInformacionDia(fecha: string, area: AreaOperativa, signal: AbortSignal): Promise<InformacionDia> {
+export async function consultarInformacionDia(fecha: string, area: AreaOperativa | 'todas', signal: AbortSignal): Promise<InformacionDia> {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha) || signal.aborted) throw new Error('Consulta cancelada')
   const [avisos, produccion, eventos] = await Promise.all([
     leer(supabase.from('avisos').select('id,mensaje')
@@ -51,7 +51,9 @@ export async function consultarInformacionDia(fecha: string, area: AreaOperativa
         color: opcional(r.color_objetivo), consumo: opcional(r.consumo_objetivo) }
     }),
     leer(supabase.from('eventos_calendario').select('id,fecha,tipo,area,horario,motivo')
-      .gte('fecha', fecha).in('area', [area, area.toUpperCase(), area === 'calderas' ? 'Calderas' : 'PTAR', 'TODOS', 'Todos', 'todos', 'TODAS', 'Todas', 'todas'])
+      .gte('fecha', fecha).in('area', area === 'todas'
+        ? ['calderas', 'CALDERAS', 'Calderas', 'ptar', 'PTAR', 'TODOS', 'Todos', 'todos', 'TODAS', 'Todas', 'todas']
+        : [area, area.toUpperCase(), area === 'calderas' ? 'Calderas' : 'PTAR', 'TODOS', 'Todos', 'todos', 'TODAS', 'Todas', 'todas'])
       .order('fecha').order('creado_en').limit(8).abortSignal(signal), valor => {
       const r = fila(valor), fechaEvento = texto(r.fecha)
       if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaEvento)) throw new Error('Fecha inválida')

@@ -27,6 +27,8 @@ export function DetalleReportePTARPlanta({ reporte }: { reporte: ReporteTecnicoP
       <Seccion titulo="DAF Chino y bombas">
         <dl className="pcr-datos pcr-ptar-datos">
           <Dato nombre="Descarga del DAF Chino" valor={b.destinoDescarga} vacio="Sin registrar" />
+          <Dato nombre="Horas en tanque 11" valor={b.horasDescarga.tanque11} unidad="h" vacio="Sin registrar" />
+          <Dato nombre="Horas en tanques 5 y 6" valor={b.horasDescarga.tanques56} unidad="h" vacio="Sin registrar" />
           {bombasBitacoraPTAR.map(n => <div className="pcr-dato" key={n}>
             <dt>Bomba {n}</dt><dd><Estado valor={b.bombas[n]} /></dd>
           </div>)}
@@ -43,6 +45,7 @@ export function DetalleReportePTARPlanta({ reporte }: { reporte: ReporteTecnicoP
           {prensasBitacoraPTAR.map(n => <div className="pcr-dato" key={n}>
             <dt>Prensa {n}</dt><dd><Estado valor={b.prensas[n]} /></dd>
           </div>)}
+          {prensasBitacoraPTAR.map(n => b.velocidadesPrensas?.[n] ? <Dato key={n + '-velocidad'} nombre={'Velocidad de prensa ' + n} valor={b.velocidadesPrensas[n]} unidad="m/min" /> : null)}
           <Dato ancho nombre="Reporte relevante de fin de turno y motivo por el cual la prensa está parada" valor={b.comentarioPrensas} vacio="Sin registrar" />
         </dl>
       </Seccion>

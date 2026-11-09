@@ -7,6 +7,10 @@
 .co-layout .co-confirmar-finalizacion p { margin:0 0 18px; font-size:16px; line-height:1.5; }
 .co-layout .co-confirmar-finalizacion-acciones { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:10px; }
 .co-layout .co-aviso-acciones-tabla { flex-wrap:wrap; }
+.co-layout :is(.co-admin-referencia,.co-gestion-compacta) .admin-tabla .co-aviso-acciones-tabla > button {
+  display:inline-flex; align-items:center; justify-content:center; box-sizing:border-box;
+  width:100px; min-width:100px; min-height:44px; padding:9px 12px; font-size:13px; font-weight:600; line-height:20px;
+}
 .co-layout .co-aviso-acciones-tabla .co-finalizar-registro,.co-layout .co-confirmar-finalizacion .co-finalizar-registro { min-height:44px; padding:9px 12px; border:1px solid var(--co-primary); border-radius:8px; background:var(--co-primary); color:#fff; font-size:14px; cursor:pointer; }
 .co-layout .co-finalizar-registro:disabled { opacity:.55; cursor:not-allowed; }
 .co-layout .co-confirmar-finalizacion button:focus-visible { outline:2px solid var(--co-primary); outline-offset:2px; }

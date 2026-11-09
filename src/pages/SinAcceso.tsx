@@ -98,15 +98,15 @@ export function SinAcceso() {
 
         <div className="acciones-acceso" aria-busy={cerrando}>
           {restriccionRol ? (
-            !cerrando && <Link className="boton-primario" to="/">Volver al inicio</Link>
+            <Link className="boton-primario" to="/">Regresar al inicio</Link>
           ) : (
             <button className="boton-primario" type="button" onClick={reintentar} disabled={cerrando}>
               Reintentar
             </button>
           )}
-          <button className="boton-secundario" type="button" onClick={cambiarCuenta} disabled={cerrando}>
+          {!restriccionRol && <button className="boton-secundario" type="button" onClick={cambiarCuenta} disabled={cerrando}>
             {cerrando ? 'Cerrando sesión…' : 'Cambiar de cuenta'}
-          </button>
+          </button>}
         </div>
       </section>
     </AccesoLayout>

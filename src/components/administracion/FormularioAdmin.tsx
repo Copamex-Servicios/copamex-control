@@ -1,5 +1,6 @@
 import { RotateCcw, Save } from 'lucide-react'
 import './programacionFormularios.css'
+import './catalogosFormularios.css'
 import { useAuth } from '../../hooks/useAuth'
 import { resolverPapel } from '../../lib/administracion'
 import { useState } from 'react'
@@ -13,6 +14,7 @@ export function FormularioAdmin({ config: c, datos, original, bloqueado, guardar
   const produccion = c.tabla === 'programa_produccion'
   const calendario = c.tabla === 'eventos_calendario'
   const programacion = produccion || calendario
+  const catalogoCompacto = c.tabla === 'operadores' || c.tabla === 'avisos' || c.tabla === 'puntos_muestreo'
   const papelCalidad = produccion && perfil?.rol === 'calidad'
   const [papelesCalidad, setPapelesCalidad] = useState(datos.catalogo_papeles.filas)
   const [editandoPapel, setEditandoPapel] = useState(false)
@@ -50,11 +52,12 @@ export function FormularioAdmin({ config: c, datos, original, bloqueado, guardar
     setPapel(String(datos.catalogo_papeles.filas.find(r => r.id === original?.papel_id)?.nombre ?? '').toLocaleUpperCase('es-MX'))
     setError(null)
   }
-  return <form className={programacion ? `admin-editor co-programacion-formulario ${produccion ? 'co-programacion-produccion' : 'co-programacion-calendario'}` : 'admin-editor'} onSubmit={e => { e.preventDefault(); void enviar() }}>
-    <div className="planta-encabezado"><h3>{programacion ? <>{original ? 'Editar ' + c.singular : produccion ? 'Programación de producción diaria' : 'Programación de calendario'}</> : <>{original ? 'Editar' : 'Nuevo'} {c.singular}</>}</h3><button type="button" className="boton-secundario" onClick={cancelar} disabled={bloqueado || preparando || guardandoPapel}>Cancelar</button></div>
+  return <form data-tabla={c.tabla} className={programacion ? `admin-editor co-programacion-formulario ${produccion ? 'co-programacion-produccion' : 'co-programacion-calendario'}` : catalogoCompacto ? 'admin-editor co-catalogo-formulario' : 'admin-editor'} onSubmit={e => { e.preventDefault(); void enviar() }}>
+    <div className="planta-encabezado"><h3>{programacion ? <>{original ? 'Editar ' + c.singular : produccion ? 'Programación de producción diaria' : 'Programación de calendario'}</> : <>{original ? 'Editar' : 'Nuevo'} {c.singular}</>}</h3>{!catalogoCompacto && <button type="button" className="boton-secundario" onClick={cancelar} disabled={bloqueado || preparando || guardandoPapel}>Cancelar</button>}</div>
     
     <fieldset disabled={bloqueado || preparando || guardandoPapel} className="admin-campos">
       {c.campos.map(f => {
+        if (c.tabla === 'operadores' && f.clave === 'activo') return null
         if (papelCalidad && f.clave === 'papel_id') return <SelectorPapelCalidad key={`${f.clave}-${campos.maquina_id}`} cuenta={perfil.id} maquina={String(campos.maquina_id)} seleccionado={String(campos.papel_id)} iniciales={papelesCalidad}
           seleccionar={id => cambiar('papel_id', id)} actualizar={setPapelesCalidad} editar={setEditandoPapel} ocupar={setGuardandoPapel} />
         if (c.tabla === 'programa_produccion' && f.clave === 'papel_id') return <label className="co-programacion-campo co-programacion-papel" key={f.clave}>Papel<input type="text" list="opciones-papel-produccion" value={papel} maxLength={200} required onChange={e => setPapel(e.target.value.toLocaleUpperCase('es-MX'))} /><datalist id="opciones-papel-produccion">{datos.catalogo_papeles.filas.filter(r => r.maquina_id === campos.maquina_id && r.activo !== false).map(r => <option key={r.id} value={String(r.nombre).toLocaleUpperCase('es-MX')} />)}</datalist></label>
@@ -68,8 +71,8 @@ export function FormularioAdmin({ config: c, datos, original, bloqueado, guardar
             {opciones.map(([v,n]) => <option value={v} key={v}>{n}</option>)}
           </select></label>
         }
-        if (calendario && f.clave === 'motivo') return <label className="co-programacion-campo" key={f.clave}>{f.nombre}<input type="text" value={typeof valor === 'string' ? valor : ''} maxLength={10000} required={!f.opcional} placeholder="Motivo / detalles" onChange={e => cambiar(f.clave,e.target.value)} /></label>
-        if (f.tipo === 'booleano') return <label className="admin-casilla" key={f.clave}><input type="checkbox" checked={valor === true} onChange={e => cambiar(f.clave, e.target.checked)} />{f.nombre}</label>
+        if (calendario && f.clave === 'motivo') return <label className="co-programacion-campo" key={f.clave}>{f.nombre}<input type="text" value={typeof valor === 'string' ? valor : ''} maxLength={10000} required={!f.opcional} placeholder="Motivo / detalles" onChange={e => cambiar(f.clave,e.target.value.toLocaleUpperCase('es-MX'))} /></label>
+        if (f.tipo === 'booleano') return <label data-campo={f.clave} className="admin-casilla" key={f.clave}><input type="checkbox" checked={valor === true} onChange={e => cambiar(f.clave, e.target.checked)} />{f.nombre}</label>
         const texto = typeof valor === 'string' ? valor : ''
         const disabled = c.tabla === 'avisos' && campos.permanente === true && ['inicio', 'fin'].includes(f.clave)
         if (f.tipo === 'opcion' || f.tipo === 'referencia') {
@@ -77,12 +80,13 @@ export function FormularioAdmin({ config: c, datos, original, bloqueado, guardar
             .filter(r => f.clave !== 'papel_id' || r.maquina_id === campos.maquina_id)
             .filter(r => r.activo !== false || r.id === texto)
             .map(r => [r.id, `${r.codigo ? `${r.codigo} · ` : ''}${r.nombre}${r.activo === false ? ' (inactivo)' : ''}`] as const)
-          return <label className={programacion ? "co-programacion-campo" : undefined} key={f.clave}>{f.nombre}<select value={texto} required={!f.opcional} onChange={e => cambiar(f.clave, e.target.value)}><option value="">{f.opcional ? 'Sin asignar (ambas áreas)' : 'Selecciona una opción'}</option>{texto && !opciones.some(([v]) => v === texto) && <option value={texto}>Referencia no disponible: {texto}</option>}{opciones.map(([v, n]) => <option key={v} value={v}>{n}</option>)}</select></label>
+          return <label data-campo={f.clave} className={programacion ? "co-programacion-campo" : undefined} key={f.clave}>{f.nombre}<select value={texto} required={!f.opcional} onChange={e => cambiar(f.clave, e.target.value)}><option value="">{f.opcional ? 'Sin asignar (ambas áreas)' : 'Selecciona una opción'}</option>{texto && !opciones.some(([v]) => v === texto) && <option value={texto}>Referencia no disponible: {texto}</option>}{opciones.map(([v, n]) => <option key={v} value={v}>{n}</option>)}</select></label>
         }
-        return <label className={programacion ? 'co-programacion-campo co-programacion-' + f.clave : f.tipo === 'largo' ? 'admin-campo-amplio' : ''} key={f.clave}>{f.nombre}{f.tipo === 'largo' ? <textarea value={texto} rows={4} maxLength={10000} required={!f.opcional} onChange={e => cambiar(f.clave, e.target.value)} /> : <input type={f.tipo === 'fecha' ? 'date' : f.tipo === 'instante' ? 'datetime-local' : f.tipo === 'entero' ? 'number' : 'text'} step={f.tipo === 'instante' ? 1 : f.tipo === 'entero' ? 1 : undefined} placeholder={calendario && f.clave === 'horario' ? 'Ej. 08:00 – 14:00' : undefined} maxLength={1000} disabled={disabled} value={texto} required={!f.opcional && !disabled} onChange={e => cambiar(f.clave, e.target.value)} />}</label>
+        const mayusculas = (c.tabla === 'avisos' && f.clave === 'mensaje') || (calendario && f.clave === 'horario')
+        return <label data-campo={f.clave} className={programacion ? 'co-programacion-campo co-programacion-' + f.clave : f.tipo === 'largo' ? 'admin-campo-amplio' : ''} key={f.clave}>{f.nombre}{f.tipo === 'largo' ? <textarea value={texto} rows={4} maxLength={10000} required={!f.opcional} onChange={e => cambiar(f.clave, mayusculas ? e.target.value.toLocaleUpperCase('es-MX') : e.target.value)} /> : <input type={f.tipo === 'fecha' ? 'date' : f.tipo === 'instante' ? 'datetime-local' : f.tipo === 'entero' ? 'number' : 'text'} step={f.tipo === 'instante' ? 1 : f.tipo === 'entero' ? 1 : undefined} placeholder={calendario && f.clave === 'horario' ? 'Ej. 08:00 – 14:00' : undefined} maxLength={1000} disabled={disabled} value={texto} required={!f.opcional && !disabled} onChange={e => cambiar(f.clave, mayusculas ? e.target.value.toLocaleUpperCase('es-MX') : e.target.value)} />}</label>
       })}
     </fieldset>
     {error && <p className="mensaje-error" role="alert">{error}</p>}
-    {programacion ? <div className="co-programacion-acciones"><button type="button" className="boton-secundario" disabled={bloqueado || preparando || guardandoPapel || editandoPapel} onClick={limpiar}><RotateCcw aria-hidden="true" />{original ? 'Restablecer' : 'Limpiar'}</button><button type="submit" className="boton-principal" disabled={bloqueado || preparando || guardandoPapel || editandoPapel}><Save aria-hidden="true" />{bloqueado || preparando ? 'Esperando confirmación…' : original ? 'Guardar cambios' : calendario ? 'Agregar evento' : 'Guardar programación'}</button></div> : <button type="submit" className="boton-principal" disabled={bloqueado || preparando || guardandoPapel || editandoPapel}>{bloqueado || preparando ? 'Esperando confirmación…' : 'Guardar'}</button>}
+    {programacion ? <div className="co-programacion-acciones"><button type="button" className="boton-secundario" disabled={bloqueado || preparando || guardandoPapel || editandoPapel} onClick={limpiar}><RotateCcw aria-hidden="true" />{original ? 'Restablecer' : 'Limpiar'}</button><button type="submit" className="boton-principal" disabled={bloqueado || preparando || guardandoPapel || editandoPapel}><Save aria-hidden="true" />{bloqueado || preparando ? 'Esperando confirmación…' : original ? 'Guardar cambios' : calendario ? 'Agregar evento' : 'Guardar programación'}</button></div> : catalogoCompacto ? <div className="co-catalogo-acciones">{c.tabla === 'operadores' && <label className="admin-casilla co-catalogo-activo"><input type="checkbox" checked={campos.activo === true} disabled={bloqueado || preparando || guardandoPapel} onChange={e => cambiar('activo', e.target.checked)} />Activo</label>}<button type="button" className="boton-secundario" onClick={cancelar} disabled={bloqueado || preparando || guardandoPapel}>Cancelar</button><button type="submit" className="boton-principal" disabled={bloqueado || preparando || guardandoPapel || editandoPapel}>{bloqueado || preparando ? 'Esperando confirmación…' : 'Guardar'}</button></div> : <button type="submit" className="boton-principal" disabled={bloqueado || preparando || guardandoPapel || editandoPapel}>{bloqueado || preparando ? 'Esperando confirmación…' : 'Guardar'}</button>}
   </form>
 }

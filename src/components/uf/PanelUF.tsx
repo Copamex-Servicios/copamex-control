@@ -107,7 +107,7 @@ function ContenidoUF({ datos }: PropsContenidoUF) {
             <p>{actual ? 'No hay otras lecturas guardadas para consultar.' : 'No hay lecturas guardadas para consultar.'}</p>
           ) : anteriores.map((registro) => (
             <details className="item-historial-uf co-acordeon-historial" name={grupoHistorial} key={registro.lectura.id}>
-              <ResumenHistorial fecha={registro.turno.fecha_operativa} titulo="Lectura de Ultrafiltración" operador={registro.operadorNombre} turno={registro.turno.turno} />
+              <ResumenHistorial fecha={registro.turno.fecha_operativa} titulo={`Lectura de ultrafiltración · ${registro.turno.area==='calderas'?'Calderas':'PTAR'}`} operador={registro.operadorNombre} turno={registro.turno.turno} />
               <LecturaUFHistorial registro={registro} />
             </details>
           ))}

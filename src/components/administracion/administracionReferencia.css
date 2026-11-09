@@ -8,12 +8,14 @@
 .co-layout .co-admin-referencia .co-admin-tabs button[aria-pressed="true"] { color:#005ce0; background:#fff; box-shadow:inset 0 -3px #0864df; font-weight:650; }
 .co-layout .co-admin-referencia .co-admin-tabs button:hover { background:#eef4fc; }
 .co-layout .co-admin-referencia .admin-distribucion { grid-template-columns:minmax(0,1fr); gap:16px; }
-.co-layout .co-admin-referencia .admin-menu { display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding:0 0 1px; background:transparent; border:0; border-bottom:1px solid #d9e4f3; border-radius:0; }
-.co-layout .co-admin-referencia .admin-menu button { display:flex; align-items:center; justify-content:flex-start; gap:8px; min-height:44px; padding:9px 12px; border:0; border-radius:8px 8px 0 0; background:transparent; color:#4b6389; font-size:13px; font-weight:550; }
+.co-layout .co-admin-referencia .admin-menu { display:flex; align-items:stretch; flex-wrap:wrap; gap:4px; padding:0; background:transparent; border:0; border-bottom:1px solid #d6e1f0; border-radius:0; }
+.co-layout .co-admin-referencia .admin-menu button { display:flex; align-items:center; justify-content:center; gap:8px; flex:1 1 0; min-width:0; min-height:54px; padding:12px 16px; border:0; border-radius:10px 10px 0 0; background:#edf3fb; color:var(--co-navy); font:inherit; line-height:1.4; cursor:pointer; }
 .co-layout .co-admin-referencia .admin-menu button[aria-current] { background:#fff; color:#005de0; box-shadow:inset 0 -3px #0864df; }
 .co-layout .co-admin-referencia .admin-menu button:hover { background:#edf4ff; }
-.co-layout .co-admin-referencia .admin-menu button>span:last-child { display:grid; place-items:center; min-width:25px; height:25px; padding:0 7px; background:#e1ebfa; border-radius:15px; font-size:12px; color:#3d5d8e; }
-.co-layout .co-admin-referencia .admin-menu .co-gestion-actualizar { margin-left:auto; min-height:44px; padding:9px 12px; font-size:13px; }
+.co-layout .co-admin-referencia .admin-menu .co-gestion-actualizar { flex:0 0 44px; margin-left:0; min-height:44px; padding:9px 12px; font-size:13px; background:transparent; }
+.co-layout .co-admin-referencia .admin-menu button[aria-current] { font-weight:600; }
+.co-layout .co-admin-referencia .admin-menu button:focus-visible { outline:2px solid var(--co-primary); outline-offset:-4px; }
+.co-layout .co-admin-referencia .admin-menu button>span:first-child { min-width:0; }
 .co-layout .co-admin-referencia .panel-informacion { border:1px solid #dce6f4; border-radius:12px; box-shadow:none; padding:18px; margin:0; }
 .co-layout .co-admin-referencia .admin-contenido>.planta-encabezado { align-items:center; gap:14px; }
 .co-layout .co-admin-referencia h2 { margin:0; font-size:20px; line-height:1.3; }
@@ -91,3 +93,40 @@
  .co-layout .co-admin-referencia .co-operadores-filtro select { width:100%; }
 }
 @media print { .co-layout .co-admin-referencia .co-tabla-avisos { min-width:0; } }
+
+.co-layout .co-administracion .co-admin-referencia .co-admin-nuevo { width:44px; height:44px; min-width:44px; padding:0; flex-shrink:0; }
+
+.co-layout .co-admin-referencia .admin-menu .co-admin-total-activos { display:grid; place-items:center; min-width:25px; height:25px; padding:0 7px; background:#fcebea; border-radius:15px; font-size:12px; font-weight:650; color:#b42318; }
+
+.co-layout .co-admin-referencia .admin-menu .co-admin-total-activos[data-vacio="true"] { background:#edf0f4; color:#526174; }
+
+/* Solo navegación principal: conserva intactas las pestañas interiores. */
+.co-layout .co-main .co-administracion .co-admin-referencia > .co-admin-tabs {
+ display:flex; align-items:stretch; flex-wrap:wrap; gap:8px; padding:6px;
+ border:1px solid var(--co-border); border-radius:10px; background:#edf3fb;
+}
+.co-layout .co-main .co-administracion .co-admin-referencia > .co-admin-tabs > button {
+ display:flex; align-items:center; justify-content:center; flex:1 1 0; min-width:0;
+ min-height:48px; padding:11px 12px; border:1px solid transparent; border-radius:8px;
+ background:transparent; color:#3c5d89; box-shadow:none; font-family:var(--co-font);
+ font-size:14px; font-weight:600; line-height:1.4;
+}
+.co-layout .co-main .co-administracion .co-admin-referencia > .co-admin-tabs > button:hover {
+ background:#e5eefb;
+}
+.co-layout .co-main .co-administracion .co-admin-referencia > .co-admin-tabs > button[aria-pressed="true"] {
+ background:#002d72; border-color:#00265f; color:#fff; box-shadow:0 4px 8px #002d7220;
+}
+@media(max-width:600px) {
+ .co-layout .co-main .co-administracion .co-admin-referencia > .co-admin-tabs > button {
+  flex:1 1 120px; padding:10px 8px; font-size:13px;
+ }
+}
+/* Menús interiores compactos de Catálogos y Capturas. */
+.co-layout .co-main .co-administracion > .admin-panel { row-gap:16px; }
+.co-layout .co-main .co-administracion .co-admin-referencia :is(.admin-menu,.gestion-capturas-tabs) {
+ margin-top:0; padding-top:0;
+}
+.co-layout .co-main .co-administracion .co-admin-referencia :is(.admin-menu,.gestion-capturas-tabs) > button {
+ min-height:44px; padding:6px 12px;
+}

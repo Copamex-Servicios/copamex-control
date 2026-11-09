@@ -1,0 +1,136 @@
+/* Adaptación de pantalla: el diseño aprobado desde 1200px y la impresión no cambian. */
+@media screen and (max-width:1199px) {
+  /* Etapa 1: navegación y contenedores compartidos. */
+  .co-layout.co-layout-horizontal .co-barra-superior {
+    display:grid; grid-template-columns:auto minmax(0,1fr) auto;
+    align-items:center; gap:10px 14px; padding:12px 16px;
+  }
+  .co-layout.co-layout-horizontal .co-barra-logo { grid-column:1; grid-row:1; padding:0; border:0; }
+  .co-layout.co-layout-horizontal .co-barra-logo img { width:52px; height:52px; }
+  .co-layout.co-layout-horizontal .co-barra-fecha {
+    display:grid; grid-column:2; grid-row:1; min-width:0; padding:0; border:0; font-size:12px;
+  }
+  .co-layout.co-layout-horizontal .co-barra-fecha strong { font-size:16px; }
+  .co-layout.co-layout-horizontal .co-barra-menu {
+    display:inline-flex; grid-column:3; grid-row:1; min-height:44px; border-color:#6683a7;
+  }
+  .co-layout.co-layout-horizontal .co-barra-cuenta {
+    grid-column:1/-1; grid-row:2; display:flex; justify-content:space-between;
+    max-width:none; width:100%; min-width:0; margin:0; gap:12px;
+  }
+  .co-layout.co-layout-horizontal .co-barra-cuenta strong { overflow-wrap:anywhere; }
+  .co-layout.co-layout-horizontal .co-barra-cuenta button { min-height:44px; }
+  .co-layout.co-layout-horizontal .co-barra-enlaces {
+    display:none; grid-column:1/-1; grid-row:3; min-width:0;
+    padding:10px 0 0; border-top:1px solid #6683a7;
+  }
+  .co-layout.co-layout-horizontal .co-barra-enlaces.co-barra-abierta {
+    display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px;
+    max-height:60dvh; overflow-y:auto; overscroll-behavior:contain;
+  }
+  .co-layout.co-layout-horizontal .co-barra-enlaces :is(a,button) {
+    width:100%; min-width:0; min-height:44px; justify-content:flex-start;
+    padding:10px; white-space:normal; overflow-wrap:anywhere; text-align:left;
+  }
+  .co-layout.co-layout-horizontal .co-barra-submenu {
+    display:grid; grid-column:1/-1; grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:6px; padding:6px; border:1px solid #6683a7; border-radius:7px;
+  }
+  .co-layout.co-layout-horizontal .co-main { padding:20px 16px; }
+  .co-layout.co-layout-horizontal .co-main :is(section,article,form,fieldset,label,details,dl) { min-width:0; }
+  .co-layout.co-layout-horizontal .co-main fieldset { min-inline-size:0; }
+  .co-layout.co-layout-horizontal .co-main :is(input,select,textarea) { min-width:0; max-width:100%; box-sizing:border-box; }
+  .co-layout.co-layout-horizontal .co-main :is(.planta-encabezado,.calidad-encabezado,.cabecera-turno,.co-section-heading,.bc-historial-cabecera,.bpt-historial-cabecera) {
+    flex-wrap:wrap; gap:10px;
+  }
+  .co-layout.co-layout-horizontal .co-main :is(.co-table-scroll,.planta-tabla-scroll,.tabla-calidad-contenedor,.ptar-tabla-contenedor,.uf-historial-tabla,.rep-traza-comparacion) {
+    width:100%; min-width:0; max-width:100%; overflow-x:auto; overscroll-behavior-x:contain;
+  }
+  .co-layout.co-layout-horizontal dialog {
+    box-sizing:border-box; max-width:calc(100vw - 24px); max-height:calc(100dvh - 24px); overflow-y:auto;
+  }
+  /* Etapa 3: filtros de consulta que necesitan más espacio en tablet. */
+  .co-layout.co-layout-horizontal .co-main :is(.gestion-filtros-tecnicos,.ct-filtros,.planta-formulario,.supervision-periodo,.supervision-filtros-registros) {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+@media screen and (max-width:767px) {
+  .co-layout.co-layout-horizontal .co-main { padding:16px 12px; }
+  .co-layout.co-layout-horizontal .co-main :is(.panel-informacion,.bc-panel,.bpt-panel,.calidad-referencia,.co-card) { padding:14px; }
+  .co-layout.co-layout-horizontal .co-main :is(h1,h2,h3,h4,dt,dd,legend,summary) { overflow-wrap:anywhere; }
+  .co-layout.co-layout-horizontal .co-main :is(button,summary) { min-height:44px; }
+  .co-layout.co-layout-horizontal .co-main button { max-width:100%; white-space:normal; overflow-wrap:anywhere; }
+  .co-layout.co-layout-horizontal .co-main :is(input:not([type=checkbox]):not([type=radio]),select,textarea) {
+    width:100%; min-height:44px; font-size:16px;
+  }
+  .co-layout.co-layout-horizontal .co-main textarea { resize:vertical; }
+  .co-layout.co-layout-horizontal .co-main :is(.acciones-turno,.co-programacion-acciones,.rep-acciones,.planta-paginacion) {
+    display:flex; flex-direction:row; flex-wrap:wrap; gap:10px;
+  }
+  .co-layout.co-layout-horizontal .co-main :is(.acciones-turno,.co-programacion-acciones,.rep-acciones)>button { flex:1 1 130px; }
+  .co-layout.co-layout-horizontal .co-main :is(.pestanas-modulos,.reportes-menu,.admin-menu,.co-admin-tabs,.supervision-tabs) {
+    display:flex; flex-wrap:wrap; gap:6px; min-width:0;
+  }
+  .co-layout.co-layout-horizontal .co-main :is(.pestanas-modulos,.reportes-menu,.admin-menu,.co-admin-tabs,.supervision-tabs)>button {
+    flex:1 1 120px; min-width:0; padding:10px 8px;
+  }
+  .co-layout.co-layout-horizontal .co-main :is(.bc-tabs,.bpt-tabs) { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .co-layout.co-layout-horizontal .co-main :is(.bc-tabs,.bpt-tabs) button { white-space:normal; min-height:44px; }
+
+  /* Etapa 2: captura y paneles operativos; mismos campos y acciones. */
+  .co-layout.co-layout-horizontal .co-operativo-referencia[data-area] .co-encabezado-operativo.co-paneles-compactos {
+    grid-template-columns:minmax(0,1fr);
+  }
+  .co-layout.co-layout-horizontal .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno { grid-column:1; }
+  .co-layout.co-layout-horizontal .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .turno-actual>.datos-turno {
+    grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;
+  }
+  .co-layout.co-layout-horizontal .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .resumen-dia-produccion {
+    grid-template-columns:minmax(0,1fr);
+  }
+  .co-layout.co-layout-horizontal .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno .formulario-turno:has(>.campos-turno) {
+    grid-template-columns:minmax(0,1fr);
+  }
+  .co-layout.co-layout-horizontal .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno .formulario-turno>.acciones-turno {
+    grid-column:1; grid-row:auto; padding-top:0;
+  }
+  .co-layout.co-layout-horizontal .co-operativo-referencia[data-area] .co-paneles-compactos.co-encabezado-operativo .panel-turno .formulario-turno>.campos-turno {
+    grid-template-columns:minmax(0,1fr);
+  }
+  .co-layout.co-layout-horizontal .co-main :is(.mediciones-grupos,.mediciones-entradas,.mediciones-balance,.admin-campos,.campos-turno,.calidad-campos) {
+    grid-template-columns:minmax(0,1fr);
+  }
+  .co-layout.co-layout-horizontal .co-main :is(.admin-campos,.campos-turno) > * { grid-column:1/-1; grid-row:auto; }
+  .co-layout.co-layout-horizontal .co-main :is(.bc-mediciones,.bpt-mediciones,.bc-pilas,.bc-grupos-equipos) { grid-template-columns:minmax(0,1fr); }
+  .co-layout.co-layout-horizontal .co-main .bc-equipo { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .co-layout.co-layout-horizontal .co-main :is(.bc-filtros-tecnicos,.bpt-filtros-tecnicos,.calidad-filtros,.ct-filtros) {
+    grid-template-columns:minmax(0,1fr);
+  }
+  .co-layout.co-layout-horizontal .co-main :is(.bc-contenido,.bpt-contenido,.calidad-tarjeta) { padding:12px; }
+  .co-layout.co-layout-horizontal .co-main :is(.bc-pie,.bpt-pie) { flex-wrap:wrap; gap:12px; }
+  .co-layout.co-layout-horizontal .co-main .avisos-visibles { position:static; padding:12px; }
+  .co-layout.co-layout-horizontal .co-main .avisos-visibles-cabecera { flex-wrap:wrap; }
+
+  /* Etapa 3: consultas, historiales, Administración y exportaciones. */
+  .co-layout.co-layout-horizontal .co-main :is(.planta-formulario,.planta-busqueda,.supervision-periodo,.supervision-filtros-registros,.gestion-filtros-tecnicos) {
+    grid-template-columns:minmax(0,1fr);
+  }
+  .co-layout.co-layout-horizontal .co-main .ct-turno { grid-template-columns:minmax(0,1fr); }
+  .co-layout.co-layout-horizontal .co-main .co-programacion-formulario .admin-campos { grid-template-columns:minmax(0,1fr); }
+  .co-layout.co-layout-horizontal .co-main .planta-paginacion { justify-content:flex-start; }
+  .co-layout.co-layout-horizontal .co-main :is(.rep-traza-datos,.co-ficha-identidad,.co-ficha-fechas) { grid-template-columns:minmax(0,1fr); }
+  .co-layout.co-layout-horizontal .co-main pre { max-width:100%; white-space:pre-wrap; overflow-wrap:anywhere; }
+  .co-layout.co-layout-horizontal .co-main .monitor-concesion-datos>div { min-width:0; }
+  .co-layout.co-layout-horizontal .co-main .monitor-concesion-datos strong { overflow-wrap:anywhere; }
+}
+
+@media screen and (max-width:374px) {
+  .co-layout.co-layout-horizontal .co-main { padding:12px 8px; }
+  .co-layout.co-layout-horizontal .co-main :is(.panel-informacion,.bc-panel,.bpt-panel,.calidad-referencia) { padding:10px; }
+  .co-layout.co-layout-horizontal .co-barra-superior { padding:10px 12px; gap:8px; }
+  .co-layout.co-layout-horizontal .co-barra-fecha { font-size:11px; }
+  .co-layout.co-layout-horizontal .co-barra-enlaces.co-barra-abierta,
+  .co-layout.co-layout-horizontal .co-barra-submenu { grid-template-columns:minmax(0,1fr); }
+  .co-layout.co-layout-horizontal .co-main .bc-equipo { grid-template-columns:minmax(0,1fr); }
+}

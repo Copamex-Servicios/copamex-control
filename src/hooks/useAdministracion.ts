@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { cacheConsultas } from '../lib/cacheConsultas'
+import { notificarInformacionActualizada } from '../lib/actualizacionInformacion'
 import { useAuth } from './useAuth'
 import { consultarAdministracion, establecerPendienteAdmin, exigirAdmin, guardarAdministracion, pendienteAdmin, ErrorAdmin } from '../lib/administracion'
 import type { DatosAdmin, FilaAdmin, SolicitudAdmin, TablaAdmin } from '../lib/administracion'
@@ -46,6 +47,7 @@ export function useAdministracion() {
       establecerPendienteAdmin(cuenta, null)
       setVista(v => ({ ...v, guardando: false, pendiente: null, mensaje: 'Registro guardado y confirmado.', error: null }))
       actualizarRef.current()
+      if (['avisos', 'programa_produccion', 'eventos_calendario', 'maquinas', 'catalogo_papeles'].includes(s.tabla)) notificarInformacionActualizada()
       return fila
     } catch (e) {
       try { exigirAdmin(cuenta) } catch { return null }

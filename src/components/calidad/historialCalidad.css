@@ -15,6 +15,9 @@
 .co-layout article.calidad-historial-ficha .calidad-historial-filtros { display:flex; flex-wrap:wrap; gap:6px; }
 .co-layout article.calidad-historial-ficha .calidad-historial-filtros button { min-height:40px; padding:8px 12px; border:1px solid #b8cfea; border-radius:6px; background:#fff; color:var(--co-text); font:inherit; font-size:13px; font-weight:600; cursor:pointer; }
 .co-layout article.calidad-historial-ficha .calidad-historial-filtros button[aria-pressed="true"] { background:#173e70; border-color:#173e70; color:#fff; }
+.co-layout article.calidad-historial-ficha .calidad-historial-filtros .calidad-exportar-excel { background:#166534; border-color:#166534; color:#fff; }
+.co-layout article.calidad-historial-ficha .calidad-historial-filtros .calidad-exportar-excel:hover:not(:disabled) { background:#14532d; border-color:#14532d; }
+.co-layout article.calidad-historial-ficha .calidad-historial-filtros .calidad-exportar-excel:disabled { opacity:.6; cursor:wait; }
 .co-layout article.calidad-historial-ficha .tabla-calidad-contenedor { margin:0; }
 .co-layout article.calidad-historial-ficha table.co-ficha-tabla { width:100%; min-width:0; font-size:14px; }
 .co-layout article.calidad-historial-ficha .co-ficha-tabla caption { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); padding:0; }

@@ -1,4 +1,5 @@
 import { useId, useRef, useState } from 'react'
+import { mayusculasNota } from '../../lib/notasOperativas'
 import type { FormEvent, ReactNode } from 'react'
 import { ErrorBitacora, validarCamposBitacora } from '../../lib/bitacora'
 import type { CamposBitacora, LecturaBitacora } from '../../lib/tiposBitacora'
@@ -35,7 +36,7 @@ export function FormularioBitacora({ original, deshabilitado, alGuardar, accionS
         aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-error` : undefined}
         onChange={e => {
           if (bloqueado || activo.current) return
-          setTexto(e.target.value); setError(null)
+          setTexto(mayusculasNota(e.target.value)); setError(null)
         }} />
     </div>
     {error && <p id={`${id}-error`} className="mensaje-error" role="alert">{error}</p>}

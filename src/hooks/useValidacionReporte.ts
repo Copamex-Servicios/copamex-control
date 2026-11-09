@@ -8,7 +8,7 @@ export function revisarCamposReporte(raiz: HTMLElement): FaltaReporte[] {
     const radios = new Set<string>()
     panel.querySelectorAll<Campo>('input,select,textarea').forEach(campo => {
       campo.removeAttribute('aria-invalid')
-      if (campo.matches(':disabled') || campo.id.endsWith('-uf-comentarios') || campo.id.endsWith('-comentario-prensas')) return
+      if (campo.matches(':disabled') || campo.id.endsWith('-uf-comentarios') || campo.id.endsWith('-pilas-comentarios') || campo.id.endsWith('-comentario-prensas')) return
       // Una casilla desmarcada significa fuera de servicio, no una respuesta faltante.
       if (campo instanceof HTMLInputElement && campo.type === 'checkbox') return
       let vacio = !campo.value.trim() || !campo.validity.valid

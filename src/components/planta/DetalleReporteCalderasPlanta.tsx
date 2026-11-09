@@ -68,9 +68,10 @@ export function DetalleReporteCalderasPlanta({ reporte }: { reporte: ReporteTecn
           <dl className="pcr-pila-datos">
             <Dato nombre="Nivel" valor={b.pilas[p.id].nivel} unidad="%" />
             <Dato nombre="Bomba" valor={b.pilas[p.id].bomba} vacio="Sin registrar" />
-            <Dato nombre="Presión" valor={b.pilas[p.id].presion} unidad="kg/cm²" />
+            <Dato nombre="Presión" valor={b.pilas[p.id].presion} unidad={p.unidadPresion} />
           </dl>
         </section>)}</div>
+        {b.comentariosPilas && <dl className="pcr-datos"><Dato nombre="Comentarios relevantes de Pilas de suministro" valor={b.comentariosPilas} /></dl>}
       </Seccion>
 
       <Seccion titulo="Agua potable y pozos">

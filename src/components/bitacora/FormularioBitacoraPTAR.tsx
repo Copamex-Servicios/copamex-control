@@ -1,5 +1,7 @@
 import { useValidacionReporte } from '../../hooks/useValidacionReporte'
 import { GuardadoReporteTecnico } from './GuardadoReporteTecnico'
+import { mayusculasNota } from '../../lib/notasOperativas'
+import { CabeceraReporteTecnico } from './CabeceraReporteTecnico'
 import { Fragment, useEffect, useId, useRef, useState } from 'react'
 import type { KeyboardEvent, ReactNode } from 'react'
 import { bombasBitacoraPTAR, destinosDescargaPTAR, medicionesBitacoraPTAR, prensasBitacoraPTAR } from '../../lib/tiposBitacoraPTAR'
@@ -52,6 +54,8 @@ export function FormularioBitacoraPTAR({ captura, observaciones }: { captura: Re
     evento.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[siguiente]?.focus({ preventScroll: true })
   }
   return <div ref={raizValidacion} onChangeCapture={actualizarValidacion} className="bpt-formulario">
+    {operacion && <CabeceraReporteTecnico titulo="Bitácora de PTAR" estado={operacion.estadoDelReporte}
+      puedeEditar={operacion.puedeEditar} editando={operacion.editando} editar={operacion.editar} />}
     {faltasValidacion.length > 0 && <p className="reporte-aviso-campos" role="alert">Completa todos los campos</p>}
     <div ref={tabsRef} className="bpt-tabs" role="tablist" aria-label="Secciones de Bitácora de PTAR">
       {pestanas.map((pestana, indice) => <button key={pestana.nombre} type="button" role="tab"
@@ -76,14 +80,31 @@ export function FormularioBitacoraPTAR({ captura, observaciones }: { captura: Re
               value={borrador.mediciones[m.campo]} onChange={e => setBorrador(b => ({ ...b, mediciones: { ...b.mediciones, [m.campo]: e.target.value } }))} />
               <span className="bpt-unidad" aria-hidden="true">{m.unidad}</span></span>
           </label></Fragment>)}
-          {indice === 1 && <fieldset className="bpt-descarga bpt-ancho" disabled={!habilitado}>
-            <legend>Descarga del DAF Chino</legend>
-            <div className="bpt-destinos">{destinosDescargaPTAR.map(destino => <label className="bpt-destino" key={destino}>
-              <input type="radio" name={`${prefijo}-descarga-daf`} value={destino} checked={borrador.destinoDescarga === destino}
-                onChange={() => setBorrador(b => ({ ...b, destinoDescarga: destino }))} />
-              <span>{destino}</span>
-            </label>)}</div>
-          </fieldset>}
+          {indice === 1 && <div className="bpt-daf-destino-horas bpt-ancho">
+            <fieldset className="bpt-descarga" disabled={!habilitado}>
+              <legend>Destino principal del DAF Chino</legend>
+              <div className="bpt-destinos">{destinosDescargaPTAR.map(destino => <label className="bpt-destino" key={destino}>
+                <input type="radio" name={`${prefijo}-descarga-daf`} value={destino} checked={borrador.destinoDescarga === destino}
+                  onChange={() => setBorrador(b => ({ ...b, destinoDescarga: destino }))} />
+                <span>{destino}</span>
+              </label>)}</div>
+            </fieldset>
+            <div className="bpt-mediciones bpt-horas-descarga">
+              <p className="bpt-ayuda bpt-ancho">Escribe 0 si no se utilizó.</p>
+              <label className="bpt-campo" htmlFor={`${prefijo}-horas-tanque-11`}>
+                <span>Horas en tanque 11</span>
+                <span className="bpt-control bpt-con-unidad"><input id={`${prefijo}-horas-tanque-11`} type="number" min="0" step="any" inputMode="decimal" required disabled={!habilitado}
+                  value={borrador.horasDescarga.tanque11} onChange={e => setBorrador(b => ({ ...b, horasDescarga: { ...b.horasDescarga, tanque11: e.target.value } }))} />
+                  <span className="bpt-unidad" aria-hidden="true">h</span></span>
+              </label>
+              <label className="bpt-campo" htmlFor={`${prefijo}-horas-tanques-5-6`}>
+                <span>Horas en tanques 5 y 6</span>
+                <span className="bpt-control bpt-con-unidad"><input id={`${prefijo}-horas-tanques-5-6`} type="number" min="0" step="any" inputMode="decimal" required disabled={!habilitado}
+                  value={borrador.horasDescarga.tanques56} onChange={e => setBorrador(b => ({ ...b, horasDescarga: { ...b.horasDescarga, tanques56: e.target.value } }))} />
+                  <span className="bpt-unidad" aria-hidden="true">h</span></span>
+              </label>
+            </div>
+          </div>}
         </div>}
         {indice === 1 && <>
           <h4 className="bpt-subtitulo">Modo de operación de las bombas</h4>
@@ -96,21 +117,31 @@ export function FormularioBitacoraPTAR({ captura, observaciones }: { captura: Re
           </label>)}</div>
         </>}
         {indice === 4 && <div className="bpt-mediciones bpt-prensas">
-          {prensasBitacoraPTAR.map(prensa => <label className="bpt-campo" key={prensa} htmlFor={`${prefijo}-prensa-${prensa}`}>
-            <span>Prensa {prensa}</span>
-            <select aria-label={`Prensa ${prensa}`} id={`${prefijo}-prensa-${prensa}`} disabled={!habilitado} value={borrador.prensas[prensa]}
-              onChange={e => setBorrador(b => ({ ...b, prensas: { ...b.prensas, [prensa]: e.target.value as EstadoPrensaPTAR } }))}>
-              <option value="">Selecciona</option>{['Servicio', 'Reserva', 'Mantenimiento'].map(v => <option key={v}>{v}</option>)}
-            </select>
-          </label>)}
+          {prensasBitacoraPTAR.map(prensa => <div className="bpt-prensa" key={prensa}>
+            <label className="bpt-campo" htmlFor={prefijo + '-prensa-' + prensa}>
+              <span>Prensa {prensa}</span>
+              <select aria-label={'Prensa ' + prensa} id={prefijo + '-prensa-' + prensa} disabled={!habilitado} value={borrador.prensas[prensa]}
+                onChange={e => setBorrador(b => ({ ...b, prensas: { ...b.prensas, [prensa]: e.target.value as EstadoPrensaPTAR } }))}>
+                <option value="">Selecciona</option>{['Servicio', 'Reserva', 'Mantenimiento'].map(v => <option key={v}>{v}</option>)}
+              </select>
+            </label>
+            <label className="bpt-campo" htmlFor={prefijo + '-velocidad-' + prensa}>
+              <span>Velocidad</span>
+              <span className="bpt-control bpt-con-unidad"><input id={prefijo + '-velocidad-' + prensa} aria-label={'Velocidad de prensa ' + prensa + ' (m/min)'}
+                type="number" min="0" step="any" inputMode="decimal" value={borrador.velocidadesPrensas?.[prensa] ?? ''}
+                disabled={!habilitado || !!captura.reporte && !captura.reporte.borrador.reporteRelevante}
+                onChange={e => setBorrador(b => ({ ...b, velocidadesPrensas: { ...b.velocidadesPrensas, [prensa]: e.target.value } }))} />
+                <span className="bpt-unidad" aria-hidden="true">m/min</span></span>
+            </label>
+          </div>)}
           <label className="bpt-campo bpt-ancho" htmlFor={`${prefijo}-comentario-prensas`}>
             <span>Motivo por el cual la prensa está parada</span>
             <textarea id={`${prefijo}-comentario-prensas`} rows={3} disabled={!habilitado} value={borrador.comentarioPrensas}
-              onChange={e => setBorrador(b => ({ ...b, comentarioPrensas: e.target.value }))} />
+              onChange={e => setBorrador(b => ({ ...b, comentarioPrensas: mayusculasNota(e.target.value) }))} />
           </label>
           <label className="bpt-campo bpt-ancho" htmlFor={`${prefijo}-reporte-relevante`}><span>Reporte relevante del turno</span>
             <textarea aria-label="Reporte relevante del turno" id={`${prefijo}-reporte-relevante`} rows={4} required={!!operacion || !!captura.reporte?.borrador.reporteRelevante} maxLength={4000} disabled={!habilitado} value={borrador.reporteRelevante}
-              onChange={e => setBorrador(b => ({ ...b, reporteRelevante: e.target.value }))} /></label>
+              onChange={e => setBorrador(b => ({ ...b, reporteRelevante: mayusculasNota(e.target.value) }))} /></label>
         </div>}
         {indice === 5 && observaciones}
       </div>

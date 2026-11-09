@@ -1,5 +1,7 @@
 import { supabase } from './supabase'
+import { mayusculasNota } from './notasOperativas'
 import { esFechaOperativa, esTipoTurno } from './turnos'
+import { etiquetaOperadoresTurno, leerNombreOperadorAcompanante, relacionOperadorAcompanante, relacionOperadorPrincipal } from './tiposTurno'
 import type { CamposBitacora, LecturaBitacora, RegistroBitacora, SolicitudGuardadoBitacora, ValoresBitacora } from './tiposBitacora'
 export type { RegistroBitacora, SolicitudGuardadoBitacora } from './tiposBitacora'
 
@@ -15,7 +17,7 @@ function objeto(v: unknown, incierto = false): Record<string, unknown> {
 }
 export function validarCamposBitacora(campos: CamposBitacora): ValoresBitacora {
   if (typeof campos.texto !== 'string' || !campos.texto.trim()) throw new ErrorBitacora('Escribe lo relevante del turno antes de guardar la nota.')
-  return { texto: campos.texto.trim() }
+  return { texto: mayusculasNota(campos.texto).trim() }
 }
 export function originalBitacora(m: LecturaBitacora): ValoresBitacora { return { texto: m.texto } }
 export function leerLecturaBitacora(v: unknown, incierto = false): LecturaBitacora {
@@ -28,17 +30,18 @@ export function leerLecturaBitacora(v: unknown, incierto = false): LecturaBitaco
 }
 export function leerRegistroBitacora(v: unknown): RegistroBitacora {
   const m = objeto(v), lectura = leerLecturaBitacora(m), t = objeto(m.turno), o = objeto(t.operador)
-  const { id, fecha_operativa, area, turno, operador_id, iniciado_por, iniciado_en, finalizado_en, notas_cierre } = t
+  const acompananteNombre = leerNombreOperadorAcompanante(t)
+  const { id, fecha_operativa, area, turno, operador_id, operador_acompanante_id, iniciado_por, iniciado_en, finalizado_en, notas_cierre } = t
   if (id !== lectura.turno_id || !esFechaOperativa(fecha_operativa) || (area !== 'calderas' && area !== 'ptar')
-    || !esTipoTurno(turno) || !uuid(operador_id) || iniciado_por !== lectura.creado_por || !instante(iniciado_en)
+    || !esTipoTurno(turno) || !uuid(operador_id) || (operador_acompanante_id !== null && !uuid(operador_acompanante_id)) || iniciado_por !== lectura.creado_por || !instante(iniciado_en)
     || Date.parse(lectura.capturado_en) < Date.parse(iniciado_en)
     || (finalizado_en !== null && (!instante(finalizado_en) || Date.parse(finalizado_en) < Date.parse(lectura.capturado_en)))
     || (notas_cierre !== null && typeof notas_cierre !== 'string') || o.id !== operador_id || typeof o.nombre !== 'string' || !o.nombre.trim()) {
     throw new ErrorBitacora('No se pudo comprobar el turno de la nota. Actualiza.')
   }
-  return { lectura, turno: { id, fecha_operativa, area, turno, operador_id, iniciado_por: lectura.creado_por, iniciado_en, finalizado_en, notas_cierre }, operadorNombre: o.nombre }
+  return { lectura, turno: { id, fecha_operativa, area, turno, operador_id, operador_acompanante_id, iniciado_por: lectura.creado_por, iniciado_en, finalizado_en, notas_cierre }, operadorNombre: etiquetaOperadoresTurno(o.nombre, acompananteNombre) }
 }
-const seleccion = 'id,turno_id,texto,capturado_en,recibido_en,creado_por,eliminado_en,eliminado_por,turno:turnos_operativos!inner(id,fecha_operativa,area,turno,operador_id,iniciado_por,iniciado_en,finalizado_en,notas_cierre,operador:operadores!inner(id,nombre))'
+const seleccion = `id,turno_id,texto,capturado_en,recibido_en,creado_por,eliminado_en,eliminado_por,turno:turnos_operativos!inner(id,fecha_operativa,area,turno,operador_id,operador_acompanante_id,iniciado_por,iniciado_en,finalizado_en,notas_cierre,${relacionOperadorPrincipal},${relacionOperadorAcompanante})`
 function fallo(error: unknown, mensaje: string, mutacion = false): never {
   const e = error && typeof error === 'object' ? error as Record<string, unknown> : {}
   const codigo = typeof e.code === 'string' ? e.code : ''

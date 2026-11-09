@@ -7,7 +7,7 @@ import { AppLayout } from '../components/diseno/AppLayout'
 import { InicioDashboard } from '../components/diseno/InicioDashboard'
 import type { AccesoVisual } from '../components/diseno/tipos'
 import { lazy, Suspense, useRef, useState, type ReactNode } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import type { RolUsuario } from '../lib/tiposAuth'
 
@@ -17,8 +17,10 @@ const PanelReportes = lazy(() => import('../components/reportes/PanelReportes').
 const PanelAdministracion = lazy(() => import('../components/administracion/PanelAdministracion').then(modulo => ({ default: modulo.PanelAdministracion })))
 const PanelPlanta = lazy(() => import('../components/planta/PanelPlanta').then(modulo => ({ default: modulo.PanelPlanta })))
 const PanelOperativo = lazy(() => import('../components/operativo/PanelOperativo').then(modulo => ({ default: modulo.PanelOperativo })))
+const PanelBitacoraAdministrativa = lazy(() => import('../components/bitacoraAdministrativa/BitacoraAdministrativa').then(m => ({ default: m.PanelBitacoraAdministrativa })))
+const NovedadesAdministracion = lazy(() => import('../components/bitacoraAdministrativa/BitacoraAdministrativa').then(m => ({ default: m.NovedadesAdministracion })))
 
-type VistaInicio = 'inicio' | 'calderas' | 'ptar' | 'planta' | 'administracion' | 'reportes' | 'calidad' | 'gestion' | 'limites'
+type VistaInicio = 'inicio' | 'calderas' | 'ptar' | 'planta' | 'administracion' | 'reportes' | 'calidad' | 'gestion' | 'limites' | 'novedades' | 'bitacora_admin'
 
 interface PropsInicio {
   vista?: VistaInicio
@@ -39,6 +41,7 @@ const nombresRol: Record<RolUsuario, string> = {
 }
 
 const paginas: Record<Exclude<VistaInicio, 'inicio'>, Pagina> = {
+  bitacora_admin: { titulo: 'Bit\u00e1cora', ruta: '/bitacora-administrativa', descripcion: 'Actividades de Administraci\u00f3n por \u00e1rea e historial mensual.', roles: ['admin'] },
   calidad: { titulo: 'Calidad de agua', ruta: '/calidad', descripcion: 'Consulta de mediciones de ambas áreas.', roles: ['calidad'] },
   gestion: { titulo: 'Avisos y producción', ruta: '/gestion', descripcion: 'Avisos, producción y calendario.', roles: ['calidad'] },
   calderas: {
@@ -63,6 +66,7 @@ const paginas: Record<Exclude<VistaInicio, 'inicio'>, Pagina> = {
     descripcion: 'Operadores, avisos, producción, calendario y catálogos.',
     roles: ['admin'],
   },
+  novedades: { titulo: 'Novedades', ruta: '/novedades', descripcion: 'Consulta mensual de actividades de Administración.', roles: ['calderas', 'ptar'] },
 }
 
 // Limpiar las vistas conservadas al cambiar de cuenta, rol o acceso.
@@ -79,12 +83,17 @@ function VistaConservada({ activa, children }: { activa: boolean; children: Reac
 }
 function ContenidoInicio({ vista = 'inicio' }: PropsInicio = {}) {
   const { sesion, perfil, estado, cerrarSesion } = useAuth()
+  const navigate = useNavigate()
   const [seleccionPTAR, cambiarPTAR] = useState({ modulo: 'bitacora' as ModuloOperativo, revision: 0 })
   const moduloPTAR = seleccionPTAR.modulo
   const setModuloPTAR = (modulo: ModuloOperativo) => cambiarPTAR(anterior => ({ modulo, revision: anterior.revision + 1 }))
   const [seleccionCalderas, cambiarCalderas] = useState({ modulo: 'bitacora' as ModuloOperativo, revision: 0 })
   const moduloCalderas = seleccionCalderas.modulo
   const setModuloCalderas = (modulo: ModuloOperativo) => cambiarCalderas(anterior => ({ modulo, revision: anterior.revision + 1 }))
+  const abrirBitacoraArea = (ruta: string) => {
+    if (ruta === '/calderas' || (ruta === '/' && perfil?.rol === 'calderas')) setModuloCalderas('bitacora')
+    if (ruta === '/ptar' || (ruta === '/' && perfil?.rol === 'ptar')) setModuloPTAR('bitacora')
+  }
   const [error, setError] = useState<string | null>(null)
   const [cerrando, setCerrando] = useState(false)
   const salidaActiva = useRef(false)
@@ -115,31 +124,46 @@ function ContenidoInicio({ vista = 'inicio' }: PropsInicio = {}) {
     return <Navigate to="/sin-acceso" replace state={{ desde: pagina.ruta, motivo: 'rol' }} />
   }
   const accesos = Object.values(paginas).filter((opcion) => opcion.roles.includes(perfil.rol)
-    && (perfil.rol !== 'admin' || (opcion.ruta !== '/calderas' && opcion.ruta !== '/ptar')))
+    && (perfil.rol !== 'admin' || !['/calderas', '/ptar', '/planta', '/reportes'].includes(opcion.ruta)))
   const visuales: AccesoVisual[] = accesos.map(opcion => ({ titulo: opcion.titulo, ruta: opcion.ruta,
-    icono: opcion.ruta === '/calidad' || opcion.ruta === '/calidad/limites' ? 'calidad' : opcion.ruta === '/calderas' ? 'calderas' : opcion.ruta === '/ptar' ? 'ptar' : opcion.ruta === '/planta' ? 'planta' : opcion.ruta === '/reportes' ? 'reportes' : 'administracion',
-    descripcion: opcion.ruta === '/calidad/limites' ? 'Administra los límites de calidad del sistema.' : opcion.ruta === '/calidad' ? 'Resultados de agua registrados por los operadores.' : opcion.ruta === '/gestion' ? 'Avisos, calendario y programa de producción.' : opcion.ruta === '/calderas' ? 'Turnos, bitácora, pozos, UF y calidad del área.' : opcion.ruta === '/ptar' ? 'Turnos, bitácora, proceso PTAR y calidad del área.' : opcion.ruta === '/planta' ? 'Consulta de Calderas y PTAR en un solo lugar.' : opcion.ruta === '/reportes' ? 'Indicadores, gráficas y exportación a Excel.' : 'Operadores, capturas, avisos y configuración.',
+    icono: opcion.ruta === '/bitacora-administrativa' ? 'bitacora' : opcion.ruta === '/calidad' || opcion.ruta === '/calidad/limites' ? 'calidad' : opcion.ruta === '/calderas' ? 'calderas' : opcion.ruta === '/ptar' ? 'ptar' : opcion.ruta === '/planta' ? 'planta' : opcion.ruta === '/reportes' ? 'reportes' : 'administracion',
+    descripcion: opcion.ruta === '/bitacora-administrativa' ? opcion.descripcion : opcion.ruta === '/calidad/limites' ? 'Administra los límites de calidad del sistema.' : opcion.ruta === '/calidad' ? 'Resultados de agua registrados por los operadores.' : opcion.ruta === '/gestion' ? 'Avisos, calendario y programa de producción.' : opcion.ruta === '/calderas' ? 'Turnos, bitácora, pozos, UF y calidad del área.' : opcion.ruta === '/ptar' ? 'Turnos, bitácora, proceso PTAR y calidad del área.' : opcion.ruta === '/planta' ? 'Consulta de Calderas y PTAR en un solo lugar.' : opcion.ruta === '/reportes' ? 'Indicadores, gráficas y exportación a Excel.' : 'Operadores, capturas, avisos y configuración.',
   }))
   if (vista === 'calidad' || vista === 'gestion' || vista === 'limites') return <AppLayout accesos={visuales} nombre={perfil.nombre} rol={nombresRol[perfil.rol]} titulo={pagina?.titulo ?? 'Calidad'} cerrando={cerrando} alSalir={() => { void salir() }}>
     {error && <p className="mensaje-error" role="alert">{error}</p>}
-    <div className="co-consulta co-administracion"><PageHeader titulo={vista !== 'gestion' ? 'Calidad de agua' : 'Avisos y producción'} descripcion={vista === 'gestion' ? 'Gestiona avisos, producción y calendario del área.' : undefined} icono={vista !== 'gestion' ? 'calidad' : 'administracion'} />{vista === 'limites' ? <PaginaLimitesCalidad key={perfil.id} /> : vista === 'calidad' ? <ConsultaCalidad key={perfil.id} /> : <PanelAdministracion key={perfil.id} soloGestion />}</div>
+    <div className="co-consulta co-administracion">{perfil.rol !== 'admin' && vista !== 'gestion' && <PageHeader titulo="Calidad de agua" icono="calidad" />}{vista === 'limites' ? <PaginaLimitesCalidad key={perfil.id} /> : vista === 'calidad' ? <ConsultaCalidad key={perfil.id} /> : <PanelAdministracion key={perfil.id} soloGestion />}</div>
   </AppLayout>
   if (vista !== 'administracion') {
     const operativo = vista === 'calderas' || vista === 'ptar'
+    const menuCalderas = vista === 'calderas' || perfil.rol === 'calderas' && (vista === 'inicio' || vista === 'planta' || vista === 'novedades')
     const seleccion = vista === 'calderas' ? moduloCalderas : moduloPTAR
-    const opciones: { id: ModuloOperativo; nombre: string; icono: AccesoVisual['icono'] }[] = vista === 'calderas'
+    const opciones: { id: ModuloOperativo; nombre: string; icono: AccesoVisual['icono'] }[] = menuCalderas
       ? [{ id: 'bitacora', nombre: 'Bitácora', icono: 'bitacora' }, { id: 'pozos', nombre: 'Pozos', icono: 'pozos' }, { id: 'uf', nombre: 'Ultrafiltración', icono: 'uf' }, { id: 'calidad', nombre: 'Calidad de agua', icono: 'calidad' }]
       : [{ id: 'bitacora', nombre: 'Bitácora', icono: 'bitacora' }, { id: 'ptar', nombre: 'Proceso PTAR', icono: 'ptar' }, { id: 'calidad', nombre: 'Calidad de agua', icono: 'calidad' }]
-    return <AppLayout accesos={visuales} nombre={perfil.nombre} rol={nombresRol[perfil.rol]} titulo={pagina?.titulo ?? 'Inicio'} cerrando={cerrando} alSalir={() => { void salir() }} submenu={operativo ? { titulo: vista === 'calderas' ? 'MÓDULO CALDERAS' : 'MÓDULO PTAR', seleccion, opciones, alSeleccionar: id => { if (opciones.some(o => o.id === id)) { if (vista === 'calderas') setModuloCalderas(id as ModuloOperativo); else setModuloPTAR(id as ModuloOperativo) } } } : undefined}>
+    const opcionesVisibles = opciones.filter(opcion => perfil.rol !== 'ptar' || (opcion.id !== 'ptar' && opcion.id !== 'calidad'))
+    return <AppLayout accesos={visuales} nombre={perfil.nombre} rol={nombresRol[perfil.rol]} titulo={pagina?.titulo ?? 'Inicio'} cerrando={cerrando} alSalir={() => { void salir() }} alAbrirBitacora={() => abrirBitacoraArea(perfil.rol === 'calderas' ? '/calderas' : '/ptar')} submenu={operativo || menuCalderas ? {
+      titulo: menuCalderas ? 'MÓDULO CALDERAS' : 'MÓDULO PTAR',
+      seleccion: operativo ? seleccion : '',
+      opciones: opcionesVisibles,
+      alSeleccionar: id => {
+        if (!opcionesVisibles.some(opcion => opcion.id === id)) return
+        if (menuCalderas) {
+          setModuloCalderas(id as ModuloOperativo)
+          if (vista !== 'calderas') navigate('/calderas')
+        } else setModuloPTAR(id as ModuloOperativo)
+      },
+    } : undefined}>
       {error && <p className="mensaje-error" role="alert">{error}</p>}
-      <VistaConservada activa={vista === 'inicio'}><InicioDashboard accesos={visuales} nombre={perfil.nombre} rol={nombresRol[perfil.rol]} admin={perfil.rol === 'admin'} /></VistaConservada>
+      <VistaConservada activa={vista === 'inicio'}><InicioDashboard accesos={visuales} nombre={perfil.nombre} rol={nombresRol[perfil.rol]} admin={perfil.rol === 'admin'} alAbrirArea={abrirBitacoraArea} /></VistaConservada>
+      {vista === 'novedades' && <NovedadesAdministracion key={perfil.id} />}
+      {perfil.rol === 'admin' && <VistaConservada activa={vista === 'bitacora_admin'}><div className="co-consulta co-administracion"><PanelBitacoraAdministrativa key={perfil.id} /></div></VistaConservada>}
       {(['calderas', 'ptar'] as const).filter(area => paginas[area].roles.includes(perfil.rol)).map(area => <VistaConservada key={area} activa={vista === area}>
         <div className="co-calderas"><PanelOperativo key={perfil.id + ':' + area} area={area} rol={perfil.rol}
           seleccionExterna={area === 'calderas' ? moduloCalderas : moduloPTAR}
           solicitudDesplazamiento={area === 'calderas' ? seleccionCalderas.revision : seleccionPTAR.revision}
           alSeleccionar={area === 'calderas' ? setModuloCalderas : setModuloPTAR} /></div>
       </VistaConservada>)}
-      {paginas.planta.roles.includes(perfil.rol) && <VistaConservada activa={vista === 'planta'}><div className="co-consulta co-planta-referencia"><PageHeader titulo="Planta" descripcion="Consulta de registros operativos de Calderas y PTAR." icono="planta" /><PanelPlanta key={perfil.id} /></div></VistaConservada>}
+      {paginas.planta.roles.includes(perfil.rol) && <VistaConservada activa={vista === 'planta'}><div className="co-consulta co-planta-referencia">{perfil.rol === 'admin' && <PageHeader titulo="Planta" descripcion="Consulta de registros operativos de Calderas y PTAR." icono="planta" />}<PanelPlanta key={perfil.id} /></div></VistaConservada>}
       {vista === 'reportes' && <div className="co-consulta"><PageHeader titulo="Reportes" icono="reportes" /><PanelReportes key={perfil.id} /></div>}
 
     </AppLayout>
@@ -148,7 +172,6 @@ function ContenidoInicio({ vista = 'inicio' }: PropsInicio = {}) {
   return <AppLayout accesos={visuales} nombre={perfil.nombre} rol={nombresRol[perfil.rol]} titulo="Administración" cerrando={cerrando} alSalir={() => { void salir() }}>
     {error && <p className="mensaje-error" role="alert">{error}</p>}
     <div className="co-consulta co-administracion">
-      <PageHeader titulo="Administración" descripcion="Gestiona usuarios, catálogos y configuración del sistema." icono="administracion" />
       <PanelAdministracion key={perfil.id} />
     </div>
   </AppLayout>

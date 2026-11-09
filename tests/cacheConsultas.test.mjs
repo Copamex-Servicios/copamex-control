@@ -11,7 +11,7 @@ function sesion(rol = 'admin', usuario = id) {
   store.setState({ estado:'autenticado', perfil:{ id:usuario, nombre:'Prueba', activo:true, rol }, sesion:{ user:{ id:usuario } } })
 }
 before(async () => {
-  servidor = await createServer({ configFile:false, envDir:false, optimizeDeps:{ noDiscovery:true }, server:{ middlewareMode:true, hmr:false }, plugins:[{
+  servidor = await createServer({ configFile:false, envDir:false, cacheDir:'.tmp/vite-tests/cache-consultas', optimizeDeps:{ noDiscovery:true }, server:{ middlewareMode:true, hmr:false }, plugins:[{
     name:'sin-supabase', enforce:'pre',
     resolveId(id) { if (id.endsWith('/hooks/useAuth') || id === './useAuth') return '\0auth-doble'; if (/(^|\/)supabase(?:\.ts)?$/.test(id) && !id.startsWith('@')) return '\0supabase-doble' },
     load(id) { if (id === '\0auth-doble') return 'export const useAuth = () => globalThis.__cacheAuthPrueba.getState()'; if (id === '\0supabase-doble') return 'export const supabase = {}' },

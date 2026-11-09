@@ -6,7 +6,7 @@ import { crc32 } from 'node:zlib'
 import { agruparTecnicos, datosTecnico, seleccionarTecnicos, validarConsolidado, matrizTecnicoDiario, textoCeldaTecnica } from '../src/lib/consolidadoTecnico.ts'
 import { crearXlsxTecnicoDiario, fragmentosObservacion, numeroExcelTecnico } from '../src/lib/xlsxTecnicoDiario.ts'
 import { crearPdfTecnicoDiario } from '../src/lib/pdfTecnicoDiario.ts'
-import { descargarTecnicoDiario, descargarPdfTecnicoDiario } from '../src/lib/exportarTecnicoDiario.ts'
+import { descargarArchivo, descargarTecnicoDiario, prepararPdfTecnicoDiario } from '../src/lib/exportarTecnicoDiario.ts'
 import { borradorBitacoraCalderas, equiposCalderas, pilasCalderas } from '../src/lib/tiposBitacoraCalderas.ts'
 import { borradorBitacoraPTAR, medicionesBitacoraPTAR } from '../src/lib/tiposBitacoraPTAR.ts'
 
@@ -29,6 +29,7 @@ function detalle(turno, area = 'calderas', version = 2) {
   } else {
     borrador.bombas['9'] = 'Manual (M)'; borrador.prensas.Essity = 'Reserva'
     borrador.estadoAgitador = 'Servicio'; borrador.destinoDescarga = 'Tanque 11'
+    borrador.horasDescarga = { tanque11: '5', tanques56: '3' }
     borrador.comentarioPrensas = 'Motivo de paro\nTexto conservado'
   }
   return { area, fila: resumen, reporte: { id: resumen.id, turnoId: resumen.turnoId, cuentaId: 'autor-prueba', creadoEn: resumen.creadoEn,
@@ -71,8 +72,10 @@ test('Calderas conserva mediciones, equipos, pilas, observaciones y unidades por
     const d = detalle('dia', 'calderas', version), datos = datosTecnico(d)
     assert.equal(datos.length, version === 1 ? 41 : 45)
     for (const valor of Object.values(d.reporte.borrador.mediciones)) assert.ok(datos.some(r => r.valor === valor), valor)
-    assert.equal(datos.find(r => r.parametro === 'Sulzer 436 · Presión').unidad, version === 1 ? 'PSI' : 'kg/cm²')
+    assert.equal(datos.find(r => r.parametro === 'Sulzer 435 · Presión').unidad, version === 1 ? 'PSI' : 'kg/cm²')
     assert.equal(datos.find(r => r.parametro === 'Bomba de ósmosis 422 · Presión').unidad, 'PSI')
+    assert.equal(datos.find(r => r.parametro === 'Pila 1 y 3 · Presión').unidad, 'bar')
+    assert.equal(datos.find(r => r.parametro === 'Pila 2 · Presión').unidad, 'kg/cm²')
     assert.equal(datos.find(r => r.parametro === 'Reporte relevante').valor, d.reporte.borrador.reporteRelevante)
     assert.equal(datos.some(r => r.parametro === 'Bomba Norte'), version === 2)
     assert.ok(datos.some(r => r.valor === 'Observación UF completa'))
@@ -80,7 +83,9 @@ test('Calderas conserva mediciones, equipos, pilas, observaciones y unidades por
 })
 test('PTAR conserva todas las mediciones, modos, estados y comentario de prensas', () => {
   const d = detalle('noche', 'ptar'), datos = datosTecnico(d)
-  assert.equal(datos.length, 22)
+  assert.equal(datos.length, 24)
+  assert.ok(datos.some(r => r.parametro === 'Horas en tanque 11' && r.valor === '5' && r.unidad === 'h'))
+  assert.ok(datos.some(r => r.parametro === 'Horas en tanques 5 y 6' && r.valor === '3' && r.unidad === 'h'))
   for (const m of medicionesBitacoraPTAR) {
     const r = datos.find(r => r.parametro === m.nombre)
     assert.equal(r.valor, d.reporte.borrador.mediciones[m.campo]); assert.equal(r.unidad, m.unidad)
@@ -126,7 +131,7 @@ test('tres estados distintos y cero conservado en la matriz y el XLSX', () => {
 })
 test('formatos históricos comparados sin conversiones ni estados inferidos', () => {
   const m = crearMatriz([detalle('dia','calderas',1), detalle('tarde','calderas',2)], ['dia','tarde'])
-  const presion = m.filas.find(f => f.parametro === 'Sulzer 436 · Presión')
+  const presion = m.filas.find(f => f.parametro === 'Sulzer 435 · Presión')
   assert.equal(presion.unidad, 'Según turno')
   assert.equal(presion.celdas[0].unidad, 'PSI'); assert.equal(presion.celdas[1].unidad, 'kg/cm²')
   assert.equal(presion.celdas[0].valor, presion.celdas[1].valor)
@@ -202,7 +207,7 @@ test('PDF y Excel reproducen el formato vertical de referencia con todos los cam
     }
   }
 })
-test('descarga directa PDF y XLSX: MIME correcto y ningún iframe o impresión', async t => {
+test('prepara el PDF para vista previa sin descargarlo y conserva la descarga explícita', async t => {
   const blobs = [], enlaces = []
   t.mock.method(URL, 'createObjectURL', blob => { blobs.push(blob); return 'blob:prueba' })
   t.mock.method(URL, 'revokeObjectURL', () => {})
@@ -212,13 +217,36 @@ test('descarga directa PDF y XLSX: MIME correcto y ningún iframe o impresión',
   try {
     const d = detalle('dia'); let autorizaciones = 0
     descargarTecnicoDiario(fecha,'calderas',[d],['dia','noche'])
-    await descargarPdfTecnicoDiario(fecha,'calderas',[d],['dia','noche'],() => { autorizaciones++ })
+    const previa = await prepararPdfTecnicoDiario(fecha,'calderas',[d],['dia','noche'],() => { autorizaciones++ })
+    assert.equal(enlaces.length, 1, 'Preparar la vista previa no descarga el PDF')
+    assert.equal(previa.blob.type, 'application/pdf')
+    descargarArchivo(previa.blob, previa.nombre)
     assert.equal(blobs[0].type,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     assert.equal(blobs[1].type,'application/pdf')
     assert.match(enlaces[0].download,/\.xlsx$/); assert.match(enlaces[1].download,/\.pdf$/)
     assert.equal(new TextDecoder().decode((await blobs[1].arrayBuffer()).slice(0,5)), '%PDF-')
     assert.ok(autorizaciones >= 3)
-    await assert.rejects(descargarPdfTecnicoDiario(fecha,'calderas',[d],['dia'],() => { throw new Error('Sesión cambiada') }), /Sesión cambiada/)
+    await assert.rejects(prepararPdfTecnicoDiario(fecha,'calderas',[d],['dia'],() => { throw new Error('Sesión cambiada') }), /Sesión cambiada/)
     assert.equal(blobs.length, 2, 'Una sesión no autorizada no descarga documentos')
   } finally { if (documento === undefined) delete globalThis.document; else globalThis.document = documento }
+})
+
+ test('comentarios de Pilas se conservan completos en detalle, matriz y Excel sin inventarlos en históricos', () => {
+  const d = detalle('dia');assert.equal(datosTecnico(d).some(r => r.parametro === 'Comentarios relevantes de Pilas de suministro'), false)
+  d.reporte.borrador.comentariosPilas = 'Revisión de pilas\nSegunda línea con acentos y válvulas'
+  const fila = datosTecnico(d).find(r => r.parametro === 'Comentarios relevantes de Pilas de suministro')
+  assert.equal(fila.valor, d.reporte.borrador.comentariosPilas)
+  const m = crearMatriz([d]);assert.ok(m.filas.some(f => f.parametro === fila.parametro && f.observacion))
+  assert.ok(crearXlsxTecnicoDiario(m).length > 0)
+ })
+
+test('velocidades PTAR: PDF y Excel incluyen Essity y Nalco sin perder cero ni inventar datos históricos', async () => {
+  const d = detalle('dia', 'ptar')
+  assert.equal(datosTecnico(d).some(r => r.parametro.startsWith('Velocidad de prensa')), false)
+  d.reporte.borrador.velocidadesPrensas = { Essity: '42.5', Nalco: '0' }
+  const datos = datosTecnico(d)
+  assert.ok(datos.some(r => r.parametro === 'Velocidad de prensa Essity' && r.valor === '42.5' && r.unidad === 'm/min'))
+  assert.ok(datos.some(r => r.parametro === 'Velocidad de prensa Nalco' && r.valor === '0' && r.unidad === 'm/min'))
+  const matriz = crearMatriz([d]); assert.ok(crearXlsxTecnicoDiario(matriz).length > 0)
+  const pdf = crearPdfTecnicoDiario(matriz, fuente.toString('base64')); assert.ok(pdf)
 })

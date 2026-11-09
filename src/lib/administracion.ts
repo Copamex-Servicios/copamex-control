@@ -1,6 +1,7 @@
 import { supabase } from './supabase'
 import { useAuthStore } from '../stores/authStore'
 import { esFechaOperativa } from './turnos'
+import { esAutorAviso, mensajeAutorAviso } from './permisosAvisos'
 
 type Valor = string | number | boolean | null
 export type FilaAdmin = Record<string, Valor> & { id: string }
@@ -127,7 +128,9 @@ export function validarAdmin(c: ConfigAdmin, campos: Record<string, string | boo
       const fuente = datos[f.referencia], fila = fuente.filas.find(r => r.id === texto)
       if (fuente.error || !uuid(texto) || !fila || (fila.activo === false && original?.[f.clave] !== texto)) throw new ErrorAdmin(`Selecciona una opción activa de ${f.nombre}. Si falta, actualiza el catálogo.`)
       valores[f.clave] = texto
-    } else valores[f.clave] = texto
+    } else valores[f.clave] = (c.tabla === 'avisos' && f.clave === 'mensaje')
+      || (c.tabla === 'eventos_calendario' && ['horario', 'motivo'].includes(f.clave))
+      ? texto.toLocaleUpperCase('es-MX') : texto
   }
   if (c.tabla === 'avisos') {
     if (valores.permanente === true) { valores.inicio = null; valores.fin = null }
@@ -171,6 +174,9 @@ async function consultarRegistro(s: SolicitudAdmin, c: ConfigAdmin, signal: Abor
 }
 async function guardar(s: SolicitudAdmin, signal: AbortSignal): Promise<FilaAdmin> {
   exigirSeccion(s.cuenta, s.tabla)
+  if (s.tabla === 'avisos' && s.original && !esAutorAviso(s.cuenta, s.original)) {
+    throw new ErrorAdmin(mensajeAutorAviso)
+  }
   const c = configuracionAdmin(s.tabla)
   if (!uuid(s.id) || (s.original && s.original.id !== s.id) || Object.keys(s.valores).length !== c.campos.length || c.campos.some(f => !(f.clave in s.valores))) throw new ErrorAdmin('Solicitud no válida.')
   // Primero comprobar el UUID/original: confirma reintentos sin duplicar altas ni sobrescribir cambios ajenos.

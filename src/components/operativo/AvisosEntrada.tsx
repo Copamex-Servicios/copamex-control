@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
+import { escucharCambiosInformacion, intervaloInformacion } from '../../lib/actualizacionInformacion'
 import { Icono } from '../diseno/Icono'
 import './avisosEntrada.css'
 
@@ -43,31 +44,39 @@ export function AvisosEntrada() {
   useEffect(() => {
     if (!clave) return
     if (sesionVista !== clave) { sesionVista=clave; vistos.clear(); recuperarVistos(clave) }
-    let vigente=true, consultando=false
-    const controller = new AbortController()
+    let vigente=true, consultando=false, pendiente=false
+    let controller: AbortController | null = null
     async function cargar() {
-      if (!vigente || consultando || document.visibilityState === 'hidden') return
+      if (!vigente) return
+      if (consultando || document.visibilityState === 'hidden') { pendiente=true; return }
+      pendiente=false
       consultando=true
+      const peticion = new AbortController()
+      controller = peticion
+      const limite = window.setTimeout(() => peticion.abort(), 15000)
       try {
         const { data, error } = await supabase.from('avisos').select('id,mensaje')
           .or('permanente.eq.true,and(or(inicio.is.null,inicio.lte.now),or(fin.is.null,fin.gt.now))')
-          .order('creado_en',{ascending:false}).limit(20).abortSignal(controller.signal)
+          .order('creado_en',{ascending:false}).limit(20).abortSignal(peticion.signal)
         if (!vigente) return
         if (error || !Array.isArray(data) || data.some(a => typeof a.id !== 'string' || typeof a.mensaje !== 'string')) throw new Error('Consulta inválida')
         setVista({ clave: clave!, avisos:data, error:false })
         if (data.some(a => !vistos.has(claveAviso(a)))) setAbierto(true)
         if (!data.length) setAbierto(false)
       } catch { if (vigente) setVista(v => ({ clave:clave!, avisos:v?.clave === clave ? v.avisos : [], error:true })) }
-      finally { consultando=false }
+      finally {
+        window.clearTimeout(limite); consultando=false; controller=null
+        if (pendiente && vigente) void cargar()
+      }
     }
     void cargar()
     const alVolver = () => { void cargar() }
-    const intervalo=window.setInterval(alVolver,30000)
+    const dejarEscuchar = escucharCambiosInformacion(alVolver)
+    const intervalo=window.setInterval(alVolver,intervaloInformacion)
     window.addEventListener('focus',alVolver)
     window.addEventListener('online',alVolver)
-    window.addEventListener('copamex:avisos-actualizados',alVolver)
     document.addEventListener('visibilitychange',alVolver)
-    return () => { vigente=false; controller.abort(); window.clearInterval(intervalo); window.removeEventListener('focus',alVolver); window.removeEventListener('online',alVolver); window.removeEventListener('copamex:avisos-actualizados',alVolver); document.removeEventListener('visibilitychange',alVolver) }
+    return () => { vigente=false; controller?.abort(); dejarEscuchar(); window.clearInterval(intervalo); window.removeEventListener('focus',alVolver); window.removeEventListener('online',alVolver); document.removeEventListener('visibilitychange',alVolver) }
   }, [clave,revision])
   useEffect(() => {
     const elemento=dialogo.current

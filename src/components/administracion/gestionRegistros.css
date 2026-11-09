@@ -1,4 +1,10 @@
 .co-layout .gestion-registros { display: grid; gap: 14px; min-width: 0; }
+.co-layout .co-admin-referencia .gestion-registros > .gestion-capturas-tabs { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:4px; border-bottom:1px solid #d6e1f0; min-width:0; }
+.co-layout .co-admin-referencia .gestion-registros > .gestion-capturas-tabs > button { display:flex; align-items:center; justify-content:center; min-width:0; min-height:54px; padding:12px 16px; border:0; border-radius:10px 10px 0 0; background:#edf3fb; color:var(--co-navy); font:inherit; line-height:1.4; cursor:pointer; }
+.co-layout .co-admin-referencia .gestion-registros > .gestion-capturas-tabs > button:hover { background:#e5eefb; }
+.co-layout .co-admin-referencia .gestion-registros > .gestion-capturas-tabs > button[aria-pressed="true"] { background:#fff; color:var(--co-primary); font-weight:600; box-shadow:inset 0 -3px var(--co-primary); }
+.co-layout .co-admin-referencia .gestion-registros > .gestion-capturas-tabs > button:focus-visible { outline:2px solid var(--co-primary); outline-offset:-4px; }
+@media(max-width:600px) { .co-layout .co-admin-referencia .gestion-registros > .gestion-capturas-tabs { grid-template-columns:repeat(2,minmax(0,1fr)); } .co-layout .co-admin-referencia .gestion-registros > .gestion-capturas-tabs > button { padding:10px 12px; } }
 .co-layout .gestion-registros .boton-principal { background: var(--co-primary); color: #fff; border: 1px solid transparent; border-radius: 8px; padding: 10px 16px; font: inherit; font-weight: 600; }
 .co-layout .gestion-registros .boton-principal:disabled { opacity: .5; cursor: not-allowed; }
 .co-layout .gestion-editor-tecnico > .boton-principal { justify-self: start; }

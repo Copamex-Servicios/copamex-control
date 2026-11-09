@@ -12,7 +12,8 @@ import {
 import type { ContextoCuentaTurno, SolicitudInicioTurno } from '../lib/turnos'
 
 export type CamposInicioTurno = Pick<SolicitudInicioTurno,
-  'tipoTurno' | 'nombreOperador' | 'operadorId' | 'numeroEmpleado'>
+  'tipoTurno' | 'nombreOperador' | 'operadorId' | 'numeroEmpleado'
+  | 'nombreOperadorAcompanante' | 'operadorAcompananteId' | 'numeroEmpleadoAcompanante'>
 
 let revisionConsulta = 0
 let revisionAccion = 0
@@ -200,8 +201,11 @@ async function iniciarOCambiarTurno(campos: CamposInicioTurno): Promise<boolean>
   const contexto = prepararAccionNueva()
   if (!contexto) return false
   const nombre = normalizarNombreOperador(campos.nombreOperador)
-  if (!esTipoTurno(campos.tipoTurno) || !nombre) {
-    return mostrarFalloAccion('Selecciona el tipo de turno y escribe el nombre completo del operador.')
+  const nombreAcompanante = normalizarNombreOperador(campos.nombreOperadorAcompanante)
+  if (!esTipoTurno(campos.tipoTurno) || !nombre || !nombreAcompanante
+    || !campos.operadorId || !campos.operadorAcompananteId || campos.operadorId === campos.operadorAcompananteId
+    || !campos.numeroEmpleado.trim() || !campos.numeroEmpleadoAcompanante.trim()) {
+    return mostrarFalloAccion('Selecciona el turno e identifica dos operadores distintos.')
   }
   const anterior = useTurnoStore.getState().turno
   let id: string
@@ -215,6 +219,9 @@ async function iniciarOCambiarTurno(campos: CamposInicioTurno): Promise<boolean>
     solicitud: {
       id, tipoTurno: campos.tipoTurno,
       nombreOperador: nombre, operadorId: campos.operadorId, numeroEmpleado: campos.numeroEmpleado, turnoAnterior: anterior?.id ?? null,
+      nombreOperadorAcompanante: nombreAcompanante,
+      operadorAcompananteId: campos.operadorAcompananteId,
+      numeroEmpleadoAcompanante: campos.numeroEmpleadoAcompanante,
     },
   })
 }
