@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { prepararReportesIndividuales } from './reportesIndividuales'
 import { mayusculasNota, normalizarNota } from './notasOperativas'
 import { useAuthStore } from '../stores/authStore'
 import { exigirAdminRevision } from './revisionCapturas'
@@ -80,7 +81,9 @@ function datosCalderas(b: BorradorBitacoraCalderas, formato: 1 | 2) {
   if (equiposCalderas.some(e => e.id.startsWith('caldera_') && b.equipos[e.id].presion.trim())) throw new Error('Las Calderas no registran presión.')
   const datos: Record<string, unknown> = {
     mediciones: Object.fromEntries(Object.entries(b.mediciones).map(([k, v]) => [k, numero(v)])),
-    equipos: Object.fromEntries(equiposCalderas.map(e => [e.id, { estado: texto(b.equipos[e.id].estado), presion: numero(b.equipos[e.id].presion) }])),
+    equipos: Object.fromEntries(equiposCalderas.map(e => [e.id, { estado: texto(b.equipos[e.id].estado),
+      presion: formato === 2 && b.reporteRelevante && e.id.startsWith('sulzer_') && ['Reserva', 'Mantenimiento'].includes(b.equipos[e.id].estado)
+        ? 0 : numero(b.equipos[e.id].presion) }])),
     pilas: Object.fromEntries(pilasCalderas.map(p => [p.id, { nivel: numero(b.pilas[p.id].nivel), bomba: texto(b.pilas[p.id].bomba), presion: numero(b.pilas[p.id].presion) }])),
     compresores: Object.fromEntries(Object.entries(b.compresores).map(([k, v]) => [k, texto(v)])), estadoUF: texto(b.estadoUF), comentariosUF: normalizarNota(b.comentariosUF),
   }
@@ -109,6 +112,13 @@ export function prepararCorreccionTecnica(cuenta: string, detalle: DetalleTecnic
   if (legadoCalderas && 'servicioAgua' in b && 'servicioAgua' in original && equiposAguaCalderas.some(e => b.servicioAgua[e.id] !== original.servicioAgua[e.id])) throw new Error('El formato 1 no permite modificar selecciones en servicio.')
   const datos = detalle.area === 'calderas' && 'equipos' in b ? datosCalderas(b, detalle.reporte.versionFormato)
     : detalle.area === 'ptar' && 'bombas' in b ? datosPTAR(b) : null
+  if (detalle.area === 'calderas' && 'comentariosCompresores' in b && 'comentariosCompresores' in original) {
+    const comentario = normalizarNota(b.comentariosCompresores)
+    if (comentario.length > 4000) throw new Error('Los comentarios de Compresores admiten hasta 4,000 caracteres.')
+    if (legadoCalderas || !relevante) {
+      if (b.comentariosCompresores !== original.comentariosCompresores) throw new Error('El formato anterior no permite modificar comentarios de Compresores.')
+    } else if (datos) datos.comentariosCompresores = comentario
+  }
   if (detalle.area === 'calderas' && 'comentariosPilas' in b && 'comentariosPilas' in original) {
     const comentario = normalizarNota(b.comentariosPilas)
     if ((comentario?.length ?? 0) > 4000) throw new Error('Los comentarios de Pilas de suministro admiten hasta 4,000 caracteres.')
@@ -126,6 +136,8 @@ export function prepararCorreccionTecnica(cuenta: string, detalle: DetalleTecnic
     }
   }
   if (!datos) throw new Error('Los campos no corresponden al área del reporte.')
+  const reportesOperadores = prepararReportesIndividuales(b.reportesOperadores)
+  if (reportesOperadores) datos.reportesOperadores = reportesOperadores
   let rpc = 'corregir_bitacora_tecnica_admin'
   if (detalle.area === 'calderas' && !legadoCalderas) rpc = relevante ? 'corregir_bitacora_calderas_admin_v3' : 'corregir_bitacora_calderas_admin_v2'
   if (detalle.area === 'ptar' && relevante) rpc = 'corregir_bitacora_ptar_admin_v2'

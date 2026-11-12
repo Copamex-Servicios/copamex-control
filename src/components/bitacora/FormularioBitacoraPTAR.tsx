@@ -1,4 +1,5 @@
 import { useValidacionReporte } from '../../hooks/useValidacionReporte'
+import { ReportesRelevantesOperadores } from './ReportesRelevantesOperadores'
 import { GuardadoReporteTecnico } from './GuardadoReporteTecnico'
 import { mayusculasNota } from '../../lib/notasOperativas'
 import { CabeceraReporteTecnico } from './CabeceraReporteTecnico'
@@ -17,7 +18,7 @@ const pestanas = [
   { nombre: 'Historial', titulo: 'Historial de Bitácora' },
 ]
 type CamposFormulario = Pick<ReturnType<typeof useReportePTAR>, 'borrador' | 'cambiarBorrador' | 'editable' | 'reporte'>
-export function FormularioBitacoraPTAR({ captura, observaciones }: { captura: ReturnType<typeof useReportePTAR> | CamposFormulario; observaciones: ReactNode }) {
+export function FormularioBitacoraPTAR({ captura, observaciones, nombresOperadores }: { captura: ReturnType<typeof useReportePTAR> | CamposFormulario; observaciones: ReactNode; nombresOperadores?: readonly string[] }) {
   const prefijo = useId()
   const { raiz: raizValidacion, faltas: faltasValidacion, revisar: revisarValidacion, alCambiar: actualizarValidacion } = useValidacionReporte()
   const [activo, setActivo] = useState(0)
@@ -139,9 +140,10 @@ export function FormularioBitacoraPTAR({ captura, observaciones }: { captura: Re
             <textarea id={`${prefijo}-comentario-prensas`} rows={3} disabled={!habilitado} value={borrador.comentarioPrensas}
               onChange={e => setBorrador(b => ({ ...b, comentarioPrensas: mayusculasNota(e.target.value) }))} />
           </label>
-          <label className="bpt-campo bpt-ancho" htmlFor={`${prefijo}-reporte-relevante`}><span>Reporte relevante del turno</span>
-            <textarea aria-label="Reporte relevante del turno" id={`${prefijo}-reporte-relevante`} rows={4} required={!!operacion || !!captura.reporte?.borrador.reporteRelevante} maxLength={4000} disabled={!habilitado} value={borrador.reporteRelevante}
-              onChange={e => setBorrador(b => ({ ...b, reporteRelevante: mayusculasNota(e.target.value) }))} /></label>
+          <ReportesRelevantesOperadores area="ptar" texto={borrador.reporteRelevante} reportes={borrador.reportesOperadores}
+            nombres={nombresOperadores} historico={!!captura.reporte} habilitado={habilitado}
+            obligatorio={!!operacion || !!captura.reporte?.borrador.reporteRelevante || !captura.reporte}
+            cambiar={(reporteRelevante, reportesOperadores) => setBorrador(b => ({ ...b, reporteRelevante, ...(reportesOperadores ? { reportesOperadores } : {}) }))} />
         </div>}
         {indice === 5 && observaciones}
       </div>

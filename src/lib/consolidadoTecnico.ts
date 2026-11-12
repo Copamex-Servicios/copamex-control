@@ -64,7 +64,7 @@ export function matrizTecnicoDiario(fecha: string, area: AreaOperativa, detalles
       })
       const unidades = [...new Set(celdas.map(c => c.unidad).filter(Boolean))]
       return { seccion: dato.seccion, parametro: dato.parametro, tipo: dato.tipo,
-        observacion: ['Reporte relevante', 'Comentarios relevantes de Ultrafiltración', 'Comentarios relevantes de Pilas de suministro', 'Reporte relevante de fin de turno y motivo por el cual la prensa está parada'].includes(dato.parametro),
+        observacion: ['Reporte relevante', 'Comentarios relevantes de Ultrafiltración', 'Comentarios de Compresores', 'Comentarios relevantes de Pilas de suministro', 'Reporte relevante de fin de turno y motivo por el cual la prensa está parada'].includes(dato.parametro),
         unidad: unidades.length > 1 ? 'Según turno' : unidades[0] ?? '', celdas }
     }),
   }
@@ -110,7 +110,8 @@ export function datosTecnico(detalle: DetalleTecnicoAdmin): DatoTecnico[] {
   const datos: DatoTecnico[] = []
   const agregar = (seccion: string, parametro: string, valor: string, unidad = '', tipo: DatoTecnico['tipo'] = 'medicion') => datos.push({ seccion, parametro, valor, unidad, tipo })
   const b = detalle.reporte.borrador
-  agregar('Reporte relevante del turno', 'Reporte relevante', b.reporteRelevante, '', 'texto')
+  agregar('Reporte relevante del turno', 'Reporte relevante', b.reportesOperadores
+    ? b.reportesOperadores.map(r => `${r.nombre}\n${r.comentario}`).join('\n\n') : b.reporteRelevante, '', 'texto')
   if (detalle.area === 'calderas') {
     const r = detalle.reporte, c = r.borrador
     for (const e of equiposCalderas) {
@@ -136,6 +137,7 @@ export function datosTecnico(detalle: DetalleTecnicoAdmin): DatoTecnico[] {
     agregar('Ultrafiltración', 'Estado de la UF', c.estadoUF, '', 'estado')
     agregar('Ultrafiltración', 'Comentarios relevantes de Ultrafiltración', c.comentariosUF, '', 'texto')
     for (const n of ['1', '2', '3', '4'] as const) agregar('Compresores', `Compresor ${n}`, c.compresores[n], '', 'estado')
+    if (c.comentariosCompresores) agregar('Compresores', 'Comentarios de Compresores', c.comentariosCompresores, '', 'texto')
     for (const p of pilasCalderas) {
       agregar('Pilas de suministro', `${p.nombre} · Nivel`, c.pilas[p.id].nivel, '%')
       agregar('Pilas de suministro', `${p.nombre} · Bomba`, c.pilas[p.id].bomba, '', 'texto')

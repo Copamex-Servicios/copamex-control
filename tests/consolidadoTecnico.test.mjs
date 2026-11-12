@@ -240,6 +240,31 @@ test('prepara el PDF para vista previa sin descargarlo y conserva la descarga ex
   assert.ok(crearXlsxTecnicoDiario(m).length > 0)
  })
 
+test('comentarios de Compresores aparecen en el consolidado y Excel sin rellenar históricos', () => {
+  const d = detalle('dia')
+  assert.equal(datosTecnico(d).some(r => r.parametro === 'Comentarios de Compresores'), false)
+  d.reporte.borrador.comentariosCompresores = 'REVISIÓN DE COMPRESORES\nSEGUNDA LÍNEA'
+  const fila = datosTecnico(d).find(r => r.parametro === 'Comentarios de Compresores')
+  assert.equal(fila.valor, d.reporte.borrador.comentariosCompresores)
+  const matriz = crearMatriz([d])
+  assert.ok(matriz.filas.some(f => f.parametro === fila.parametro && f.observacion))
+  assert.ok(crearXlsxTecnicoDiario(matriz).length > 0)
+})
+
+test('reportes relevantes individuales conservan nombres y textos en matriz y exportación', () => {
+  for (const area of ['calderas','ptar']) {
+    const d=detalle('dia',area)
+    const anterior=d.reporte.borrador.reporteRelevante
+    assert.equal(datosTecnico(d).find(f=>f.parametro==='Reporte relevante').valor,anterior)
+    d.reporte.borrador.reportesOperadores=[{nombre:'PRIMER OPERADOR',comentario:'REVISIÓN DE BOMBAS'},{nombre:'SEGUNDO OPERADOR',comentario:'LIMPIEZA\nDE FILTROS'}]
+    const valor=datosTecnico(d).find(f=>f.parametro==='Reporte relevante').valor
+    assert.equal(valor,'PRIMER OPERADOR\nREVISIÓN DE BOMBAS\n\nSEGUNDO OPERADOR\nLIMPIEZA\nDE FILTROS')
+    const matriz=crearMatriz([d])
+    assert.ok(matriz.filas.some(f=>f.parametro==='Reporte relevante' && f.observacion))
+    assert.ok(crearXlsxTecnicoDiario(matriz).length>0)
+  }
+})
+
 test('velocidades PTAR: PDF y Excel incluyen Essity y Nalco sin perder cero ni inventar datos históricos', async () => {
   const d = detalle('dia', 'ptar')
   assert.equal(datosTecnico(d).some(r => r.parametro.startsWith('Velocidad de prensa')), false)

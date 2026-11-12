@@ -1,4 +1,5 @@
 import { exigirCuentaReporte } from './reporteOperativo'
+import { leerReportesIndividuales, prepararReportesIndividuales } from './reportesIndividuales'
 import { supabase } from './supabase'
 import { mayusculasNota, normalizarNota } from './notasOperativas'
 import { consultarResumenesTecnicosPlanta } from './reportesTecnicosPlanta'
@@ -53,6 +54,8 @@ export function leerReportePTAR(snapshot: unknown, turnoId: string): ReporteTecn
     || !Number.isFinite(Date.parse(r.creado_en))) throw new ErrorReportePTAR('No se pudo comprobar el turno del reporte técnico.')
   const borrador = borradorBitacoraPTAR()
   borrador.reporteRelevante = texto(r.reporte_relevante ?? null)
+  const reportes = leerReportesIndividuales(r.reportes_operadores)
+  if (reportes) borrador.reportesOperadores = reportes
   for (const m of medicionesBitacoraPTAR) borrador.mediciones[m.campo] = numero(r[m.campo])
   borrador.estadoAgitador = opcion(r.estado_agitador_9300, ['Servicio', 'Reserva', 'Mantenimiento'])
   borrador.destinoDescarga = opcion(r.destino_descarga_daf, destinosDescargaPTAR)
@@ -69,6 +72,7 @@ export function leerReportePTAR(snapshot: unknown, turnoId: string): ReporteTecn
 
 // Decimales como texto, sin redondear ni aplicar conversiones.
 export function prepararDatosPTAR(b: BorradorBitacoraPTAR, original?: BorradorBitacoraPTAR) {
+  const reportesOperadores = prepararReportesIndividuales(b.reportesOperadores)
   if (!b.reporteRelevante.trim() || mayusculasNota(b.reporteRelevante).trim().length > 4000) throw new ErrorReportePTAR('Escribe el reporte relevante del turno (hasta 4,000 caracteres).')
   const velocidadesPrensas = normalizarVelocidadesPrensas(b.velocidadesPrensas)
     ?? (original && normalizarVelocidadesPrensas(original.velocidadesPrensas) ? { Essity: null, Nalco: null } : undefined)
@@ -87,6 +91,7 @@ export function prepararDatosPTAR(b: BorradorBitacoraPTAR, original?: BorradorBi
   }
   return {
     reporteRelevante: mayusculasNota(b.reporteRelevante).trim(),
+    ...(reportesOperadores ? { reportesOperadores } : {}),
     ...(velocidadesPrensas ? { velocidadesPrensas } : {}),
     mediciones: Object.fromEntries(medicionesBitacoraPTAR.map(m => [m.campo, medir(b.mediciones[m.campo], m.nombre)])),
     estadoAgitador: elegir(b.estadoAgitador, ['Servicio', 'Reserva', 'Mantenimiento'], 'Estado del agitador 9300'),

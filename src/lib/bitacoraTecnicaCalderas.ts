@@ -1,4 +1,5 @@
 import { exigirCuentaReporte } from './reporteOperativo'
+import { leerReportesIndividuales, prepararReportesIndividuales } from './reportesIndividuales'
 import { supabase } from './supabase'
 import { mayusculasNota, normalizarNota } from './notasOperativas'
 import { consultarResumenesTecnicosPlanta } from './reportesTecnicosPlanta'
@@ -55,6 +56,8 @@ export function leerReporteCalderas(snapshot: unknown, turnoId: string): Reporte
     || !Number.isFinite(Date.parse(r.creado_en))) throw new ErrorReporteCalderas('No se pudo comprobar el turno del reporte técnico.')
   const borrador = borradorBitacoraCalderas()
   borrador.reporteRelevante = texto(r.reporte_relevante ?? null)
+  const reportes = leerReportesIndividuales(r.reportes_operadores)
+  if (reportes) borrador.reportesOperadores = reportes
   const unidadCondensado = r.version_formato === 1 ? 'PSI' : 'kg/cm²'
   if (r.version_formato === 2 && r.presion_condensado_unidad !== 'kg/cm²') throw new ErrorReporteCalderas('No se pudo comprobar la unidad de condensado del reporte.')
   const camposServicio = { norte: 'bomba_norte_servicio', sur: 'bomba_sur_servicio', pozo1: 'pozo_1_servicio', pozo2: 'pozo_2_servicio' } as const
@@ -67,6 +70,7 @@ export function leerReporteCalderas(snapshot: unknown, turnoId: string): Reporte
   borrador.estadoUF = opcion(r.estado_uf, ['Servicio', 'Alarmada (F/S)', 'Lavado'])
   borrador.comentariosUF = texto(r.comentarios_uf)
   borrador.comentariosPilas = texto(r.comentarios_pilas ?? null)
+  borrador.comentariosCompresores = texto(r.comentarios_compresores ?? null)
   if (!Array.isArray(s.equipos) || s.equipos.length !== 12 || !Array.isArray(s.pilas) || s.pilas.length !== 4) {
     throw new ErrorReporteCalderas('El detalle técnico está incompleto. Actualiza la consulta.')
   }
@@ -95,8 +99,10 @@ export function leerReporteCalderas(snapshot: unknown, turnoId: string): Reporte
 
 // Enviar decimales como texto evita redondearlos en JavaScript. PostgreSQL normaliza NULL y cero.
 export function prepararDatosCalderas(b: BorradorBitacoraCalderas, _original?: BorradorBitacoraCalderas) {
+  const reportesOperadores = prepararReportesIndividuales(b.reportesOperadores)
   if (!b.reporteRelevante.trim() || mayusculasNota(b.reporteRelevante).trim().length > 4000) throw new ErrorReporteCalderas('Escribe el reporte relevante del turno (hasta 4,000 caracteres).')
   if (normalizarNota(b.comentariosPilas).length > 4000) throw new ErrorReporteCalderas('Los comentarios de Pilas de suministro admiten hasta 4,000 caracteres.')
+  if (normalizarNota(b.comentariosCompresores).length > 4000) throw new ErrorReporteCalderas('Los comentarios de Compresores admiten hasta 4,000 caracteres.')
   const medir = (v: string, campo: string) => {
     if (!v.trim()) throw new ErrorReporteCalderas(`Completa el campo: ${campo}.`)
     if (!Number.isFinite(Number(v))) throw new ErrorReporteCalderas('Revisa las mediciones numéricas antes de guardar.')
@@ -109,11 +115,13 @@ export function prepararDatosCalderas(b: BorradorBitacoraCalderas, _original?: B
   const equipos = Object.fromEntries(equiposCalderas.map(e => {
     if (e.id.startsWith('caldera_') && b.equipos[e.id].presion.trim()) throw new ErrorReporteCalderas('Las Calderas no registran presión.')
     return [e.id, { estado: estado(b.equipos[e.id].estado, ['Servicio', 'Reserva', 'Mantenimiento'], `Estado de ${e.nombre}`),
-      presion: e.id.startsWith('sulzer_') ? medir(b.equipos[e.id].presion, `Presión de ${e.nombre}`) : null }]
+      presion: e.id.startsWith('sulzer_') ? b.equipos[e.id].estado === 'Servicio' ? medir(b.equipos[e.id].presion, `Presión de ${e.nombre}`) : '0' : null }]
   }))
   return {
     reporteRelevante: mayusculasNota(b.reporteRelevante).trim(),
+    ...(reportesOperadores ? { reportesOperadores } : {}),
     comentariosPilas: normalizarNota(b.comentariosPilas),
+    comentariosCompresores: normalizarNota(b.comentariosCompresores),
     versionFormato: 2 as const,
     servicioAgua: Object.fromEntries(equiposAguaCalderas.map(e => [e.id, b.servicioAgua[e.id] ? true : null])),
     mediciones: Object.fromEntries(Object.entries(b.mediciones).map(([k, v]) => [k, medir(v, k)])), equipos,

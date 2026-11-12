@@ -96,6 +96,42 @@ test('notas opcionales se preparan como NA o mayúsculas sin completar medicione
  for(const k of Object.keys(b.compresores))b.compresores[k]='Servicio'
  const d=calderas.prepararDatosCalderas(b)
  assert.equal(d.comentariosUF,'NA');assert.equal(d.comentariosPilas,'NA');assert.equal(d.reporteRelevante,'REPORTE DEL TURNO')
+ assert.equal(d.comentariosCompresores,'NA')
+ assert.deepEqual(t.equiposCalderas.slice(4).map(e=>e.nombre),['Sulzer 435','Sulzer 469','Sulzer 470','Sulzer 456'])
+ b.comentariosCompresores='  revisión de válvula  '
+ b.equipos.sulzer_436={estado:'Reserva',presion:'dato anterior no numérico'}
+ b.equipos.sulzer_469={estado:'Mantenimiento',presion:''}
+ const sinServicio=calderas.prepararDatosCalderas(b)
+ assert.equal(sinServicio.comentariosCompresores,'REVISIÓN DE VÁLVULA')
+ assert.equal(sinServicio.equipos.sulzer_436.presion,'0');assert.equal(sinServicio.equipos.sulzer_469.presion,'0')
+ assert.equal(b.equipos.sulzer_436.presion,'dato anterior no numérico','preparar el envío no modifica el borrador histórico')
+ b.equipos.sulzer_436={estado:'Servicio',presion:''}
+ assert.throws(()=>calderas.prepararDatosCalderas(b),/Presión de Sulzer 435/)
+ b.equipos.sulzer_436.presion='2.5'
+ assert.equal(calderas.prepararDatosCalderas(b).equipos.sulzer_436.presion,'2.5')
+ b.comentariosCompresores='a'.repeat(4001)
+ assert.throws(()=>calderas.prepararDatosCalderas(b),/comentarios de Compresores/)
+ b.comentariosCompresores=''
+ const individuales=await server.ssrLoadModule('/src/lib/reportesIndividuales.ts')
+ b.reportesOperadores=[{nombre:'OPERADOR PRINCIPAL',comentario:'revisión de bombas'},{nombre:'OPERADOR ACOMPAÑANTE',comentario:'limpieza de filtros'}]
+ b.reporteRelevante=individuales.resumenReportesIndividuales(b.reportesOperadores)
+ const porOperador=calderas.prepararDatosCalderas(b)
+ assert.deepEqual(porOperador.reportesOperadores,{principal:'REVISIÓN DE BOMBAS',acompanante:'LIMPIEZA DE FILTROS'})
+ assert.equal(porOperador.reporteRelevante,'OPERADOR 1:\nREVISIÓN DE BOMBAS\n\nOPERADOR 2:\nLIMPIEZA DE FILTROS')
+ b.reportesOperadores[1].comentario=' '
+ assert.throws(()=>calderas.prepararDatosCalderas(b),/dos operadores/)
+ delete b.reportesOperadores
  b.reporteRelevante='';assert.throws(()=>calderas.prepararDatosCalderas(b),/reporte relevante/)
+})
+
+test('reportes individuales: históricos sin autoría se conservan y se valida el límite conjunto',async()=>{
+ const r=await server.ssrLoadModule('/src/lib/reportesIndividuales.ts')
+ assert.equal(r.leerReportesIndividuales(null),undefined)
+ assert.equal(r.prepararReportesIndividuales(undefined),undefined)
+ const pareja=[{nombre:'Nombre <uno>',comentario:'primera línea\nsegunda línea'},{nombre:'Nombre dos',comentario:'revisión'}]
+ assert.deepEqual(r.leerReportesIndividuales(pareja),pareja)
+ assert.throws(()=>r.leerReportesIndividuales([pareja[0]]),/dos operadores/)
+ pareja[0].comentario='a'.repeat(2000);pareja[1].comentario='b'.repeat(2000)
+ assert.throws(()=>r.prepararReportesIndividuales(pareja),/4,000/)
 })
 

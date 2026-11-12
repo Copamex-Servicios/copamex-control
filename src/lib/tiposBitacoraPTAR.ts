@@ -25,6 +25,7 @@ export type DestinoDescargaPTAR = '' | typeof destinosDescargaPTAR[number]
 export interface HorasDescargaPTAR { tanque11: string; tanques56: string }
 export interface BorradorBitacoraPTAR {
   reporteRelevante: string
+  reportesOperadores?: import('./reportesIndividuales').ReportesIndividuales
   estadoAgitador: EstadoAgitadorPTAR
   destinoDescarga: DestinoDescargaPTAR
   horasDescarga: HorasDescargaPTAR

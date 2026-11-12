@@ -9,7 +9,6 @@ import { exigirAdminRevision } from '../../lib/revisionCapturas'
 import { consultarTecnicoAdmin, consultarHistorialTecnico, guardarCorreccionTecnica, leerDetalleTecnico, pendienteTecnica, prepararCorreccionTecnica } from '../../lib/revisionTecnica'
 import type { DetalleTecnicoAdmin, FilaTecnicaAdmin } from '../../lib/revisionTecnica'
 import { ConsolidadoReportesTecnicos } from './ConsolidadoReportesTecnicos'
-import { PendientesTecnicos } from './PendientesTecnicos'
 import { DetalleReporteCalderasPlanta } from '../planta/DetalleReporteCalderasPlanta'
 import { DetalleReportePTARPlanta } from '../planta/DetalleReportePTARPlanta'
 import { FormularioBitacoraCalderas } from '../bitacora/FormularioBitacoraCalderas'
@@ -116,13 +115,12 @@ function ReportesTecnicosAdmin() {
       {!detalle && <button type="button" className="boton-secundario" onClick={() => setFila(null)}>Cerrar detalle</button>}
     </section>}
     <div hidden={!!fila}>
-      <PendientesTecnicos key={`pendientes:${cuenta}:${JSON.stringify(filtros)}:${revision}`} cuenta={cuenta} filtros={filtros} corregir={setFila} actualizar={() => setRevision(n => n+1)} />
       <ConsolidadoReportesTecnicos key={`${cuenta}:${JSON.stringify(filtros)}:${revision}`} cuenta={cuenta} filtros={filtros} corregir={setFila} />
     </div>
   </div>
 }
-function EditorTecnico({ cuenta, detalle, cerrar, guardado }: { cuenta: string; detalle: DetalleTecnicoAdmin; cerrar: () => void; guardado: (d: DetalleTecnicoAdmin) => void }) {
-  const [borrador, setBorrador] = useState(detalle.reporte.borrador), [editando, setEditando] = useState(false)
+export function EditorTecnico({ cuenta, detalle, cerrar, guardado, iniciarEdicion = false }: { cuenta: string; detalle: DetalleTecnicoAdmin; cerrar: () => void; guardado: (d: DetalleTecnicoAdmin) => void; iniciarEdicion?: boolean }) {
+  const [borrador, setBorrador] = useState(detalle.reporte.borrador), [editando, setEditando] = useState(iniciarEdicion)
   const [motivo, setMotivo] = useState(''), [error, setError] = useState<string | null>(null), [exito, setExito] = useState(false)
   const [guardando, setGuardando] = useState(false), activo = useRef(false)
   const pendiente = pendienteTecnica(cuenta), bloqueado = guardando || !!pendiente

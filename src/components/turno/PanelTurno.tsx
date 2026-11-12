@@ -20,7 +20,7 @@ export function PanelTurno({ area, referencia = false }: PropsPanelTurno) {
   const {
     cuentaId, area: areaCuenta, operadores, turno, estadoCarga, mensaje,
     accionEnCurso, solicitudPendiente, mensajeAccion,
-    iniciarOCambiarTurno, cerrarTurnoActual, reintentarOperacion, actualizarTurno,
+    iniciarOCambiarTurno, reintentarOperacion, actualizarTurno,
   } = useTurno()
 
   if (!cuentaId || areaCuenta !== area) return null
@@ -91,8 +91,7 @@ export function PanelTurno({ area, referencia = false }: PropsPanelTurno) {
         turno ? (
           nombreOperador ? (
             <TurnoActivo key={`${cuentaId}:${turno.id}`} turno={turno} nombreOperador={nombreOperador}
-              operadores={operadores} deshabilitado={bloqueado} soloLectura={!pertenece}
-              alCerrar={pertenece ? cerrarTurnoActual : undefined} />
+              operadores={operadores} deshabilitado={bloqueado} soloLectura={!pertenece} />
           ) : <p className="mensaje-error" role="alert">Actualiza el turno para consultar el nombre del operador.</p>
         ) : (
           <div>

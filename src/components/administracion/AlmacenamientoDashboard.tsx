@@ -40,7 +40,7 @@ export function AlmacenamientoDashboard({ cuenta, revision }: { cuenta: string; 
     </div>
     {porcentaje !== null && <>
       <progress max={100} value={Math.min(100, porcentaje)} aria-label="Uso de la base de datos" aria-valuetext={`${numero.format(porcentaje)} % del límite configurado`} />
-      <div className="co-almacenamiento-detalle"><span>Límite de referencia: {numero.format(limiteMb)} MB</span><strong>{numero.format(porcentaje)} % utilizado</strong></div>
+      <div className="co-almacenamiento-detalle"><span>Límite: {numero.format(limiteMb)} MB</span><strong>{numero.format(porcentaje)} % utilizado</strong></div>
     </>}
   </section>
 }

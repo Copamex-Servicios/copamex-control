@@ -1,0 +1,41 @@
+.co-layout .co-dashboard-pendientes { padding:22px 24px 18px; border-radius:14px; }
+.co-layout .co-dashboard-pendientes-encabezado h2 { font-size:18px; }
+.co-layout .co-dashboard-pendientes .co-dashboard-pendientes-lista > li {
+  display:block; padding:0;
+}
+.co-layout .co-dashboard-pendientes .co-pendiente-fila {
+  display:grid; grid-template-columns:114px 100px minmax(0,1fr) auto;
+  align-items:center; gap:18px; min-height:70px; padding:14px 0; font-size:14px; line-height:1.45;
+  width:100%; margin:0; border:0; border-radius:6px; background:transparent; color:inherit;
+  font-family:inherit; font-weight:400; text-align:left; cursor:pointer;
+}
+.co-layout .co-dashboard-pendientes .co-pendiente-fila:hover { background:#f0f5ff; }
+.co-layout .co-pendiente-fecha { display:grid; gap:2px; }
+.co-layout .co-dashboard-pendientes .co-pendiente-fecha time { color:inherit; }
+.co-layout .co-pendiente-fecha > span { color:#536783; font-size:12px; }
+.co-layout .co-pendiente-operadores { min-width:0; overflow-wrap:anywhere; }
+.co-layout .co-pendiente-etiqueta { padding:6px 12px; border-radius:999px; background:#fff3df; color:#744100; font-size:12px; font-weight:600; white-space:nowrap; }
+.co-layout .co-pendiente-paginacion > button {
+  min-height:36px; margin:0; padding:7px 14px; border:1px solid #b9cae3;
+  border-radius:7px; background:#fff; color:inherit; font:inherit; font-size:14px; cursor:pointer;
+}
+.co-layout .co-pendiente-paginacion { display:flex; justify-content:flex-end; gap:10px; margin-top:18px; }
+.co-layout .co-pendiente-paginacion > button:disabled { opacity:.5; cursor:not-allowed; }
+.co-layout .co-dashboard-pendientes .co-pendiente-fila:focus-visible { outline:2px solid #075ee5; outline-offset:2px; }
+@media(max-width:1100px) {
+  .co-layout .co-dashboard-pendientes .co-pendiente-fila { grid-template-columns:100px minmax(0,1fr); gap:10px 14px; }
+  .co-layout .co-pendiente-operadores { grid-column:1 / 3; }
+  .co-layout .co-pendiente-etiqueta { grid-column:1 / 3; justify-self:start; }
+}
+.co-pendiente-dialogo {
+  box-sizing:border-box; width:min(1200px,calc(100vw - 32px)); max-height:calc(100dvh - 40px);
+  margin:auto; padding:24px; overflow:auto; border:1px solid #cbdcf2; border-radius:16px;
+  background:#fff; color:inherit; font:inherit; box-shadow:0 24px 80px #09275040;
+}
+.co-pendiente-dialogo::backdrop { background:rgb(10 27 52 / 40%); backdrop-filter:blur(5px); }
+.co-pendiente-dialogo>h2 { margin:0 0 20px; font-size:1.25rem; }
+@media(max-width:480px) {
+  .co-layout .co-dashboard-pendientes { padding:18px 16px; }
+  .co-layout .co-dashboard-pendientes-encabezado { align-items:flex-start; flex-wrap:wrap; }
+  .co-pendiente-dialogo { width:calc(100vw - 16px); max-height:calc(100dvh - 16px); padding:14px; }
+}
