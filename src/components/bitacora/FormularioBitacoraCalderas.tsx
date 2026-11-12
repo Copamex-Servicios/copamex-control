@@ -1,5 +1,8 @@
 import { useValidacionReporte } from '../../hooks/useValidacionReporte'
 import { GuardadoReporteTecnico } from './GuardadoReporteTecnico'
+import { ReportesRelevantesOperadores } from './ReportesRelevantesOperadores'
+import { mayusculasNota } from '../../lib/notasOperativas'
+import { CabeceraReporteTecnico } from './CabeceraReporteTecnico'
 import { useEffect, useId, useRef, useState } from 'react'
 import type { KeyboardEvent, ReactNode } from 'react'
 import { equiposCalderas, pilasCalderas, equiposAguaCalderas } from '../../lib/tiposBitacoraCalderas'
@@ -21,7 +24,7 @@ function Apartado({ indice, activo, prefijo, children }: { indice: number; activ
     <div className="bc-contenido"><h3 className="bc-titulo-seccion">{pestanas[indice].titulo}</h3>{children}</div></div>
 }
 type CamposFormulario = Pick<ReturnType<typeof useReporteCalderas>, 'borrador' | 'cambiarBorrador' | 'editable' | 'reporte' | 'unidadPresion'>
-export function FormularioBitacoraCalderas({ captura, observaciones }: { captura: ReturnType<typeof useReporteCalderas> | CamposFormulario; observaciones: ReactNode }) {
+export function FormularioBitacoraCalderas({ captura, observaciones, nombresOperadores }: { captura: ReturnType<typeof useReporteCalderas> | CamposFormulario; observaciones: ReactNode; nombresOperadores?: readonly string[] }) {
   const prefijo = useId()
   const { raiz: raizValidacion, faltas: faltasValidacion, revisar: revisarValidacion, alCambiar: actualizarValidacion } = useValidacionReporte()
   const [activo, setActivo] = useState(0)
@@ -66,6 +69,8 @@ export function FormularioBitacoraCalderas({ captura, observaciones }: { captura
         disabled={!habilitado} onChange={e => medir(campo, e.target.value)} /><span className="bc-unidad" aria-hidden="true">{unidad}</span></span></label>
   }
   return <div ref={raizValidacion} onChangeCapture={actualizarValidacion} className="bc-formulario">
+    {operacion && <CabeceraReporteTecnico titulo="Bitácora de Calderas" estado={operacion.estadoDelReporte}
+      puedeEditar={operacion.puedeEditar} editando={operacion.editando} editar={operacion.editar} />}
     {faltasValidacion.length > 0 && <p className="reporte-aviso-campos" role="alert">Completa todos los campos</p>}
     <div ref={tabsRef} className="bc-tabs" role="tablist" aria-label="Secciones de Bitácora de Calderas">
       {pestanas.map((pestana, indice) => <button key={pestana.titulo} type="button" role="tab"
@@ -85,12 +90,21 @@ export function FormularioBitacoraCalderas({ captura, observaciones }: { captura
           <h3>{equipo.nombre}</h3>
           <label className="bc-campo" htmlFor={`${prefijo}-${equipo.id}-estado`}><span className="bc-sr">Estado</span>
             <select aria-label={`Estado de ${equipo.nombre}`} id={`${prefijo}-${equipo.id}-estado`} value={borrador.equipos[equipo.id].estado}
-              onChange={e => setBorrador(b => ({ ...b, equipos: { ...b.equipos, [equipo.id]: { ...b.equipos[equipo.id], estado: e.target.value as EstadoCalderas } } }))}>
+              onChange={e => {
+                const estado = e.target.value as EstadoCalderas
+                setBorrador(b => ({ ...b, equipos: { ...b.equipos, [equipo.id]: {
+                  estado,
+                  presion: equipo.id.startsWith('sulzer_')
+                    ? estado === 'Reserva' || estado === 'Mantenimiento' ? '0'
+                      : estado === 'Servicio' && b.equipos[equipo.id].estado === 'Servicio' ? b.equipos[equipo.id].presion : ''
+                    : b.equipos[equipo.id].presion,
+                } } }))
+              }}>
               <option value="">Selecciona</option>{['Servicio', 'Reserva', 'Mantenimiento'].map(v => <option key={v}>{v}</option>)}
             </select></label>
           {equipo.id.startsWith('sulzer_') && <label className="bc-campo" htmlFor={`${prefijo}-${equipo.id}-presion`}><span className="bc-sr">Presión</span>
             <span className="bc-control-unidad"><input aria-label={`Presión de ${equipo.nombre}, ${captura.unidadPresion}`} id={`${prefijo}-${equipo.id}-presion`} type="number" step="any" inputMode="decimal" aria-describedby={captura.reporte?.versionFormato === 1 ? `${prefijo}-unidades` : undefined}
-              disabled={!habilitado}
+              disabled={!habilitado || borrador.equipos[equipo.id].estado !== 'Servicio'}
               value={borrador.equipos[equipo.id].presion} onChange={e => setBorrador(b => ({ ...b, equipos: { ...b.equipos, [equipo.id]: { ...b.equipos[equipo.id], presion: e.target.value } } }))} /><span className="bc-unidad" aria-hidden="true">{captura.unidadPresion}</span></span>
           </label>}
         </div>)}
@@ -114,7 +128,7 @@ export function FormularioBitacoraCalderas({ captura, observaciones }: { captura
         </select></label>
       <label className="bc-campo bc-ancho" htmlFor={`${prefijo}-uf-comentarios`}><span>Comentarios relevantes de Ultrafiltración</span>
         <textarea id={`${prefijo}-uf-comentarios`} rows={3} disabled={!habilitado} value={borrador.comentariosUF}
-          onChange={e => setBorrador(b => ({ ...b, comentariosUF: e.target.value }))} /></label>
+          onChange={e => setBorrador(b => ({ ...b, comentariosUF: mayusculasNota(e.target.value) }))} /></label>
     </div></Apartado>
     <Apartado indice={3} activo={activo} prefijo={prefijo}><div className="bc-mediciones">
       {(['1', '2', '3', '4'] as const).map(n => <label className="bc-campo" key={n} htmlFor={`${prefijo}-compresor-${n}`}><span>Compresor {n} · Estado</span>
@@ -123,18 +137,34 @@ export function FormularioBitacoraCalderas({ captura, observaciones }: { captura
           <option value="">Selecciona</option>{['Servicio', 'Preparado', 'Mantenimiento'].map(v => <option key={v}>{v}</option>)}
         </select></label>)}
       {medicion('presion_aire', 'Presión general de aire', 'kg/cm²')}
+      <label className="bc-campo bc-ancho" htmlFor={`${prefijo}-compresores-comentarios`}><span>Comentarios de Compresores (opcional)</span>
+        <textarea id={`${prefijo}-compresores-comentarios`} rows={3} maxLength={4000} placeholder="Si no hay comentarios, se guardará NA."
+          disabled={!habilitado || !!captura.reporte && (captura.reporte.versionFormato === 1 || !captura.reporte.borrador.reporteRelevante)}
+          value={borrador.comentariosCompresores ?? ''}
+          onChange={e => setBorrador(b => ({ ...b, comentariosCompresores: mayusculasNota(e.target.value) }))} /></label>
     </div></Apartado>
     <Apartado indice={4} activo={activo} prefijo={prefijo}><fieldset className="bc-pilas" disabled={!habilitado}><legend className="bc-sr">Niveles, bombas y presiones</legend>
       {pilasCalderas.map(pila => <div className="bc-pila" key={pila.id}><h3>{pila.nombre}</h3>
         {([{ campo: 'nivel', titulo: 'Nivel', unidad: '%', tipo: 'number' }, { campo: 'bomba', titulo: 'Bomba', unidad: '#', tipo: 'text' },
-          { campo: 'presion', titulo: 'Presión', unidad: 'kg/cm²', tipo: 'number' }] as const).map(c =>
+          { campo: 'presion', titulo: 'Presión', unidad: pila.unidadPresion, tipo: 'number' }] as const).map(c =>
           <label className="bc-campo" key={c.campo} htmlFor={`${prefijo}-${pila.id}-${c.campo}`}><span>{c.titulo}</span>
-            <span className="bc-control-unidad"><input aria-label={`${pila.nombre} · ${c.titulo} (${c.unidad})`} id={`${prefijo}-${pila.id}-${c.campo}`} type={c.tipo} step={c.tipo === 'number' ? 'any' : undefined}
+            {c.campo === 'bomba' ? <select aria-label={`${pila.nombre} · Bomba`} id={`${prefijo}-${pila.id}-bomba`} value={borrador.pilas[pila.id].bomba}
+              onChange={e => setBorrador(b => ({ ...b, pilas: { ...b.pilas, [pila.id]: { ...b.pilas[pila.id], bomba: e.target.value } } }))}>
+              <option value="">Selecciona</option>
+              {borrador.pilas[pila.id].bomba && !pila.bombas.some(bomba => bomba === borrador.pilas[pila.id].bomba) &&
+                <option value={borrador.pilas[pila.id].bomba} disabled>{borrador.pilas[pila.id].bomba}</option>}
+              {pila.bombas.map(bomba => <option key={bomba} value={bomba}>{bomba}</option>)}
+            </select> : <span className="bc-control-unidad"><input aria-label={`${pila.nombre} · ${c.titulo} (${c.unidad})`} id={`${prefijo}-${pila.id}-${c.campo}`} type={c.tipo} step="any"
               inputMode={c.tipo === 'number' ? 'decimal' : undefined} value={borrador.pilas[pila.id][c.campo]}
-              onChange={e => setBorrador(b => ({ ...b, pilas: { ...b.pilas, [pila.id]: { ...b.pilas[pila.id], [c.campo]: e.target.value } } }))} /><span className="bc-unidad" aria-hidden="true">{c.unidad}</span></span>
+              onChange={e => setBorrador(b => ({ ...b, pilas: { ...b.pilas, [pila.id]: { ...b.pilas[pila.id], [c.campo]: e.target.value } } }))} /><span className="bc-unidad" aria-hidden="true">{c.unidad}</span></span>}
           </label>)}
       </div>)}
-    </fieldset></Apartado>
+    </fieldset>
+      <label className="bc-campo bc-ancho" htmlFor={prefijo + '-pilas-comentarios'}><span>Comentarios relevantes de Pilas de suministro</span>
+        <textarea id={prefijo + '-pilas-comentarios'} rows={3} maxLength={4000}
+          disabled={!habilitado || !!captura.reporte && (captura.reporte.versionFormato === 1 || !captura.reporte.borrador.reporteRelevante)} value={borrador.comentariosPilas ?? ''}
+          onChange={e => setBorrador(b => ({ ...b, comentariosPilas: mayusculasNota(e.target.value) }))} /></label>
+    </Apartado>
     <Apartado indice={5} activo={activo} prefijo={prefijo}><div className="bc-mediciones">
       {medicion('nivel_agua_potable', 'Nivel de tanques de agua potable', '%')}
     </div>
@@ -148,9 +178,10 @@ export function FormularioBitacoraCalderas({ captura, observaciones }: { captura
             <span>{e.nombre}</span>
           </label>)}
         </fieldset>)}</div>
-      <label className="bc-campo bc-ancho" htmlFor={`${prefijo}-reporte-relevante`}><span>Reporte relevante del turno</span>
-        <textarea aria-label="Reporte relevante del turno" id={`${prefijo}-reporte-relevante`} rows={4} required={!!operacion || !!captura.reporte?.borrador.reporteRelevante} maxLength={4000} disabled={!habilitado || captura.reporte?.versionFormato === 1} value={borrador.reporteRelevante}
-          onChange={e => setBorrador(b => ({ ...b, reporteRelevante: e.target.value }))} /></label>
+      <ReportesRelevantesOperadores area="calderas" texto={borrador.reporteRelevante} reportes={borrador.reportesOperadores}
+        nombres={nombresOperadores} historico={!!captura.reporte} obligatorio={!!operacion || !!captura.reporte?.borrador.reporteRelevante || !captura.reporte}
+        habilitado={habilitado && captura.reporte?.versionFormato !== 1}
+        cambiar={(reporteRelevante, reportesOperadores) => setBorrador(b => ({ ...b, reporteRelevante, ...(reportesOperadores ? { reportesOperadores } : {}) }))} />
     </Apartado>
     <Apartado indice={6} activo={activo} prefijo={prefijo}>{observaciones}</Apartado>
     {operacion?.mensaje && operacion.mensaje !== 'Reporte técnico registrado. Solo Administración puede corregirlo.' && <p className="bc-ayuda" role={operacion.estado === 'error' || (!captura.reporte && !operacion.guardando) ? 'alert' : 'status'}>{operacion.mensaje}</p>}

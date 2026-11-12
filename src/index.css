@@ -173,6 +173,10 @@ textarea:disabled {
   cursor: pointer;
 }
 
+button:not(:disabled), select:not(:disabled), [role="tab"], [role="button"], summary,
+a[href], input[type="checkbox"]:not(:disabled), input[type="radio"]:not(:disabled) { cursor: pointer; }
+button:disabled, select:disabled, input:disabled { cursor: not-allowed; }
+
 .boton-primario {
   color: white;
   background: var(--verde);
@@ -410,6 +414,8 @@ textarea:disabled {
   font-weight: 600;
   overflow-wrap: anywhere;
 }
+
+.operadores-turno-lista > span { display: block; }
 
 .formulario-turno {
   display: grid;

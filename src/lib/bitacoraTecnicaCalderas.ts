@@ -1,9 +1,13 @@
+import { exigirCuentaReporte } from './reporteOperativo'
+import { leerReportesIndividuales, prepararReportesIndividuales } from './reportesIndividuales'
 import { supabase } from './supabase'
+import { mayusculasNota, normalizarNota } from './notasOperativas'
 import { consultarResumenesTecnicosPlanta } from './reportesTecnicosPlanta'
 import { borradorBitacoraCalderas, equiposCalderas, pilasCalderas, equiposAguaCalderas } from './tiposBitacoraCalderas'
 import type { BorradorBitacoraCalderas } from './tiposBitacoraCalderas'
 import { esFechaOperativa, esTipoTurno } from './turnos'
 import type { TipoTurno } from './tiposTurno'
+import { etiquetaOperadoresTurno, relacionOperadorAcompanante, relacionOperadorPrincipal } from './tiposTurno'
 
 export interface ReporteTecnicoCalderas {
   id: string
@@ -18,8 +22,9 @@ export interface ReporteTecnicoCalderas {
 export class ErrorReporteCalderas extends Error {
   readonly incierto: boolean
   readonly conflicto: boolean
-  constructor(mensaje: string, incierto = false, conflicto = false) {
-    super(mensaje); this.incierto = incierto; this.conflicto = conflicto
+  readonly sinCambios: boolean
+  constructor(mensaje: string, incierto = false, conflicto = false, sinCambios = false) {
+    super(mensaje); this.incierto = incierto; this.conflicto = conflicto; this.sinCambios = sinCambios
   }
 }
 const uuid = (v: unknown): v is string => typeof v === 'string' && /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(v)
@@ -51,6 +56,8 @@ export function leerReporteCalderas(snapshot: unknown, turnoId: string): Reporte
     || !Number.isFinite(Date.parse(r.creado_en))) throw new ErrorReporteCalderas('No se pudo comprobar el turno del reporte técnico.')
   const borrador = borradorBitacoraCalderas()
   borrador.reporteRelevante = texto(r.reporte_relevante ?? null)
+  const reportes = leerReportesIndividuales(r.reportes_operadores)
+  if (reportes) borrador.reportesOperadores = reportes
   const unidadCondensado = r.version_formato === 1 ? 'PSI' : 'kg/cm²'
   if (r.version_formato === 2 && r.presion_condensado_unidad !== 'kg/cm²') throw new ErrorReporteCalderas('No se pudo comprobar la unidad de condensado del reporte.')
   const camposServicio = { norte: 'bomba_norte_servicio', sur: 'bomba_sur_servicio', pozo1: 'pozo_1_servicio', pozo2: 'pozo_2_servicio' } as const
@@ -62,6 +69,8 @@ export function leerReporteCalderas(snapshot: unknown, turnoId: string): Reporte
   for (const campo of Object.keys(borrador.mediciones) as (keyof typeof borrador.mediciones)[]) borrador.mediciones[campo] = numero(r[campo])
   borrador.estadoUF = opcion(r.estado_uf, ['Servicio', 'Alarmada (F/S)', 'Lavado'])
   borrador.comentariosUF = texto(r.comentarios_uf)
+  borrador.comentariosPilas = texto(r.comentarios_pilas ?? null)
+  borrador.comentariosCompresores = texto(r.comentarios_compresores ?? null)
   if (!Array.isArray(s.equipos) || s.equipos.length !== 12 || !Array.isArray(s.pilas) || s.pilas.length !== 4) {
     throw new ErrorReporteCalderas('El detalle técnico está incompleto. Actualiza la consulta.')
   }
@@ -89,29 +98,46 @@ export function leerReporteCalderas(snapshot: unknown, turnoId: string): Reporte
 }
 
 // Enviar decimales como texto evita redondearlos en JavaScript. PostgreSQL normaliza NULL y cero.
-export function prepararDatosCalderas(b: BorradorBitacoraCalderas) {
-  if (!b.reporteRelevante.trim() || b.reporteRelevante.trim().length > 4000) throw new ErrorReporteCalderas('Escribe el reporte relevante del turno (hasta 4,000 caracteres).')
-  const medir = (v: string) => {
-    if (!v.trim()) return null
+export function prepararDatosCalderas(b: BorradorBitacoraCalderas, _original?: BorradorBitacoraCalderas) {
+  const reportesOperadores = prepararReportesIndividuales(b.reportesOperadores)
+  if (!b.reporteRelevante.trim() || mayusculasNota(b.reporteRelevante).trim().length > 4000) throw new ErrorReporteCalderas('Escribe el reporte relevante del turno (hasta 4,000 caracteres).')
+  if (normalizarNota(b.comentariosPilas).length > 4000) throw new ErrorReporteCalderas('Los comentarios de Pilas de suministro admiten hasta 4,000 caracteres.')
+  if (normalizarNota(b.comentariosCompresores).length > 4000) throw new ErrorReporteCalderas('Los comentarios de Compresores admiten hasta 4,000 caracteres.')
+  const medir = (v: string, campo: string) => {
+    if (!v.trim()) throw new ErrorReporteCalderas(`Completa el campo: ${campo}.`)
     if (!Number.isFinite(Number(v))) throw new ErrorReporteCalderas('Revisa las mediciones numéricas antes de guardar.')
     return v.trim()
   }
+  const estado = (v: string, opciones: readonly string[], campo: string) => {
+    if (!opciones.includes(v)) throw new ErrorReporteCalderas(`Selecciona una opción para: ${campo}.`)
+    return v
+  }
   const equipos = Object.fromEntries(equiposCalderas.map(e => {
     if (e.id.startsWith('caldera_') && b.equipos[e.id].presion.trim()) throw new ErrorReporteCalderas('Las Calderas no registran presión.')
-    return [e.id, { estado: b.equipos[e.id].estado || null, presion: medir(b.equipos[e.id].presion) }]
+    return [e.id, { estado: estado(b.equipos[e.id].estado, ['Servicio', 'Reserva', 'Mantenimiento'], `Estado de ${e.nombre}`),
+      presion: e.id.startsWith('sulzer_') ? b.equipos[e.id].estado === 'Servicio' ? medir(b.equipos[e.id].presion, `Presión de ${e.nombre}`) : '0' : null }]
   }))
   return {
-    reporteRelevante: b.reporteRelevante.trim(),
+    reporteRelevante: mayusculasNota(b.reporteRelevante).trim(),
+    ...(reportesOperadores ? { reportesOperadores } : {}),
+    comentariosPilas: normalizarNota(b.comentariosPilas),
+    comentariosCompresores: normalizarNota(b.comentariosCompresores),
     versionFormato: 2 as const,
     servicioAgua: Object.fromEntries(equiposAguaCalderas.map(e => [e.id, b.servicioAgua[e.id] ? true : null])),
-    mediciones: Object.fromEntries(Object.entries(b.mediciones).map(([k, v]) => [k, medir(v)])), equipos,
-    pilas: Object.fromEntries(pilasCalderas.map(p => [p.id, { nivel: medir(b.pilas[p.id].nivel),
-      bomba: b.pilas[p.id].bomba.trim() || null, presion: medir(b.pilas[p.id].presion) }])),
-    compresores: Object.fromEntries(Object.entries(b.compresores).map(([k, v]) => [k, v || null])),
-    estadoUF: b.estadoUF || null, comentariosUF: b.comentariosUF.trim() || null,
+    mediciones: Object.fromEntries(Object.entries(b.mediciones).map(([k, v]) => [k, medir(v, k)])), equipos,
+    pilas: Object.fromEntries(pilasCalderas.map(p => [p.id, { nivel: medir(b.pilas[p.id].nivel, `${p.nombre}: nivel`),
+      bomba: b.pilas[p.id].bomba.trim() || (() => { throw new ErrorReporteCalderas(`Completa el campo: ${p.nombre}: bomba.`) })(),
+      presion: medir(b.pilas[p.id].presion, `${p.nombre}: presión`) }])),
+    compresores: Object.fromEntries(Object.entries(b.compresores).map(([k, v]) => [k, estado(v, ['Servicio', 'Preparado', 'Mantenimiento'], `Estado del Compresor ${k}`)])),
+    estadoUF: estado(b.estadoUF, ['Servicio', 'Alarmada (F/S)', 'Lavado'], 'Estado de la UF'), comentariosUF: normalizarNota(b.comentariosUF),
   }
 }
 export interface EnvioReporteCalderas {
+  operativo?: boolean
+  supervisor?: boolean
+  reporteId?: string
+  revisionEsperada?: number
+  creadoEn?: string
   id: string
   turnoId: string
   cuentaId: string
@@ -119,13 +145,17 @@ export interface EnvioReporteCalderas {
 }
 function fallo(error: unknown, mutacion = false): never {
   const e = objeto(error), codigo = typeof e.code === 'string' ? e.code : ''
+  if (mutacion && codigo === '22023' && e.message === 'No hay cambios para registrar.') {
+    throw new ErrorReporteCalderas('No hay cambios para guardar.', false, false, true)
+  }
   const definitivo = /^[\dA-Z]{5}$/.test(codigo) || ['PGRST202', 'PGRST203', 'PGRST301', 'PGRST302'].includes(codigo)
   const mensaje = mutacion && codigo === 'PGRST202' ? 'Falta instalar la actualización del reporte relevante del turno. La captura sigue disponible.'
+    : codigo === '40001' ? 'El reporte cambió. Actualiza antes de corregir.'
     : codigo === '23505' ? 'El turno ya tiene un reporte o la solicitud ya fue utilizada. Actualiza la consulta.'
     : codigo === '42501' ? 'No está autorizado el guardado para esta cuenta y turno. Actualiza la consulta.'
     : codigo === '22023' ? 'Revisa los campos y las unidades del reporte técnico.'
     : mutacion ? 'No llegó la confirmación del reporte. Reintenta el envío original.' : 'No se pudo consultar el reporte técnico. Reintenta.'
-  throw new ErrorReporteCalderas(mensaje, mutacion && !definitivo, codigo === '23505' || codigo === '42501')
+  throw new ErrorReporteCalderas(mensaje, mutacion && !definitivo, codigo === '40001' || codigo === '23505' || codigo === '42501')
 }
 export async function consultarReporteCalderas(turnoId: string, signal: AbortSignal): Promise<ReporteTecnicoCalderas | null> {
   const { data: cabecera, error } = await supabase.from('bitacora_calderas').select('id').eq('turno_id', turnoId).abortSignal(signal).maybeSingle()
@@ -163,7 +193,7 @@ export async function consultarHistorialReportesCalderas(filtros: FiltrosReporte
   if (compartido) return consultarResumenesTecnicosPlanta('calderas', filtros, pagina, signal)
   // La misma consulta sirve a la cuenta del área y a Administración; RLS decide la lectura.
   let consulta = supabase.from('bitacora_calderas').select(
-    'id,turno_id,creado_en,revision,turno:turnos_operativos!inner(id,fecha_operativa,area,turno,operador:operadores!inner(nombre))',
+    `id,turno_id,creado_en,revision,turno:turnos_operativos!inner(id,fecha_operativa,area,turno,operador_id,operador_acompanante_id,${relacionOperadorPrincipal},${relacionOperadorAcompanante})`,
   ).eq('turno.area', 'calderas')
   if (filtros.desde) consulta = consulta.gte('turno.fecha_operativa', filtros.desde)
   if (filtros.hasta) consulta = consulta.lte('turno.fecha_operativa', filtros.hasta)
@@ -174,32 +204,39 @@ export async function consultarHistorialReportesCalderas(filtros: FiltrosReporte
   if (!Array.isArray(data)) throw new ErrorReporteCalderas('No se pudo comprobar el historial técnico.')
   const filas = data.slice(0, 20).map(v => {
     const r = objeto(v), t = objeto(r.turno), o = objeto(t.operador)
+    const oa = t.operador_acompanante === null ? null : objeto(t.operador_acompanante)
     if (!uuid(r.id) || !uuid(r.turno_id) || t.id !== r.turno_id || t.area !== 'calderas' || !esFechaOperativa(t.fecha_operativa)
-      || !esTipoTurno(t.turno) || typeof o.nombre !== 'string' || !o.nombre.trim() || typeof r.creado_en !== 'string'
+      || !esTipoTurno(t.turno) || typeof o.nombre !== 'string' || !o.nombre.trim()
+      || (t.operador_acompanante_id === null ? oa !== null : typeof oa?.nombre !== 'string' || !String(oa.nombre).trim())
+      || typeof r.creado_en !== 'string'
       || !Number.isFinite(Date.parse(r.creado_en)) || !Number.isSafeInteger(r.revision) || Number(r.revision) < 0) {
       throw new ErrorReporteCalderas('Se recibió un reporte con datos de turno incompletos.')
     }
     return { id: r.id, turnoId: r.turno_id, fechaOperativa: t.fecha_operativa, turno: t.turno,
-      operador: o.nombre, creadoEn: r.creado_en, revision: Number(r.revision) } satisfies ResumenReporteCalderas
+      operador: etiquetaOperadoresTurno(o.nombre, typeof oa?.nombre === 'string' ? oa.nombre : null), creadoEn: r.creado_en, revision: Number(r.revision) } satisfies ResumenReporteCalderas
   })
   if (new Set(filas.map(r => r.id)).size !== filas.length) throw new ErrorReporteCalderas('Se recibieron reportes técnicos repetidos.')
   return { filas, hayMas: data.length > 20 }
 }
 export async function enviarReporteCalderas(envio: EnvioReporteCalderas, signal: AbortSignal): Promise<ReporteTecnicoCalderas> {
+  if (envio.operativo) exigirCuentaReporte(envio.cuentaId, "calderas", envio.supervisor)
   let respuestaRPC
   try {
-    respuestaRPC = await supabase.rpc('guardar_bitacora_tecnica_calderas_v3', {
+    respuestaRPC = await supabase.rpc(envio.operativo ? 'guardar_reporte_operativo' : 'guardar_bitacora_tecnica_calderas_v3', {
       p_id: envio.id, p_turno_id: envio.turnoId, p_datos: envio.datos,
+      ...(envio.operativo ? { p_area: "calderas", p_reporte_id: envio.reporteId ?? null, p_revision_esperada: envio.revisionEsperada ?? null } : {}),
     }).abortSignal(signal)
   } catch {
     throw new ErrorReporteCalderas('No llegó la confirmación del reporte. Reintenta el envío original.', true)
   }
+  if (envio.operativo) exigirCuentaReporte(envio.cuentaId, "calderas", envio.supervisor)
   if (respuestaRPC.error) fallo(respuestaRPC.error, true)
   try {
     const respuesta = objeto(respuestaRPC.data)
     const reporte = leerReporteCalderas(respuesta.snapshot, envio.turnoId)
     if (respuesta.confirmado !== true || typeof respuesta.reintento !== 'boolean' || respuesta.id !== envio.id
-      || reporte.id !== envio.id || reporte.cuentaId !== envio.cuentaId || reporte.versionFormato !== 2) throw new Error('Confirmación inconsistente')
+      || reporte.id !== (envio.reporteId ?? envio.id) || reporte.cuentaId !== envio.cuentaId || reporte.versionFormato !== 2) throw new Error('Confirmación inconsistente')
+    if (envio.reporteId && (envio.revisionEsperada === undefined || reporte.revision < envio.revisionEsperada + 1 || reporte.creadoEn !== envio.creadoEn)) throw new Error('La respuesta no confirma esta corrección.')
     return reporte
   } catch (e) {
     throw new ErrorReporteCalderas(e instanceof ErrorReporteCalderas ? e.message : 'No llegó una confirmación válida. Reintenta el envío original.', true)

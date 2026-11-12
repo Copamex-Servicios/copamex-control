@@ -12,7 +12,7 @@ export function PanelBitacoraCalderas() {
   if (!datos.cuentaId || (datos.rol !== 'calderas' && datos.rol !== 'admin') || datos.estadoCarga === 'sin-cuenta') return null
   const observaciones = <HistorialReportesCalderas key={`${datos.cuentaId}:${datos.rol}`} actualizacion={`${captura.reporte?.id ?? ''}:${captura.reporte?.revision ?? ''}`} />
   return <section className="panel-informacion bc-panel" aria-label="Bitácora de Calderas">
-    <header className="bc-cabecera"><h2>Bitácora de Calderas</h2></header>
+    {datos.rol === 'admin' && <header className="bc-cabecera"><h2>Bitácora de Calderas</h2></header>}
     {datos.rol === 'calderas' && !habilitado && !captura.reporte && !captura.pendiente && <p className="bc-ayuda" role="status">
       {datos.estadoCarga === 'cargando' ? 'Consultando el turno y la Bitácora…' : datos.estadoCarga === 'error'
         ? 'La captura técnica estará disponible al confirmar la consulta de Bitácora.' : 'Abre un turno de Calderas para capturar el reporte técnico.'}

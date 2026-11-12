@@ -1,7 +1,9 @@
 import { supabase } from './supabase'
+import { normalizarNota } from './notasOperativas'
 import { esFechaOperativa, esTipoTurno } from './turnos'
 import type { CamposUF, LecturaUF, ValoresUF } from './tiposUF'
 import type { TurnoOperativo } from './tiposTurno'
+import { etiquetaOperadoresTurno, leerNombreOperadorAcompanante, relacionOperadorAcompanante, relacionOperadorPrincipal } from './tiposTurno'
 
 export interface RegistroUF {
   lectura: LecturaUF
@@ -29,8 +31,8 @@ export class ErrorUF extends Error {
 }
 
 const columnasLectura = 'id,turno_id,alim_ini,alim_fin,alimentado,acep_ini,acep_fin,aceptado,rechazo,rendimiento,notas,capturado_en,recibido_en,creado_por,eliminado_en,eliminado_por'
-const columnasTurno = 'id,fecha_operativa,area,turno,operador_id,iniciado_por,iniciado_en,finalizado_en,notas_cierre'
-const seleccion = `${columnasLectura},turno:turnos_operativos!inner(${columnasTurno},operador:operadores!inner(id,nombre))`
+const columnasTurno = 'id,fecha_operativa,area,turno,operador_id,operador_acompanante_id,iniciado_por,iniciado_en,finalizado_en,notas_cierre'
+const seleccion = `${columnasLectura},turno:turnos_operativos!inner(${columnasTurno},${relacionOperadorPrincipal},${relacionOperadorAcompanante})`
 
 function esUuid(valor: unknown): valor is string {
   return typeof valor === 'string'
@@ -98,7 +100,7 @@ export function validarCamposUF(campos: CamposUF): ValoresUF {
     alim_fin: leerCampo(campos.alimentacionFinal, 'la lectura final del Alimentación'),
     acep_ini: leerCampo(campos.aceptacionInicial, 'la lectura inicial del Aceptación'),
     acep_fin: leerCampo(campos.aceptacionFinal, 'la lectura final del Aceptación'),
-    notas: campos.notas.trim() || null,
+    notas: normalizarNota(campos.notas),
   }
   comprobarValores(valores)
   return valores
@@ -201,10 +203,12 @@ function leerRegistro(valor: unknown): RegistroUF {
   const lectura = leerLectura(datos)
   const t = fila(datos.turno)
   const o = fila(t.operador)
-  const { id, fecha_operativa, area, turno, operador_id, iniciado_por,
+  const acompananteNombre = leerNombreOperadorAcompanante(t)
+  const { id, fecha_operativa, area, turno, operador_id, operador_acompanante_id, iniciado_por,
     iniciado_en, finalizado_en, notas_cierre } = t
   if (!esUuid(id) || id !== lectura.turno_id || !esFechaOperativa(fecha_operativa)
     || area !== 'calderas' || !esTipoTurno(turno) || !esUuid(operador_id)
+    || (operador_acompanante_id !== null && !esUuid(operador_acompanante_id))
     || !esUuid(iniciado_por) || iniciado_por !== lectura.creado_por
     || !esInstante(iniciado_en) || Date.parse(lectura.capturado_en) < Date.parse(iniciado_en)
     || (finalizado_en !== null && (!esInstante(finalizado_en)
@@ -215,9 +219,9 @@ function leerRegistro(valor: unknown): RegistroUF {
   }
   return {
     lectura,
-    turno: { id, fecha_operativa, area, turno, operador_id, iniciado_por,
+    turno: { id, fecha_operativa, area, turno, operador_id, operador_acompanante_id, iniciado_por,
       iniciado_en, finalizado_en, notas_cierre },
-    operadorNombre: o.nombre,
+    operadorNombre: etiquetaOperadoresTurno(o.nombre, acompananteNombre),
   }
 }
 

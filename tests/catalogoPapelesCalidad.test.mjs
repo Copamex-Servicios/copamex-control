@@ -27,7 +27,7 @@ const doble = {
 }
 before(async () => {
   globalThis.__papelesSupabasePrueba = doble
-  servidor = await createServer({ configFile:false, envDir:false, optimizeDeps:{ noDiscovery:true }, server:{ middlewareMode:true }, plugins:[{
+  servidor = await createServer({ configFile:false, envDir:false, cacheDir:'.tmp/vite-tests/catalogo-papeles', optimizeDeps:{ noDiscovery:true }, server:{ middlewareMode:true, hmr:false }, plugins:[{
     name:'supabase-simulado', enforce:'pre',
     resolveId(id) {
       if (/(^|\/)supabase(?:\.ts)?$/.test(id) && !id.startsWith('@')) return '\0supabase-simulado'
@@ -56,6 +56,17 @@ test('normaliza mayúsculas y espacios; rechaza nombre vacío o demasiado largo 
   assert.equal(servicio.normalizarNombrePapel('  kraft\t blanco  '),'KRAFT BLANCO')
   for (const nombre of ['', ' \t\n ', 'A'.repeat(201)]) await assert.rejects(servicio.guardarPapelCalidad(cuenta,maquina,nombre,[]), /1 a 200/)
   assert.equal(llamadas.length,0)
+})
+test('normaliza a mayúsculas mensajes de avisos y textos de calendario antes de guardar', () => {
+  const avisos = administracion.configuracionAdmin('avisos')
+  const aviso = administracion.validarAdmin(avisos, { mensaje:'aviso de operación', permanente:true, inicio:'', fin:'' },
+    { catalogo_papeles:{ filas:[], error:false, limitada:false } }, null)
+  assert.equal(aviso.mensaje, 'AVISO DE OPERACIÓN')
+  const calendario = administracion.configuracionAdmin('eventos_calendario')
+  const evento = administracion.validarAdmin(calendario, { fecha:'2026-11-10', tipo:'paro_operativo', area:'ptar', horario:'turno de día', motivo:'mantenimiento preventivo' },
+    { catalogo_papeles:{ filas:[], error:false, limitada:false } }, null)
+  assert.equal(evento.horario, 'TURNO DE DÍA')
+  assert.equal(evento.motivo, 'MANTENIMIENTO PREVENTIVO')
 })
 test('selecciona el duplicado existente de la misma máquina sin invocar ninguna RPC', async () => {
   const resultado = await servicio.guardarPapelCalidad(cuenta,maquina,'  kraFT ',[papel])

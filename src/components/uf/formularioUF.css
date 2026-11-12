@@ -1,0 +1,27 @@
+.co-layout .formulario-uf { display:flex; flex-direction:column; gap:16px; min-width:0; font-family:var(--co-font); }
+.co-layout .formulario-uf > .campos-turno { display:grid; grid-template-columns:minmax(0,1fr); gap:16px; margin:0; padding:0; border:0; min-width:0; }
+.co-layout .formulario-uf > .campos-turno > legend { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+.co-layout .formulario-uf .uf-captura-tabla { min-width:0; overflow-x:auto; border:1px solid #d6e1f0; border-radius:14px; background:#fff; }
+.co-layout .formulario-uf .uf-captura-tabla table { width:100%; min-width:590px; border-collapse:collapse; table-layout:fixed; }
+.co-layout .formulario-uf .uf-captura-tabla th,.co-layout .formulario-uf .uf-captura-tabla td { padding:13px 9px; text-align:left; border:0; border-bottom:1px solid #e0e8f3; background:#fff; }
+.co-layout .formulario-uf .uf-captura-tabla tr:last-child > * { border-bottom:0; }
+.co-layout .formulario-uf .uf-captura-tabla thead th { padding-top:14px; padding-bottom:14px; background:#edf3fb; color:#405b7b; font-size:14px; font-weight:600; }
+.co-layout .formulario-uf .uf-captura-tabla th:first-child { width:29%; padding-left:23px; }
+.co-layout .formulario-uf .uf-captura-tabla th:last-child { width:25%; }
+.co-layout .formulario-uf .uf-captura-tabla tbody th { font-size:16px; font-weight:600; }
+.co-layout .formulario-uf .uf-captura-tabla input { width:100%; min-width:0; min-height:46px; padding:10px 14px; border:1px solid #b9cae3; border-radius:9px; background:#fff; color:inherit; font:inherit; font-size:15px; }
+.co-layout .formulario-uf .uf-captura-tabla output { display:block; padding:0; border:0; background:transparent; min-height:0; height:auto; color:#536783; font:inherit; }
+.co-layout .formulario-uf .uf-captura-resultados { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.co-layout .formulario-uf .uf-captura-resultados > div { padding:16px 23px; border:1px solid #d6e1f0; border-radius:14px; background:#fff; min-width:0; }
+.co-layout .formulario-uf .uf-captura-resultados h3 { margin:0 0 10px; color:#405b7b; font-size:14px; font-weight:600; }
+.co-layout .formulario-uf .uf-captura-resultados output { display:flex; align-items:baseline; gap:9px; height:auto; min-height:0; padding:0; border:0; background:transparent; font:inherit; }
+.co-layout .formulario-uf .uf-captura-resultados output strong { font-size:28px; font-weight:600; line-height:1.2; overflow-wrap:anywhere; }
+.co-layout .formulario-uf .uf-captura-resultados output span { color:#536783; font-size:15px; }
+.co-layout .formulario-uf .uf-captura-resultados p { margin:7px 0 0; color:#536783; font-size:13px; }
+.co-layout .formulario-uf .uf-captura-pie { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:18px; width:100%; grid-column:1 / -1; }
+.co-layout .formulario-uf .uf-captura-pie .campo-turno { display:grid; gap:6px; min-width:0; }
+.co-layout .formulario-uf .uf-captura-pie label { font-size:14px; font-weight:600; }
+.co-layout .formulario-uf .uf-captura-pie textarea { box-sizing:border-box; width:100%; min-height:46px; padding:10px 14px; border:1px solid #b9cae3; border-radius:9px; font:inherit; resize:vertical; }
+.co-layout .formulario-uf .uf-captura-pie .acciones-turno { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin:0; }
+.co-layout .formulario-uf .uf-captura-pie button { min-height:46px; min-width:130px; margin:0; padding:10px 20px; border-radius:9px; font:inherit; font-weight:600; }
+@media(max-width:600px) { .co-layout .formulario-uf .uf-captura-resultados { gap:10px; } .co-layout .formulario-uf .uf-captura-resultados > div { padding:14px; } .co-layout .formulario-uf .uf-captura-pie { grid-template-columns:minmax(0,1fr); gap:12px; } .co-layout .formulario-uf .uf-captura-pie .acciones-turno { justify-content:flex-end; } }

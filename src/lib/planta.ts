@@ -11,6 +11,7 @@ import type { RegistroUF } from './uf'
 import type { RegistroCalidad } from './tiposCalidad'
 import type { RegistroPTAR } from './tiposPTAR'
 import type { AreaOperativa, TipoTurno, TurnoOperativo } from './tiposTurno'
+import { etiquetaOperadoresTurno, leerNombreOperadorAcompanante, relacionOperadorAcompanante, relacionOperadorPrincipal } from './tiposTurno'
 
 export type ModuloPlanta = 'bitacora' | 'pozos' | 'uf' | 'calidad' | 'ptar'
 export interface FiltrosPlanta { desde: string; hasta: string; area: AreaOperativa | 'todas'; turno: TipoTurno | 'todos' }
@@ -27,8 +28,8 @@ export const nombresModulo: Record<ModuloPlanta, string> = { bitacora: 'Bitácor
 export const nombresTurno: Record<TipoTurno, string> = { dia: 'Día', tarde: 'Tarde', noche: 'Noche' }
 // El historial de observaciones se conserva en su almacenamiento, pero deja de consultarse en Planta.
 export const modulosPlanta: ModuloPlanta[] = ['pozos', 'uf', 'calidad', 'ptar']
-const columnasTurno = 'id,fecha_operativa,area,turno,operador_id,iniciado_por,iniciado_en,finalizado_en,notas_cierre'
-const relacionTurno = `turno:turnos_operativos!inner(${columnasTurno},operador:operadores!inner(id,nombre))`
+const columnasTurno = 'id,fecha_operativa,area,turno,operador_id,operador_acompanante_id,iniciado_por,iniciado_en,finalizado_en,notas_cierre'
+const relacionTurno = `turno:turnos_operativos!inner(${columnasTurno},${relacionOperadorPrincipal},${relacionOperadorAcompanante})`
 const metadata = 'id,turno_id,capturado_en,recibido_en,creado_por,eliminado_en,eliminado_por'
 const configuracion = {
   bitacora: { tabla: 'bitacora', columnas: `${metadata},texto`, leer: (v: unknown): CapturaPlanta => ({ modulo: 'bitacora', registro: leerRegistroBitacora(v) }) },
@@ -58,19 +59,22 @@ function objeto(v: unknown): Record<string, unknown> {
 }
 export function leerTurnoPlanta(v: unknown): TurnoPlanta {
   const t = objeto(v), o = objeto(t.operador)
+  const acompananteNombre = leerNombreOperadorAcompanante(t)
   if (!uuid(t.id) || !esFechaOperativa(t.fecha_operativa) || (t.area !== 'calderas' && t.area !== 'ptar') || !esTipoTurno(t.turno)
-    || !uuid(t.operador_id) || !uuid(t.iniciado_por) || !instante(t.iniciado_en)
+    || !uuid(t.operador_id) || (t.operador_acompanante_id !== null && !uuid(t.operador_acompanante_id)) || !uuid(t.iniciado_por) || !instante(t.iniciado_en)
     || (t.finalizado_en !== null && (!instante(t.finalizado_en) || Date.parse(t.finalizado_en) < Date.parse(t.iniciado_en)))
     || (t.notas_cierre !== null && typeof t.notas_cierre !== 'string') || o.id !== t.operador_id || typeof o.nombre !== 'string' || !o.nombre.trim()) throw new Error('Turno inválido.')
-  return { turno: { id: t.id, fecha_operativa: t.fecha_operativa, area: t.area, turno: t.turno, operador_id: t.operador_id, iniciado_por: t.iniciado_por,
-    iniciado_en: t.iniciado_en, finalizado_en: t.finalizado_en, notas_cierre: t.notas_cierre }, operadorNombre: o.nombre }
+  return { turno: { id: t.id, fecha_operativa: t.fecha_operativa, area: t.area, turno: t.turno, operador_id: t.operador_id,
+    operador_acompanante_id: t.operador_acompanante_id, iniciado_por: t.iniciado_por,
+    iniciado_en: t.iniciado_en, finalizado_en: t.finalizado_en, notas_cierre: t.notas_cierre },
+    operadorNombre: etiquetaOperadoresTurno(o.nombre, acompananteNombre) }
 }
 function corresponde(t: TurnoOperativo, f: FiltrosPlanta): boolean {
   return t.fecha_operativa >= f.desde && t.fecha_operativa <= f.hasta && (f.area === 'todas' || t.area === f.area) && (f.turno === 'todos' || t.turno === f.turno)
 }
 export async function consultarTurnos(f: FiltrosPlanta, signal: AbortSignal): Promise<FuentePlanta<TurnoPlanta>> {
   validarFiltrosPlanta(f); signal.throwIfAborted()
-  let q = supabase.from('turnos_operativos').select(`${columnasTurno},operador:operadores!inner(id,nombre)`)
+  let q = supabase.from('turnos_operativos').select(`${columnasTurno},${relacionOperadorPrincipal},${relacionOperadorAcompanante}`)
     .gte('fecha_operativa', f.desde).lte('fecha_operativa', f.hasta)
   if (f.area !== 'todas') q = q.eq('area', f.area)
   if (f.turno !== 'todos') q = q.eq('turno', f.turno)

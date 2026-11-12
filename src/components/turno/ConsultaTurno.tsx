@@ -114,8 +114,11 @@ function ConsultaAutorizada({ area, cuentaId }: PropsConsultaTurno & { cuentaId:
   }, [area, cuentaId, revision])
 
   const turno = vista.datos?.turno ?? null
-  const nombre = turno
-    ? vista.datos?.operadores.find((operador) => operador.id === turno.operador_id)?.nombre
+  const operadorPrincipal = turno ? vista.datos?.operadores.find((operador) => operador.id === turno.operador_id)?.nombre : null
+  const operadorAcompanante = turno?.operador_acompanante_id
+    ? vista.datos?.operadores.find((operador) => operador.id === turno.operador_acompanante_id)?.nombre : null
+  const nombre = operadorPrincipal
+    ? operadorAcompanante ? `${operadorPrincipal} · ${operadorAcompanante}` : operadorPrincipal
     : null
 
   return (

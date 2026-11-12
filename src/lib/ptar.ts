@@ -1,5 +1,7 @@
 import { supabase } from './supabase'
+import { normalizarNota } from './notasOperativas'
 import { esFechaOperativa, esTipoTurno } from './turnos'
+import { etiquetaOperadoresTurno, leerNombreOperadorAcompanante, relacionOperadorAcompanante, relacionOperadorPrincipal } from './tiposTurno'
 import { medicionesPTAR } from './tiposPTAR'
 import type { CamposPTAR, LecturaPTAR, RegistroPTAR, SolicitudGuardadoPTAR, ValoresPTAR } from './tiposPTAR'
 export type { RegistroPTAR, SolicitudGuardadoPTAR } from './tiposPTAR'
@@ -42,7 +44,7 @@ export function validarCamposPTAR(campos: CamposPTAR): ValoresPTAR {
   }
   if (medicionesPTAR.every(({campo}) => valores[campo] === null)) throw new ErrorPTAR('Completa al menos una medición PTAR.')
   if (typeof campos.notas !== 'string') throw new ErrorPTAR('Revisa las notas.')
-  valores.notas = campos.notas.trim() || null
+  valores.notas = normalizarNota(campos.notas)
   return valores
 }
 export function originalPTAR(m: ValoresPTAR): ValoresPTAR {
@@ -68,17 +70,18 @@ export function leerLecturaPTAR(v: unknown, incierto = false): LecturaPTAR {
 }
 export function leerRegistroPTAR(v: unknown): RegistroPTAR {
   const m = objeto(v), lectura = leerLecturaPTAR(m), t = objeto(m.turno), o = objeto(t.operador)
-  const { id, fecha_operativa, area, turno, operador_id, iniciado_por, iniciado_en, finalizado_en, notas_cierre } = t
+  const acompananteNombre = leerNombreOperadorAcompanante(t)
+  const { id, fecha_operativa, area, turno, operador_id, operador_acompanante_id, iniciado_por, iniciado_en, finalizado_en, notas_cierre } = t
   if (id !== lectura.turno_id || !esFechaOperativa(fecha_operativa) || area !== 'ptar'
-    || !esTipoTurno(turno) || !uuid(operador_id) || iniciado_por !== lectura.creado_por || !instante(iniciado_en)
+    || !esTipoTurno(turno) || !uuid(operador_id) || (operador_acompanante_id !== null && !uuid(operador_acompanante_id)) || iniciado_por !== lectura.creado_por || !instante(iniciado_en)
     || Date.parse(lectura.capturado_en) < Date.parse(iniciado_en)
     || (finalizado_en !== null && (!instante(finalizado_en) || Date.parse(finalizado_en) < Date.parse(lectura.capturado_en)))
     || (notas_cierre !== null && typeof notas_cierre !== 'string') || o.id !== operador_id || typeof o.nombre !== 'string' || !o.nombre.trim()) {
     throw new ErrorPTAR('No se pudo comprobar el turno de la lectura. Actualiza.')
   }
-  return { lectura, turno: { id, fecha_operativa, area, turno, operador_id, iniciado_por: lectura.creado_por, iniciado_en, finalizado_en, notas_cierre }, operadorNombre: o.nombre }
+  return { lectura, turno: { id, fecha_operativa, area, turno, operador_id, operador_acompanante_id, iniciado_por: lectura.creado_por, iniciado_en, finalizado_en, notas_cierre }, operadorNombre: etiquetaOperadoresTurno(o.nombre, acompananteNombre) }
 }
-const seleccion = medicionesPTAR.map(m => m.campo).join(',') + ',id,turno_id,notas,capturado_en,recibido_en,creado_por,eliminado_en,eliminado_por,turno:turnos_operativos!inner(id,fecha_operativa,area,turno,operador_id,iniciado_por,iniciado_en,finalizado_en,notas_cierre,operador:operadores!inner(id,nombre))'
+const seleccion = `${medicionesPTAR.map(m => m.campo).join(',')},id,turno_id,notas,capturado_en,recibido_en,creado_por,eliminado_en,eliminado_por,turno:turnos_operativos!inner(id,fecha_operativa,area,turno,operador_id,operador_acompanante_id,iniciado_por,iniciado_en,finalizado_en,notas_cierre,${relacionOperadorPrincipal},${relacionOperadorAcompanante})`
 function fallo(error: unknown, mensaje: string, mutacion = false): never {
   const e = error && typeof error === 'object' ? error as Record<string, unknown> : {}
   const codigo = typeof e.code === 'string' ? e.code : ''

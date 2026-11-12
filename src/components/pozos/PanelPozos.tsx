@@ -8,6 +8,7 @@ import type { TipoTurno } from '../../lib/tiposTurno'
 import { FormularioPozos } from './FormularioPozos'
 import { formatearVolumenPozos } from '../../lib/formatoPozos'
 import { LecturaPozosGuardada } from './LecturaPozosGuardada'
+import { LecturaPozosHistorial } from './LecturaPozosHistorial'
 import { MonitorConcesionPozos } from './MonitorConcesionPozos'
 
 const nombresTurno: Record<TipoTurno, string> = {
@@ -109,8 +110,8 @@ function ContenidoPozos({ datos }: PropsContenidoPozos) {
             <p>{actual ? 'No hay otras lecturas guardadas para consultar.' : 'No hay lecturas guardadas para consultar.'}</p>
           ) : anteriores.map((registro) => (
             <details className="item-historial-pozos co-acordeon-historial" name={grupoHistorial} key={registro.lectura.id}>
-              <ResumenHistorial fecha={registro.turno.fecha_operativa} titulo="Lectura de Pozos" operador={registro.operadorNombre} turno={registro.turno.turno} />
-              <LecturaPozosGuardada registro={registro} deshabilitado={ocupado} />
+              <ResumenHistorial fecha={registro.turno.fecha_operativa} titulo="Lectura de pozos" operador={registro.operadorNombre} turno={registro.turno.turno} />
+              <LecturaPozosHistorial registro={registro} />
             </details>
           ))}
         </div>

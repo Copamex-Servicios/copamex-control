@@ -17,7 +17,7 @@ export function CabeceraRegistroGuardado({ titulo, tituloId, turno, operador, ch
       <div><dt>Fecha operativa</dt><dd><time dateTime={turno.fecha_operativa}>{turno.fecha_operativa.split('-').reverse().join('/')}</time></dd></div>
       <div><dt>Área</dt><dd>{turno.area === 'calderas' ? 'Calderas' : 'PTAR'}</dd></div>
       <div><dt>Turno</dt><dd>{turno.turno === 'dia' ? 'Día' : turno.turno === 'tarde' ? 'Tarde' : 'Noche'}</dd></div>
-      <div className="co-ficha-operador"><dt>Operador</dt><dd>{operador}</dd></div>
+      <div className="co-ficha-operador"><dt>{operador.includes(' · ') ? 'Operadores del turno' : 'Operador'}</dt><dd>{operador}</dd></div>
     </dl>
     {children && <dl className="co-ficha-fechas">{children}</dl>}
   </header>

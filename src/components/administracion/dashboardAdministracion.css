@@ -1,23 +1,74 @@
 /* Alcance exclusivo del Dashboard; conserva tarjetas, badges y botones del sistema. */
+.co-layout .co-dashboard-almacenamiento { margin-top:14px; padding:16px; border:1px solid var(--co-border,#d3e0f3); border-radius:10px; background:#fff; color:var(--co-text,#002d72); }
+.co-layout .co-dashboard-almacenamiento .co-almacenamiento-encabezado { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 16px; }
+.co-layout .co-dashboard-almacenamiento .co-almacenamiento-encabezado h2 { display:flex; align-items:center; gap:8px; margin:0; font-size:16px; }
+.co-layout .co-dashboard-almacenamiento .co-almacenamiento-encabezado > span { font-size:14px; font-variant-numeric:tabular-nums; }
+.co-layout .co-dashboard-almacenamiento progress { display:block; appearance:none; width:100%; height:8px; margin:12px 0 8px; overflow:hidden; border:0; border-radius:999px; background:#e0eaf7; accent-color:#0864df; }
+.co-layout .co-dashboard-almacenamiento progress::-webkit-progress-bar { background:#e0eaf7; border-radius:999px; }
+.co-layout .co-dashboard-almacenamiento progress::-webkit-progress-value { background:#0864df; border-radius:999px; }
+.co-layout .co-dashboard-almacenamiento progress::-moz-progress-bar { background:#0864df; border-radius:999px; }
+.co-layout .co-dashboard-almacenamiento[data-tono="medio"] progress { accent-color:#c47710; }
+.co-layout .co-dashboard-almacenamiento[data-tono="medio"] progress::-webkit-progress-value { background:#c47710; }
+.co-layout .co-dashboard-almacenamiento[data-tono="medio"] progress::-moz-progress-bar { background:#c47710; }
+.co-layout .co-dashboard-almacenamiento[data-tono="alto"] progress { accent-color:#bf3030; }
+.co-layout .co-dashboard-almacenamiento[data-tono="alto"] progress::-webkit-progress-value { background:#bf3030; }
+.co-layout .co-dashboard-almacenamiento[data-tono="alto"] progress::-moz-progress-bar { background:#bf3030; }
+.co-layout .co-dashboard-almacenamiento .co-almacenamiento-detalle { display:flex; justify-content:space-between; flex-wrap:wrap; gap:4px 12px; font-size:12px; color:#4c648a; }
 .co-layout .co-admin-dashboard { display:grid; gap:16px; min-width:0; }
-.co-layout .co-admin-dashboard .co-dashboard-barra { align-items:center; gap:14px; margin:0; }
+.co-layout .co-admin-tabs > .co-admin-acciones-dashboard { display:flex; align-items:center; flex:0 0 auto; }
+.co-layout .co-admin-tabs > .co-admin-acciones-dashboard[hidden] { display:none; }
+.co-layout .co-admin-tabs .co-admin-acciones-dashboard > button { display:grid; place-items:center; width:42px; min-width:42px; min-height:42px; height:42px; padding:8px; border:1px solid #c7dcfa; border-radius:7px; background:#fff; color:#0057d8; }
 .co-layout .co-admin-dashboard h2 { font-size:20px; }
 .co-layout .co-admin-dashboard h3 { margin:0; font-size:17px; }
 .co-layout .co-admin-dashboard .ayuda-turno { margin:6px 0 0; font-size:14px; line-height:1.4; }
-.co-layout .co-dashboard-indicadores { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
-.co-layout .co-admin-dashboard .co-dashboard-indicador { padding:16px 18px; border-radius:12px; box-shadow:none; }
-.co-layout .co-dashboard-indicador>div { display:flex; align-items:center; gap:9px; font-size:14px; line-height:1.4; color:#3c5d89; }
-.co-layout .co-dashboard-indicador svg { flex-shrink:0; color:#005ce0; }
-.co-layout .co-dashboard-indicador>strong { display:block; margin-top:9px; font-size:28px; line-height:1.15; font-variant-numeric:tabular-nums; }
-.co-layout .co-dashboard-indicador>strong.co-dashboard-indicador-estado { font-size:16px; line-height:1.4; overflow-wrap:anywhere; }
-.co-layout .co-dashboard-areas { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:14px; margin-top:12px; }
-.co-layout .co-dashboard-area { min-width:0; padding:12px; border:1px solid #dce6f4; border-radius:9px; background:#fff; }
-.co-layout .co-dashboard-area-sin-turno { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px 12px; }
-.co-layout .co-admin-dashboard .co-dashboard-area-sin-turno .ayuda-turno { margin:0; }
-.co-layout .co-dashboard-turno { padding-top:12px; }
-.co-layout .co-dashboard-turno+.co-dashboard-turno { margin-top:14px; border-top:1px solid #dce6f4; }
-.co-layout .co-dashboard-turno-encabezado,.co-layout .co-dashboard-avance { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:14px; }
+.co-layout .co-dashboard-cuerpo { display:grid; grid-template-columns:minmax(280px,.9fr) minmax(0,1.6fr); align-items:start; gap:14px; }
+.co-layout .co-dashboard-estado { min-width:0; margin:0; }
+.co-layout .co-dashboard-areas { display:grid; grid-template-columns:minmax(0,1fr); align-items:start; gap:10px; margin-top:12px; }
+.co-layout .co-dashboard-dia { min-width:0; }
+.co-layout .co-dashboard-dia .resumen-dia { display:grid; grid-template-columns:minmax(0,2.3fr) minmax(320px,.9fr); align-items:stretch; gap:12px; margin:0; }
+.co-layout .co-dashboard-dia .resumen-dia-tarjeta { box-sizing:border-box; min-width:0; height:100%; padding:16px; border-radius:10px; }
+.co-layout .co-dashboard-dia .resumen-dia-cabecera { margin-bottom:8px; }
+.co-layout .co-dashboard-dia .resumen-dia-cabecera h2 { font-size:17px; }
+.co-layout .co-dashboard-dia .resumen-dia-cabecera .boton-icono { display:grid; place-items:center; width:42px; min-width:42px; height:42px; padding:8px; border:1px solid #c7dcfa; border-radius:7px; background:#fff; color:#0057d8; font-size:22px; }
+.co-layout .co-dashboard-dia .resumen-dia-cabecera .co-eventos-total { min-height:30px; padding:3px 8px; border:1px solid #c8ddfa; border-radius:5px; background:#eaf2ff; color:#173e70; font:inherit; font-size:13px; white-space:nowrap; cursor:pointer; box-shadow:0 0 0 3px rgb(11 94 215 / 8%); }
+.co-layout .co-dashboard-dia .resumen-dia-cabecera .co-eventos-total:is(:hover,[aria-expanded="true"]) { background:#dceafe; border-color:#8eb8ed; }
+.co-layout .co-dashboard-dia .resumen-dia-cabecera .co-eventos-total:disabled { cursor:default; box-shadow:none; }
+.co-layout .co-dashboard-dia .resumen-dia-produccion { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr)); gap:10px; }
+.co-layout .co-dashboard-dia .resumen-dia-programa { min-width:0; padding:10px; border:1px solid #dce6f4; border-radius:8px; background:#f3f7fd; }
+.co-layout .co-dashboard-dia .resumen-dia-papel { align-items:baseline; gap:8px; padding-bottom:8px; border-bottom:1px solid #d5e0ee; }
+.co-layout .co-dashboard-dia .resumen-dia-papel strong { color:#0b1d3a; font-size:14px; }
+.co-layout .co-dashboard-dia .resumen-dia-maquina { background:transparent; padding:0; color:#0b1d3a; font-size:14px; }
+.co-layout .co-dashboard-dia .resumen-dia-programa dl { gap:8px; }
+.co-layout .co-dashboard-dia .resumen-dia-programa dl>div+div { padding-left:10px; border-left:1px solid #d5e0ee; }
+.co-layout .co-dashboard-dia .resumen-dia-programa dt { font-size:13px; }
+.co-layout .co-dashboard-dia .resumen-dia-programa dd { font-size:16px; }
+.co-layout .co-dashboard-dia .co-evento-ficha { display:flex; gap:10px; padding:10px; border:1px solid #dce6f4; border-radius:8px; background:#edf4fd; }
+.co-layout .co-dashboard-dia .co-evento-fecha { display:flex; flex:0 0 58px; flex-direction:column; align-items:center; justify-content:center; padding:6px; border:1px solid #dce6f4; border-radius:7px; background:#fff; color:#183b70; text-align:center; font-size:12px; }
+.co-layout .co-dashboard-dia .co-evento-fecha strong { font-size:20px; line-height:1.2; }
+.co-layout .co-dashboard-dia .co-evento-datos { min-width:0; }
+.co-layout .co-dashboard-dia .co-evento-datos>.resumen-dia-evento-fecha { margin-bottom:5px; color:#536783; font-size:12px; }
+.co-layout .co-dashboard-dia .co-evento-datos>strong { font-size:14px; }
+.co-layout .co-dashboard-dia .co-evento-datos>p { margin:4px 0 0; font-size:13px; }
+.co-layout .co-dashboard-dia .resumen-dia-tarjeta[aria-label="Próximos eventos del área"] { display:flex; flex-direction:column; }
+.co-layout .co-dashboard-dia .co-eventos-carrusel,.co-layout .co-dashboard-dia .co-eventos-contenido { flex:1; display:flex; flex-direction:column; justify-content:center; }
+.co-layout .co-dashboard-pendientes { margin-top:12px; padding:14px 16px; border:1px solid #d7e2f1; border-radius:10px; background:#fff; }
+.co-layout .co-dashboard-pendientes-encabezado { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.co-layout .co-dashboard-pendientes-encabezado h2 { margin:0; font-size:16px; }
+.co-layout .co-dashboard-pendientes-encabezado>span { color:#536783; font-size:13px; }
+.co-layout .co-dashboard-pendientes ul { display:grid; gap:0; margin:6px 0 0; padding:0; list-style:none; }
+.co-layout .co-dashboard-pendientes li { display:grid; grid-template-columns:minmax(92px,.7fr) minmax(52px,.4fr) minmax(90px,1fr) auto; align-items:center; gap:10px; padding:10px 0; border-top:1px solid #e1eaf6; font-size:13px; }
+.co-layout .co-dashboard-pendientes time,.co-layout .co-dashboard-pendientes-turno { color:#536783; }
+.co-layout .co-dashboard-pendientes-estado { justify-self:end; padding:4px 9px; border-radius:999px; background:#fff2dd; color:#70420a; font-size:12px; font-weight:650; }
+.co-layout .co-dashboard-area { min-width:0; overflow:hidden; border:1px solid #cddcf0; border-radius:9px; background:#fff; font-family:inherit; }
+.co-layout .co-dashboard-area-encabezado { display:flex; align-items:center; justify-content:space-between; gap:10px; min-height:48px; padding:8px 14px; background:#eaf2ff; }
+.co-layout .co-dashboard-area-encabezado h3 { margin:0; font-family:inherit; font-size:19px; line-height:1.35; }
+.co-layout .co-dashboard-area-encabezado .co-badge { flex-shrink:0; }
+.co-layout .co-dashboard-area>.ayuda-turno { margin:0; padding:12px 14px; }
+.co-layout .co-dashboard-turno { padding:12px 14px 14px; }
+.co-layout .co-dashboard-turno+.co-dashboard-turno { border-top:1px solid #dce6f4; }
+.co-layout .co-dashboard-turno-encabezado,.co-layout .co-dashboard-avance { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:14px; font-family:inherit; }
 .co-layout .co-dashboard-operador { margin:7px 0 0; font-size:14px; font-weight:600; overflow-wrap:anywhere; }
+.co-layout .co-dashboard-operador span { display:block; }
 .co-layout .co-dashboard-avance { margin-top:10px; }
 .co-layout .co-dashboard-turno progress { display:block; width:100%; height:7px; margin-top:8px; border:0; border-radius:6px; background:#e1eaf6; appearance:none; overflow:hidden; }
 .co-layout .co-dashboard-turno progress::-webkit-progress-bar { background:#e1eaf6; }
@@ -31,9 +82,10 @@
 .co-layout .co-dashboard-lista p { margin:5px 0 0; line-height:1.5; color:#3c5d89; overflow-wrap:anywhere; }
 .co-layout .co-dashboard-lista time { flex-shrink:0; font-size:13px; color:#5b7196; }
 .co-layout .co-dashboard-meta { display:flex; flex-direction:column; align-items:flex-end; gap:7px; flex-shrink:0; }
-@media(max-width:1150px) { .co-layout .co-dashboard-indicadores { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-@media(max-width:650px) { .co-layout .co-dashboard-areas { grid-template-columns:minmax(0,1fr); gap:14px; } .co-layout .co-dashboard-lista li { flex-wrap:wrap; gap:8px; } .co-layout .co-dashboard-meta { flex-direction:row; align-items:center; } .co-layout .co-admin-dashboard .co-dashboard-indicador { padding:14px; } }
-@media(max-width:360px) { .co-layout .co-dashboard-indicadores { grid-template-columns:minmax(0,1fr); } }
+@media(max-width:1100px) { .co-layout .co-dashboard-cuerpo { grid-template-columns:minmax(0,1fr); } }
+@media(max-width:850px) { .co-layout .co-dashboard-dia .resumen-dia { grid-template-columns:minmax(0,1fr); align-items:start; } .co-layout .co-dashboard-dia .resumen-dia-tarjeta { height:auto; } }
+@media(max-width:650px) { .co-layout .co-dashboard-lista li { flex-wrap:wrap; gap:8px; } .co-layout .co-dashboard-meta { flex-direction:row; align-items:center; } }
+@media(max-width:480px) { .co-layout .co-dashboard-pendientes li { grid-template-columns:minmax(82px,1fr) auto; gap:4px 10px; } .co-layout .co-dashboard-pendientes-estado { grid-column:2; grid-row:1 / span 2; } }
 
 .co-layout .co-dashboard-resumen { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; align-items:start; min-width:0; }
 .co-layout .co-dashboard-resumen>.panel-informacion { min-width:0; }

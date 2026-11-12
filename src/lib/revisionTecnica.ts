@@ -1,4 +1,6 @@
 import { supabase } from './supabase'
+import { prepararReportesIndividuales } from './reportesIndividuales'
+import { mayusculasNota, normalizarNota } from './notasOperativas'
 import { useAuthStore } from '../stores/authStore'
 import { exigirAdminRevision } from './revisionCapturas'
 import { leerReporteCalderas } from './bitacoraTecnicaCalderas'
@@ -7,7 +9,7 @@ import { leerReportePTAR } from './bitacoraTecnicaPTAR'
 import type { ReporteTecnicoPTAR } from './bitacoraTecnicaPTAR'
 import { equiposCalderas, pilasCalderas, equiposAguaCalderas } from './tiposBitacoraCalderas'
 import type { BorradorBitacoraCalderas } from './tiposBitacoraCalderas'
-import { medicionesBitacoraPTAR, bombasBitacoraPTAR, prensasBitacoraPTAR } from './tiposBitacoraPTAR'
+import { medicionesBitacoraPTAR, bombasBitacoraPTAR, prensasBitacoraPTAR, normalizarVelocidadesPrensas } from './tiposBitacoraPTAR'
 import type { BorradorBitacoraPTAR } from './tiposBitacoraPTAR'
 import type { AreaOperativa } from './tiposTurno'
 
@@ -79,9 +81,11 @@ function datosCalderas(b: BorradorBitacoraCalderas, formato: 1 | 2) {
   if (equiposCalderas.some(e => e.id.startsWith('caldera_') && b.equipos[e.id].presion.trim())) throw new Error('Las Calderas no registran presión.')
   const datos: Record<string, unknown> = {
     mediciones: Object.fromEntries(Object.entries(b.mediciones).map(([k, v]) => [k, numero(v)])),
-    equipos: Object.fromEntries(equiposCalderas.map(e => [e.id, { estado: texto(b.equipos[e.id].estado), presion: numero(b.equipos[e.id].presion) }])),
+    equipos: Object.fromEntries(equiposCalderas.map(e => [e.id, { estado: texto(b.equipos[e.id].estado),
+      presion: formato === 2 && b.reporteRelevante && e.id.startsWith('sulzer_') && ['Reserva', 'Mantenimiento'].includes(b.equipos[e.id].estado)
+        ? 0 : numero(b.equipos[e.id].presion) }])),
     pilas: Object.fromEntries(pilasCalderas.map(p => [p.id, { nivel: numero(b.pilas[p.id].nivel), bomba: texto(b.pilas[p.id].bomba), presion: numero(b.pilas[p.id].presion) }])),
-    compresores: Object.fromEntries(Object.entries(b.compresores).map(([k, v]) => [k, texto(v)])), estadoUF: texto(b.estadoUF), comentariosUF: texto(b.comentariosUF),
+    compresores: Object.fromEntries(Object.entries(b.compresores).map(([k, v]) => [k, texto(v)])), estadoUF: texto(b.estadoUF), comentariosUF: normalizarNota(b.comentariosUF),
   }
   if (formato === 2) Object.assign(datos, { versionFormato: 2, servicioAgua: Object.fromEntries(equiposAguaCalderas.map(e => [e.id, b.servicioAgua[e.id] ? true : null])) })
   return datos
@@ -91,7 +95,9 @@ function datosPTAR(b: BorradorBitacoraPTAR): Record<string, unknown> {
     mediciones: Object.fromEntries(medicionesBitacoraPTAR.map(m => [m.campo, numero(b.mediciones[m.campo])])),
     bombas: Object.fromEntries(bombasBitacoraPTAR.map(k => [k, b.bombas[k] === 'Automático (A)' ? 'A' : b.bombas[k] === 'Manual (M)' ? 'M' : null])),
     prensas: Object.fromEntries(prensasBitacoraPTAR.map(k => [k, texto(b.prensas[k])])),
-    estadoAgitador: texto(b.estadoAgitador), destinoDescarga: texto(b.destinoDescarga), comentarioPrensas: texto(b.comentarioPrensas),
+    estadoAgitador: texto(b.estadoAgitador), destinoDescarga: texto(b.destinoDescarga),
+    horasDescarga: { tanque11: numero(b.horasDescarga.tanque11), tanques56: numero(b.horasDescarga.tanques56) },
+    comentarioPrensas: normalizarNota(b.comentarioPrensas),
   }
 }
 export function prepararCorreccionTecnica(cuenta: string, detalle: DetalleTecnicoAdmin, b: BorradorBitacoraCalderas | BorradorBitacoraPTAR, motivo: string): SolicitudTecnica {
@@ -106,11 +112,36 @@ export function prepararCorreccionTecnica(cuenta: string, detalle: DetalleTecnic
   if (legadoCalderas && 'servicioAgua' in b && 'servicioAgua' in original && equiposAguaCalderas.some(e => b.servicioAgua[e.id] !== original.servicioAgua[e.id])) throw new Error('El formato 1 no permite modificar selecciones en servicio.')
   const datos = detalle.area === 'calderas' && 'equipos' in b ? datosCalderas(b, detalle.reporte.versionFormato)
     : detalle.area === 'ptar' && 'bombas' in b ? datosPTAR(b) : null
+  if (detalle.area === 'calderas' && 'comentariosCompresores' in b && 'comentariosCompresores' in original) {
+    const comentario = normalizarNota(b.comentariosCompresores)
+    if (comentario.length > 4000) throw new Error('Los comentarios de Compresores admiten hasta 4,000 caracteres.')
+    if (legadoCalderas || !relevante) {
+      if (b.comentariosCompresores !== original.comentariosCompresores) throw new Error('El formato anterior no permite modificar comentarios de Compresores.')
+    } else if (datos) datos.comentariosCompresores = comentario
+  }
+  if (detalle.area === 'calderas' && 'comentariosPilas' in b && 'comentariosPilas' in original) {
+    const comentario = normalizarNota(b.comentariosPilas)
+    if ((comentario?.length ?? 0) > 4000) throw new Error('Los comentarios de Pilas de suministro admiten hasta 4,000 caracteres.')
+    if (legadoCalderas || !relevante) {
+      if (b.comentariosPilas !== original.comentariosPilas) throw new Error('El formato anterior no permite modificar comentarios de Pilas de suministro.')
+    } else if (datos && (comentario || original.comentariosPilas)) datos.comentariosPilas = comentario
+  }
+  if (detalle.area === 'ptar' && 'prensas' in b && 'prensas' in original) {
+    const velocidades = normalizarVelocidadesPrensas(b.velocidadesPrensas)
+    const anteriores = normalizarVelocidadesPrensas(original.velocidadesPrensas)
+    if (!relevante) {
+      if (JSON.stringify(velocidades) !== JSON.stringify(anteriores)) throw new Error('El formato anterior no permite modificar velocidades de prensas.')
+    } else if (datos && (velocidades || anteriores)) {
+      datos.velocidadesPrensas = Object.fromEntries(prensasBitacoraPTAR.map(n => [n, numero(velocidades?.[n] ?? '')]))
+    }
+  }
   if (!datos) throw new Error('Los campos no corresponden al área del reporte.')
+  const reportesOperadores = prepararReportesIndividuales(b.reportesOperadores)
+  if (reportesOperadores) datos.reportesOperadores = reportesOperadores
   let rpc = 'corregir_bitacora_tecnica_admin'
   if (detalle.area === 'calderas' && !legadoCalderas) rpc = relevante ? 'corregir_bitacora_calderas_admin_v3' : 'corregir_bitacora_calderas_admin_v2'
   if (detalle.area === 'ptar' && relevante) rpc = 'corregir_bitacora_ptar_admin_v2'
-  if (!legadoCalderas && relevante) datos.reporteRelevante = relevante
+  if (!legadoCalderas && relevante) datos.reporteRelevante = mayusculasNota(relevante)
   return Object.freeze(JSON.parse(JSON.stringify({ cuenta, id: crypto.randomUUID(), detalle, rpc, datos, motivo: motivo.trim() })) as SolicitudTecnica)
 }
 export async function guardarCorreccionTecnica(s: SolicitudTecnica): Promise<DetalleTecnicoAdmin> {

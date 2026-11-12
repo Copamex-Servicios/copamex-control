@@ -34,7 +34,6 @@ export function TablaReportesSupervision({ filtros, revision, alAbrir }: { filtr
   const [seleccion, setSeleccion] = useState<{ clave: string; fila: Fila; desplazar?: boolean } | null>(null)
   useEffect(() => {
     const guardarCache = cacheTabla.preparar()
-    setSeleccion(null)
     let vivo = true
     const c = new AbortController(), limite = window.setTimeout(() => c.abort(), 20000)
     const areas: AreaOperativa[] = filtros.area === 'todas' ? ['calderas', 'ptar'] : [filtros.area]

@@ -12,6 +12,9 @@ export interface SolicitudInicioTurno {
   nombreOperador: string
   operadorId: string
   numeroEmpleado: string
+  nombreOperadorAcompanante: string
+  operadorAcompananteId: string
+  numeroEmpleadoAcompanante: string
   turnoAnterior: string | null
 }
 
@@ -31,7 +34,7 @@ export class ErrorTurnos extends Error {
 }
 
 const columnasOperador = 'id,nombre,numero_empleado,activo,creado_en'
-const columnasTurno = 'id,fecha_operativa,area,turno,operador_id,iniciado_por,iniciado_en,finalizado_en,notas_cierre'
+const columnasTurno = 'id,fecha_operativa,area,turno,operador_id,operador_acompanante_id,iniciado_por,iniciado_en,finalizado_en,notas_cierre'
 
 function esUuid(valor: unknown): valor is string {
   return typeof valor === 'string'
@@ -40,6 +43,13 @@ function esUuid(valor: unknown): valor is string {
 
 export function esTipoTurno(valor: unknown): valor is TipoTurno {
   return valor === 'dia' || valor === 'tarde' || valor === 'noche'
+}
+
+export function tipoTurnoPorHora(hora: string | null): TipoTurno | null {
+  if (!hora || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(hora)) return null
+  if (hora >= '07:01' && hora < '15:01') return 'dia'
+  if (hora >= '15:01' && hora < '21:01') return 'tarde'
+  return 'noche'
 }
 
 export function esFechaOperativa(valor: unknown): valor is string {
@@ -75,17 +85,18 @@ function leerOperador(valor: unknown): Operador {
 }
 
 function leerTurno(valor: unknown, incierto = false): TurnoOperativo {
-  const { id, fecha_operativa, area, turno, operador_id, iniciado_por,
+  const { id, fecha_operativa, area, turno, operador_id, operador_acompanante_id, iniciado_por,
     iniciado_en, finalizado_en, notas_cierre } = leerFila(valor, incierto)
   if (!esUuid(id) || !esFechaOperativa(fecha_operativa)
     || (area !== 'calderas' && area !== 'ptar') || !esTipoTurno(turno)
-    || !esUuid(operador_id) || !esUuid(iniciado_por) || !esInstante(iniciado_en)
+    || !esUuid(operador_id) || (operador_acompanante_id !== null && !esUuid(operador_acompanante_id))
+    || operador_acompanante_id === operador_id || !esUuid(iniciado_por) || !esInstante(iniciado_en)
     || (finalizado_en !== null && (!esInstante(finalizado_en)
       || Date.parse(finalizado_en) < Date.parse(iniciado_en)))
     || (notas_cierre !== null && typeof notas_cierre !== 'string')) {
     throw new ErrorTurnos('No se pudo comprobar la información del turno. Revisa la información antes de continuar.', incierto)
   }
-  return { id, fecha_operativa, area, turno, operador_id, iniciado_por,
+  return { id, fecha_operativa, area, turno, operador_id, operador_acompanante_id, iniciado_por,
     iniciado_en, finalizado_en, notas_cierre }
 }
 
@@ -103,11 +114,11 @@ function lanzarFallo(fallo: unknown, mensaje: string, mutacion = false): never {
   const fila = fallo && typeof fallo === 'object' ? fallo as Record<string, unknown> : null
   const codigo = typeof fila?.code === 'string' ? fila.code : ''
   const mensajeServidor = typeof fila?.message === 'string' ? fila.message : ''
-  if (codigo === 'PGRST202' || codigo === '42883') throw new ErrorTurnos('Falta instalar la migración 039 de inicio por número de empleado en Supabase.')
+  if (codigo === 'PGRST202' || codigo === '42883') throw new ErrorTurnos('Falta instalar la migración de inicio de turno con dos operadores en Supabase.')
   const respuestaDeBase = /^[\dA-Z]{5}$/.test(codigo) || /^PGRST\d{3}$/.test(codigo)
   // Las funciones propias devuelven mensajes en español para estos errores.
   const mensajePropio = ['22023', '42501', '23505'].includes(codigo)
-    && /^(Solo una cuenta|Escribe el número|No se encontró ese número|El operador cambió|Escribe el nombre|Hay varios operadores|Ese operador|Selecciona el tipo de turno|Ese identificador|Ya existe ese tipo|Hay un turno abierto|Ese turno pertenece|El turno anterior|No se pudo cerrar|Indica el turno|No se encontró el turno|Esta cuenta|El turno ya)/.test(mensajeServidor)
+    && /^(Solo una cuenta|Identifica dos operadores|Selecciona dos operadores|Escribe el número|No se encontró ese número|El operador cambió|Escribe el nombre|Hay varios operadores|Ese operador|Selecciona el tipo de turno|Selecciona el turno que corresponde al horario actual del servidor\.|Ese identificador|Ya existe ese tipo|Hay un turno abierto|Ese turno pertenece|El turno anterior|No se pudo cerrar|Indica el turno|No se encontró el turno|Esta cuenta|El turno ya)/.test(mensajeServidor)
   throw new ErrorTurnos(mensajePropio ? mensajeServidor : mensaje, mutacion && !respuestaDeBase)
 }
 
@@ -133,6 +144,9 @@ export async function consultarDatosTurno(
     if (turno && !operadores.some((operador) => operador.id === turno.operador_id)) {
       throw new ErrorTurnos('No se pudo obtener el nombre del operador del turno. Reintenta la consulta.')
     }
+    if (turno?.operador_acompanante_id && !operadores.some((operador) => operador.id === turno.operador_acompanante_id)) {
+      throw new ErrorTurnos('No se pudo obtener el nombre del segundo operador del turno. Reintenta la consulta.')
+    }
     return { operadores, turno }
   } catch (fallo) {
     if (fallo instanceof ErrorTurnos) throw fallo
@@ -146,24 +160,31 @@ export async function iniciarTurno(
   comprobarContexto(contexto)
   comprobarCancelacion(signal)
   const nombre = normalizarNombreOperador(solicitud.nombreOperador)
+  const nombreAcompanante = normalizarNombreOperador(solicitud.nombreOperadorAcompanante)
   if (!esUuid(solicitud.id) || !esTipoTurno(solicitud.tipoTurno) || !nombre || !esUuid(solicitud.operadorId) || !solicitud.numeroEmpleado.trim()
+    || !nombreAcompanante || !esUuid(solicitud.operadorAcompananteId) || !solicitud.numeroEmpleadoAcompanante.trim()
+    || solicitud.operadorId === solicitud.operadorAcompananteId
     || (solicitud.turnoAnterior !== null && !esUuid(solicitud.turnoAnterior))) {
-    throw new ErrorTurnos('Selecciona el tipo de turno y escribe el nombre completo del operador.')
+    throw new ErrorTurnos('Selecciona el tipo de turno e identifica dos operadores distintos.')
   }
   try {
-    const { data, error } = await supabase.rpc('iniciar_turno_empleado', {
+    const { data, error } = await supabase.rpc('iniciar_turno_pareja_empleado', {
       p_id: solicitud.id,
       p_turno: solicitud.tipoTurno,
       p_numero_empleado: solicitud.numeroEmpleado.trim(),
       p_operador: solicitud.operadorId,
       p_nombre_operador: nombre,
+      p_numero_empleado_acompanante: solicitud.numeroEmpleadoAcompanante.trim(),
+      p_operador_acompanante: solicitud.operadorAcompananteId,
+      p_nombre_operador_acompanante: nombreAcompanante,
       p_turno_anterior: solicitud.turnoAnterior,
     }).abortSignal(signal).single()
     if (error) lanzarFallo(error, 'No se pudo iniciar el turno. Revisa la información antes de reintentar.', true)
     const turno = leerTurno(data, true)
     if (turno.id.toLowerCase() !== solicitud.id.toLowerCase()
       || turno.area !== contexto.area || turno.iniciado_por.toLowerCase() !== contexto.cuentaId.toLowerCase()
-      || turno.turno !== solicitud.tipoTurno || turno.operador_id !== solicitud.operadorId) {
+      || turno.turno !== solicitud.tipoTurno || turno.operador_id !== solicitud.operadorId
+      || turno.operador_acompanante_id !== solicitud.operadorAcompananteId) {
       throw new ErrorTurnos('No se pudo comprobar el turno guardado. Revisa la información antes de continuar.', true)
     }
     return turno

@@ -64,7 +64,7 @@ export function matrizTecnicoDiario(fecha: string, area: AreaOperativa, detalles
       })
       const unidades = [...new Set(celdas.map(c => c.unidad).filter(Boolean))]
       return { seccion: dato.seccion, parametro: dato.parametro, tipo: dato.tipo,
-        observacion: ['Reporte relevante', 'Comentarios relevantes de Ultrafiltración', 'Reporte relevante de fin de turno y motivo por el cual la prensa está parada'].includes(dato.parametro),
+        observacion: ['Reporte relevante', 'Comentarios relevantes de Ultrafiltración', 'Comentarios de Compresores', 'Comentarios relevantes de Pilas de suministro', 'Reporte relevante de fin de turno y motivo por el cual la prensa está parada'].includes(dato.parametro),
         unidad: unidades.length > 1 ? 'Según turno' : unidades[0] ?? '', celdas }
     }),
   }
@@ -110,7 +110,8 @@ export function datosTecnico(detalle: DetalleTecnicoAdmin): DatoTecnico[] {
   const datos: DatoTecnico[] = []
   const agregar = (seccion: string, parametro: string, valor: string, unidad = '', tipo: DatoTecnico['tipo'] = 'medicion') => datos.push({ seccion, parametro, valor, unidad, tipo })
   const b = detalle.reporte.borrador
-  agregar('Reporte relevante del turno', 'Reporte relevante', b.reporteRelevante, '', 'texto')
+  agregar('Reporte relevante del turno', 'Reporte relevante', b.reportesOperadores
+    ? b.reportesOperadores.map(r => `${r.nombre}\n${r.comentario}`).join('\n\n') : b.reporteRelevante, '', 'texto')
   if (detalle.area === 'calderas') {
     const r = detalle.reporte, c = r.borrador
     for (const e of equiposCalderas) {
@@ -136,11 +137,13 @@ export function datosTecnico(detalle: DetalleTecnicoAdmin): DatoTecnico[] {
     agregar('Ultrafiltración', 'Estado de la UF', c.estadoUF, '', 'estado')
     agregar('Ultrafiltración', 'Comentarios relevantes de Ultrafiltración', c.comentariosUF, '', 'texto')
     for (const n of ['1', '2', '3', '4'] as const) agregar('Compresores', `Compresor ${n}`, c.compresores[n], '', 'estado')
+    if (c.comentariosCompresores) agregar('Compresores', 'Comentarios de Compresores', c.comentariosCompresores, '', 'texto')
     for (const p of pilasCalderas) {
       agregar('Pilas de suministro', `${p.nombre} · Nivel`, c.pilas[p.id].nivel, '%')
       agregar('Pilas de suministro', `${p.nombre} · Bomba`, c.pilas[p.id].bomba, '', 'texto')
-      agregar('Pilas de suministro', `${p.nombre} · Presión`, c.pilas[p.id].presion, 'kg/cm²')
+      agregar('Pilas de suministro', `${p.nombre} · Presión`, c.pilas[p.id].presion, p.unidadPresion)
     }
+    if (c.comentariosPilas) agregar('Pilas de suministro', 'Comentarios relevantes de Pilas de suministro', c.comentariosPilas, '', 'texto')
     // En formato 1 estas selecciones no se capturaban: no inferir estados.
     if (r.versionFormato === 2) for (const e of equiposAguaCalderas) agregar('Agua potable y pozos', e.nombre, c.servicioAgua[e.id] ? 'En servicio' : '', '', 'estado')
   } else {
@@ -149,8 +152,11 @@ export function datosTecnico(detalle: DetalleTecnicoAdmin): DatoTecnico[] {
     for (const m of medicionesBitacoraPTAR) agregar(secciones[m.seccion], m.nombre, p.mediciones[m.campo], m.unidad)
     agregar('Clarificador primario', 'Agitador 9300', p.estadoAgitador, '', 'estado')
     agregar('DAF Chino y bombas', 'Descarga del DAF Chino', p.destinoDescarga, '', 'estado')
+    agregar('DAF Chino y bombas', 'Horas en tanque 11', p.horasDescarga.tanque11, 'h')
+    agregar('DAF Chino y bombas', 'Horas en tanques 5 y 6', p.horasDescarga.tanques56, 'h')
     for (const n of bombasBitacoraPTAR) agregar('DAF Chino y bombas', `Bomba ${n}`, p.bombas[n], '', 'estado')
     for (const n of prensasBitacoraPTAR) agregar('Prensas de fin de turno', `Prensa ${n}`, p.prensas[n], '', 'estado')
+    for (const n of prensasBitacoraPTAR) if (p.velocidadesPrensas?.[n]) agregar('Prensas de fin de turno', 'Velocidad de prensa ' + n, p.velocidadesPrensas[n], 'm/min')
     agregar('Prensas de fin de turno', 'Reporte relevante de fin de turno y motivo por el cual la prensa está parada', p.comentarioPrensas, '', 'texto')
   }
   const orden = detalle.area === 'calderas'

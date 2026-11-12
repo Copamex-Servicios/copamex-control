@@ -2,9 +2,12 @@ import { supabase } from './supabase'
 import { configuracionAdmin, exigirAdmin, leerFilaAdmin } from './administracion'
 import type { FilaAdmin } from './administracion'
 import { useAuthStore } from '../stores/authStore'
+import { esAutorAviso, mensajeAutorAviso } from './permisosAvisos'
+import { notificarInformacionActualizada } from './actualizacionInformacion'
 
 export async function finalizarAviso(cuenta: string, original: FilaAdmin): Promise<FilaAdmin> {
   exigirAdmin(cuenta)
+  if (!esAutorAviso(cuenta, original)) throw new Error(mensajeAutorAviso)
   const ahora = Date.now()
   if (original.permanente !== true && ((typeof original.inicio === 'string' && Date.parse(original.inicio) > ahora)
     || (typeof original.fin === 'string' && Date.parse(original.fin) <= ahora))) throw new Error('Solo se pueden finalizar avisos activos.')
@@ -20,8 +23,9 @@ export async function finalizarAviso(cuenta: string, original: FilaAdmin): Promi
       throw new Error(`No se pudo finalizar el aviso (${error.code}): ${error.message}`)
     }
     const cerrado = leerFilaAdmin(Array.isArray(data) ? data[0] : data, configuracionAdmin('avisos'))
-    if (cerrado.id !== original.id || cerrado.permanente !== false || typeof cerrado.fin !== 'string'
+    if (cerrado.id !== original.id || cerrado.creado_por !== cuenta || cerrado.permanente !== false || typeof cerrado.fin !== 'string'
       || Date.parse(cerrado.fin) > Date.now()) throw new Error('Supabase no confirmó un aviso finalizado. Actualiza para comprobar su estado.')
+    notificarInformacionActualizada()
     return cerrado
   } finally { cancelar() }
 }

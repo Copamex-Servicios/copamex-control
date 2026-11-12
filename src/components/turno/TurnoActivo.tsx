@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import type { CamposInicioTurno } from '../../hooks/useTurno'
 import type { Operador, TipoTurno, TurnoOperativo } from '../../lib/tiposTurno'
 import { InicioTurno } from './InicioTurno'
@@ -10,7 +10,6 @@ interface PropsTurnoActivo {
   deshabilitado?: boolean
   soloLectura?: boolean
   alCambiar?: (campos: CamposInicioTurno) => Promise<boolean>
-  alCerrar?: (notas: string) => Promise<boolean>
 }
 
 const nombresTurno: Record<TipoTurno, string> = {
@@ -26,38 +25,16 @@ function fechaOperativa(fecha: string): string {
 
 export function TurnoActivo({
   turno, nombreOperador, operadores, deshabilitado = false,
-  soloLectura = false, alCambiar, alCerrar,
+  soloLectura = false, alCambiar,
 }: PropsTurnoActivo) {
-  const [accion, setAccion] = useState<'cambiar' | 'cerrar' | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [cerrando, setCerrando] = useState(false)
-  const cierreActivo = useRef(false)
-  const bloqueado = deshabilitado || cerrando
+  const [accion, setAccion] = useState<'cambiar' | null>(null)
+  const bloqueado = deshabilitado
   const abierto = turno.finalizado_en === null
   const puedeCambiar = abierto && !soloLectura && !!alCambiar
-  const puedeCerrar = abierto && !soloLectura && !!alCerrar
 
   function cancelar(): void {
-    if (bloqueado || cierreActivo.current) return
+    if (bloqueado) return
     setAccion(null)
-    setError(null)
-  }
-
-  async function cerrar(): Promise<void> {
-    if (!puedeCerrar || !alCerrar || accion !== 'cerrar' || bloqueado || cierreActivo.current) return
-    cierreActivo.current = true
-    setCerrando(true)
-    setError(null)
-    try {
-      if (await alCerrar('')) {
-        setAccion(null)
-      }
-    } catch {
-      setError('No se pudo completar el cierre. Revisa el mensaje del turno antes de volver a intentar.')
-    } finally {
-      cierreActivo.current = false
-      setCerrando(false)
-    }
   }
 
   return (
@@ -66,7 +43,9 @@ export function TurnoActivo({
       <dl className="datos-turno">
         <div><dt>Área</dt><dd>{turno.area === 'calderas' ? 'Calderas' : 'PTAR'}</dd></div>
         <div><dt>Tipo de turno</dt><dd>{nombresTurno[turno.turno]}</dd></div>
-        <div><dt>Operador</dt><dd>{nombreOperador}</dd></div>
+        <div><dt>{nombreOperador.includes(' · ') ? 'Operadores del turno' : 'Operador'}</dt><dd>{nombreOperador.includes(' · ')
+          ? <span className="operadores-turno-lista">{nombreOperador.split(' · ').map((nombre, indice) => <span key={`${indice}-${nombre}`}>{nombre}</span>)}</span>
+          : nombreOperador}</dd></div>
         <div><dt>Fecha operativa</dt><dd>{fechaOperativa(turno.fecha_operativa)}</dd></div>
         <div>
           <dt>Inicio</dt>
@@ -81,20 +60,15 @@ export function TurnoActivo({
       </dl>
 
       {!abierto && turno.notas_cierre && <p className="notas-turno">{turno.notas_cierre}</p>}
+      {abierto && !soloLectura && <p className="ayuda-turno">El turno se cierra automáticamente al terminar su horario.</p>}
       
 
-      {accion === null && (puedeCambiar || puedeCerrar) && (
+      {accion === null && puedeCambiar && (
         <div className="acciones-turno">
           {puedeCambiar && (
             <button className="boton-primario" type="button" disabled={bloqueado}
               onClick={() => { if (!bloqueado) setAccion('cambiar') }}>
               Cambiar de turno 
-            </button>
-          )}
-          {puedeCerrar && (
-            <button className={puedeCambiar ? 'boton-secundario' : 'boton-primario'} type="button" disabled={bloqueado}
-              onClick={() => { if (!bloqueado) setAccion('cerrar') }}>
-              Cerrar turno
             </button>
           )}
         </div>
@@ -108,21 +82,6 @@ export function TurnoActivo({
         </div>
       )}
 
-      {accion === 'cerrar' && puedeCerrar && (
-        <div className="formulario-turno gestion-turno" aria-busy={cerrando}>
-          <h3>Cierre de turno</h3>
-          <p className="texto-secundario">¿Estás seguro de que deseas cerrar tu turno?</p>
-          {error && <p className="mensaje-error" role="alert">{error}</p>}
-          <div className="acciones-turno">
-            <button className="boton-primario" type="button" disabled={bloqueado} onClick={() => { void cerrar() }}>
-              {cerrando ? 'Cerrando…' : 'Sí, cerrar turno'}
-            </button>
-            <button className="boton-secundario" type="button" onClick={cancelar} disabled={bloqueado}>
-              Cancelar
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

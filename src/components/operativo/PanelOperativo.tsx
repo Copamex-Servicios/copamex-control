@@ -67,6 +67,7 @@ export function PanelOperativo({ area, rol, seleccionExterna, alSeleccionar, sol
   const bitacora = useBitacora(area), pozos = usePozos(), uf = useUF(), calidad = useCalidad(area), ptar = usePTAR()
   const reloj = useRelojServidor()
   const opciones = apartados.filter(a => area === 'calderas' ? a.id !== 'ptar' : a.id !== 'pozos' && a.id !== 'uf')
+    .filter(a => rol !== 'ptar' || (a.id !== 'ptar' && a.id !== 'calidad'))
   const actual = opciones.find(a => a.id === seleccion) ?? opciones[0]
   const destinoModulo = useRef<HTMLDivElement>(null)
   const moduloAnterior = useRef(actual.id)

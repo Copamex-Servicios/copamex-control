@@ -1,27 +1,23 @@
 import { RefreshCw } from 'lucide-react'
-import { ResumenHistorial } from '../diseno/ResumenHistorial'
+import { ConsultaMuestrasCalidad } from './ConsultaMuestrasCalidad'
 import type { useInformacionDia } from '../../hooks/useInformacionDia'
 import './calidadReferencia.css'
-import { useId, useState } from 'react'
+import { useState } from 'react'
 import '../diseno/acordeonHistorial.css'
 import { useCalidad } from '../../hooks/useCalidad'
 import type { AreaOperativa } from '../../lib/tiposTurno'
 import type { CamposCalidad } from '../../lib/tiposCalidad'
 import { FormularioCalidad } from './FormularioCalidad'
-import { LecturaCalidadGuardada } from './LecturaCalidadGuardada'
 
 interface ContextoVisualCalidad { informacion?: ReturnType<typeof useInformacionDia>; horaServidor?: string | null }
 
 function ContenidoCalidad({ datos, area, informacion, horaServidor }: { datos: ReturnType<typeof useCalidad>; area: AreaOperativa } & ContextoVisualCalidad) {
-  const grupoHistorial = useId()
   const [numeroCaptura, setNumeroCaptura] = useState(0)
-  const { rol, cuentaId, turno, catalogos, historial, lecturaActual, estadoCarga, mensaje, mensajeAccion,
+  const { rol, cuentaId, turno, catalogos, lecturaActual, estadoCarga, mensaje, mensajeAccion,
     solicitudPendiente, guardando, puedeCrear, guardarCalidad,
     actualizarCalidad, reintentarGuardadoCalidad } = datos
   const listo = estadoCarga === 'listo', ocupado = guardando || !!solicitudPendiente
   const propio = rol === area && turno?.iniciado_por === cuentaId
-  const registros = lecturaActual && !historial.some(r => r.lectura.id === lecturaActual.lectura.id)
-    ? [lecturaActual, ...historial].slice(0, 20) : historial
   const confirmado = mensajeAccion === 'Lectura de Calidad guardada.' || mensajeAccion === 'Corrección de Calidad confirmada.'
   async function guardar(campos: CamposCalidad) {
     const resultado = await guardarCalidad(campos)
@@ -58,13 +54,7 @@ function ContenidoCalidad({ datos, area, informacion, horaServidor }: { datos: R
       <FormularioCalidad key={`${turno.id}:${numeroCaptura}`} area={area} catalogos={catalogos} horaServidor={horaServidor} alGuardar={guardar}
         deshabilitado={!puedeCrear || ocupado} />
     </div>}
-    {listo && <div className="historial-calidad"><h3>Historial de Calidad</h3>
-      
-      {registros.length === 0 ? <p>No hay muestras guardadas para consultar.</p> : registros.map(r => <details className="item-historial-calidad co-acordeon-historial" name={grupoHistorial} key={r.lectura.id}>
-        <ResumenHistorial fecha={r.turno.fecha_operativa} titulo="Muestra de Calidad" operador={r.operadorNombre} turno={r.turno.turno} adicional={`${r.lectura.resultados.length} resultados`} />
-        <LecturaCalidadGuardada registro={r} deshabilitado={ocupado} historial />
-      </details>)}
-    </div>}
+    {listo && <ConsultaMuestrasCalidad titulo="Historial de Calidad" areaFija={area} actualizacion={lecturaActual?.lectura.id ?? ''} />}
   </section>
 }
 

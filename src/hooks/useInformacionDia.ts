@@ -3,11 +3,13 @@ import { useAuthStore } from '../stores/authStore'
 import { consultarInformacionDia } from '../lib/informacionDia'
 import type { InformacionDia } from '../lib/informacionDia'
 import type { AreaOperativa } from '../lib/tiposTurno'
+import { escucharCambiosInformacion, intervaloInformacion } from '../lib/actualizacionInformacion'
 
-export function useInformacionDia(area: AreaOperativa, fecha: string | null) {
+export function useInformacionDia(area: AreaOperativa | 'todas', fecha: string | null) {
   const auth = useAuthStore()
   const cuentaId = auth.estado === 'autenticado' && auth.perfil?.activo === true
-    && auth.perfil.id === auth.sesion?.user.id && auth.perfil.rol === area ? auth.perfil.id : null
+    && auth.perfil.id === auth.sesion?.user.id
+    && (area === 'todas' ? auth.perfil.rol === 'admin' : auth.perfil.rol === area) ? auth.perfil.id : null
   const clave = cuentaId && fecha ? `${cuentaId}:${area}:${fecha}` : null
   const [vista, setVista] = useState<{ clave: string; datos: InformacionDia | null; cargando: boolean } | null>(null)
   const [revision, setRevision] = useState(0)
@@ -15,15 +17,19 @@ export function useInformacionDia(area: AreaOperativa, fecha: string | null) {
   useEffect(() => {
     if (!clave || !fecha) return
     let vigente = true
+    let pendiente = false
     let control: AbortController | null = null
     let limite: number | null = null
     function sigueLaCuenta() {
       const a = useAuthStore.getState()
       return vigente && a.estado === 'autenticado' && a.perfil?.activo === true
-        && a.perfil.id === cuentaId && a.sesion?.user.id === cuentaId && a.perfil.rol === area
+        && a.perfil.id === cuentaId && a.sesion?.user.id === cuentaId
+        && (area === 'todas' ? a.perfil.rol === 'admin' : a.perfil.rol === area)
     }
     async function cargar() {
-      if (!sigueLaCuenta() || control || document.visibilityState === 'hidden') return
+      if (!sigueLaCuenta()) return
+      if (control || document.visibilityState === 'hidden') { pendiente = true; return }
+      pendiente = false
       const peticion = new AbortController()
       control = peticion
       setVista(anterior => ({ clave: clave!, datos: anterior?.clave === clave ? anterior.datos : null, cargando: true }))
@@ -39,16 +45,19 @@ export function useInformacionDia(area: AreaOperativa, fecha: string | null) {
         if (limite !== null) window.clearTimeout(limite)
         limite = null
         control = null
+        if (pendiente && sigueLaCuenta()) void cargar()
       }
     }
     const alVolver = () => { void cargar() }
     void cargar()
-    const intervalo = window.setInterval(alVolver, 60000)
+    const dejarEscuchar = escucharCambiosInformacion(alVolver)
+    const intervalo = window.setInterval(alVolver, intervaloInformacion)
     window.addEventListener('focus', alVolver)
     window.addEventListener('online', alVolver)
     document.addEventListener('visibilitychange', alVolver)
     return () => {
       vigente = false
+      dejarEscuchar()
       control?.abort()
       if (limite !== null) window.clearTimeout(limite)
       window.clearInterval(intervalo)

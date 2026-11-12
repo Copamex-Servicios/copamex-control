@@ -22,13 +22,17 @@ export type EstadoPrensaPTAR = '' | 'Servicio' | 'Reserva' | 'Mantenimiento'
 export type EstadoAgitadorPTAR = '' | 'Servicio' | 'Reserva' | 'Mantenimiento'
 export const destinosDescargaPTAR = ['Tanque 11', 'Tanques 5 y 6'] as const
 export type DestinoDescargaPTAR = '' | typeof destinosDescargaPTAR[number]
+export interface HorasDescargaPTAR { tanque11: string; tanques56: string }
 export interface BorradorBitacoraPTAR {
   reporteRelevante: string
+  reportesOperadores?: import('./reportesIndividuales').ReportesIndividuales
   estadoAgitador: EstadoAgitadorPTAR
   destinoDescarga: DestinoDescargaPTAR
+  horasDescarga: HorasDescargaPTAR
   mediciones: Record<CampoBitacoraPTAR, string>
   bombas: Record<typeof bombasBitacoraPTAR[number], ModoBombaPTAR>
   prensas: Record<typeof prensasBitacoraPTAR[number], EstadoPrensaPTAR>
+  velocidadesPrensas: Record<typeof prensasBitacoraPTAR[number], string>
   comentarioPrensas: string
 }
 export function borradorBitacoraPTAR(): BorradorBitacoraPTAR {
@@ -37,7 +41,21 @@ export function borradorBitacoraPTAR(): BorradorBitacoraPTAR {
     mediciones: Object.fromEntries(medicionesBitacoraPTAR.map(m => [m.campo, ''])) as BorradorBitacoraPTAR['mediciones'],
     bombas: { '9': '', '13': '', '9310': '' },
     prensas: { Essity: '', Nalco: '' },
-    estadoAgitador: '', destinoDescarga: '',
+    velocidadesPrensas: { Essity: '', Nalco: '' },
+    estadoAgitador: '', destinoDescarga: '', horasDescarga: { tanque11: '', tanques56: '' },
     comentarioPrensas: '',
   }
+}
+
+// No infiere velocidad a partir del estado ni convierte blancos en cero.
+export function normalizarVelocidadesPrensas(velocidades?: BorradorBitacoraPTAR['velocidadesPrensas']) {
+  const valores = prensasBitacoraPTAR.map(n => {
+    const valor = velocidades?.[n]?.trim() ?? ''
+    if (valor && (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(valor) || !Number.isFinite(Number(valor)) || Number(valor) < 0)) {
+      throw new Error('Registra una velocidad válida para la prensa ' + n + ', igual o mayor a cero.')
+    }
+    return [n, valor || null] as const
+  })
+  return valores.some(([, valor]) => valor !== null)
+    ? Object.fromEntries(valores) as Record<typeof prensasBitacoraPTAR[number], string | null> : undefined
 }

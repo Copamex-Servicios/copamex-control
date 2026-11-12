@@ -35,20 +35,4 @@ export const imagenes: Record<Exclude<IconoNombre, 'flecha'>, string> = {
   cuentaadm: 'iconos-opt/cuentaadm-80772ad1be09.webp',
 }
 
-// La precarga no bloquea el acceso ni depende de datos de la cuenta.
-const solicitudesIconos = new Set<string>()
-
-export function precargarIconos(): void {
-  for (const archivo of Object.values(imagenes)) {
-    if (!archivo.startsWith('iconos-opt/')) continue
-    const url = import.meta.env.BASE_URL + archivo
-    if (solicitudesIconos.has(url)) continue
-    solicitudesIconos.add(url)
-    const imagen = new Image()
-    imagen.fetchPriority = 'low'
-    imagen.decoding = 'async'
-    imagen.src = url
-    void imagen.decode().catch(() => solicitudesIconos.delete(url))
-  }
-}
 

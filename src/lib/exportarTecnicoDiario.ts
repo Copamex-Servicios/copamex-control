@@ -3,12 +3,16 @@ import { crearXlsxTecnicoDiario } from './xlsxTecnicoDiario.ts'
 import type { DetalleTecnicoAdmin } from './revisionTecnica'
 import type { AreaOperativa, TipoTurno } from './tiposTurno'
 
-function descargar(bytes: Uint8Array, tipo: string, nombre: string): void {
-  const buffer = new ArrayBuffer(bytes.byteLength); new Uint8Array(buffer).set(bytes)
-  const url = URL.createObjectURL(new Blob([buffer], { type: tipo }))
+export function descargarArchivo(blob: Blob, nombre: string): void {
+  const url = URL.createObjectURL(blob)
   const enlace = document.createElement('a'); enlace.href = url; enlace.download = nombre
   document.body.append(enlace); enlace.click(); enlace.remove()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+function descargar(bytes: Uint8Array, tipo: string, nombre: string): void {
+  const buffer = new ArrayBuffer(bytes.byteLength); new Uint8Array(buffer).set(bytes)
+  descargarArchivo(new Blob([buffer], { type: tipo }), nombre)
 }
 
 export function descargarTecnicoDiario(fecha: string, area: AreaOperativa, detalles: DetalleTecnicoAdmin[], disponibles: readonly TipoTurno[]): void {
@@ -28,12 +32,14 @@ async function fuentePdf(): Promise<string> {
   return fuente
 }
 
-export async function descargarPdfTecnicoDiario(fecha: string, area: AreaOperativa, detalles: DetalleTecnicoAdmin[], disponibles: readonly TipoTurno[], autorizar: () => void): Promise<void> {
+export async function prepararPdfTecnicoDiario(fecha: string, area: AreaOperativa, detalles: DetalleTecnicoAdmin[], disponibles: readonly TipoTurno[], autorizar: () => void): Promise<{ blob: Blob; nombre: string }> {
   autorizar()
   const matriz = matrizTecnicoDiario(fecha, area, detalles, disponibles)
   const [{ crearPdfTecnicoDiario }, fuenteBase64] = await Promise.all([import('./pdfTecnicoDiario.ts'), fuentePdf()])
   autorizar()
   const pdf = crearPdfTecnicoDiario(matriz, fuenteBase64)
   autorizar()
-  descargar(new Uint8Array(pdf.output('arraybuffer')), 'application/pdf', `COPAMEX_${area}_${fecha}_consolidado.pdf`)
+  const blob = pdf.output('blob')
+  autorizar()
+  return { blob, nombre: `COPAMEX_${area}_${fecha}_consolidado.pdf` }
 }

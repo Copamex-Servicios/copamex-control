@@ -1,0 +1,5 @@
+.co-layout .co-reportes-operadores { display:grid; grid-template-columns:minmax(0,1fr); grid-column:1 / -1; gap:14px; width:100%; min-width:0; }
+.co-layout .co-reportes-operadores > h3 { margin:0; font:inherit; font-weight:650; }
+.co-layout .co-reportes-operadores > label { margin:0; }
+.co-layout .co-reportes-operadores textarea { box-sizing:border-box; width:100%; font:inherit; }
+.co-layout .co-reportes-operadores > p { margin:0; }

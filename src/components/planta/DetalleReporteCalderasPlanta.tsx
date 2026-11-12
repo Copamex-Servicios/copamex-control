@@ -18,7 +18,8 @@ export function DetalleReporteCalderasPlanta({ reporte }: { reporte: ReporteTecn
     </p>}
     <div className="pcr-secciones">
       <Seccion titulo="Reporte relevante del turno">
-        <p className={`pcr-narrativa${b.reporteRelevante ? '' : ' pcr-vacio'}`}>{b.reporteRelevante || 'Sin registrar'}</p>
+        {b.reportesOperadores ? b.reportesOperadores.map((r, i) => <div key={i}><h4>{r.nombre}</h4><p className="pcr-narrativa">{r.comentario}</p></div>)
+          : <p className={`pcr-narrativa${b.reporteRelevante ? '' : ' pcr-vacio'}`}>{b.reporteRelevante || 'Sin registrar'}</p>}
       </Seccion>
 
       <Seccion titulo="Calderas y bombas">
@@ -59,6 +60,7 @@ export function DetalleReporteCalderasPlanta({ reporte }: { reporte: ReporteTecn
             <dt>Compresor {n}</dt><dd><Estado valor={b.compresores[n]} /></dd>
           </div>)}
           <Dato nombre="Presión general de aire" valor={m.presion_aire} unidad="kg/cm²" />
+          {b.comentariosCompresores && <Dato nombre="Comentarios de Compresores" valor={b.comentariosCompresores} />}
         </dl>
       </Seccion>
 
@@ -68,9 +70,10 @@ export function DetalleReporteCalderasPlanta({ reporte }: { reporte: ReporteTecn
           <dl className="pcr-pila-datos">
             <Dato nombre="Nivel" valor={b.pilas[p.id].nivel} unidad="%" />
             <Dato nombre="Bomba" valor={b.pilas[p.id].bomba} vacio="Sin registrar" />
-            <Dato nombre="Presión" valor={b.pilas[p.id].presion} unidad="kg/cm²" />
+            <Dato nombre="Presión" valor={b.pilas[p.id].presion} unidad={p.unidadPresion} />
           </dl>
         </section>)}</div>
+        {b.comentariosPilas && <dl className="pcr-datos"><Dato nombre="Comentarios relevantes de Pilas de suministro" valor={b.comentariosPilas} /></dl>}
       </Seccion>
 
       <Seccion titulo="Agua potable y pozos">
