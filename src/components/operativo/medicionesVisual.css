@@ -58,6 +58,7 @@
   line-height: 1.5;
 }
 .co-layout .panel-mediciones .formulario-mediciones output { display: block; height: auto; background: #f5f8fc; white-space: normal; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.co-layout .panel-pozos .formulario-mediciones input[readonly] { background: #f5f8fc; color: #526985; cursor: default; }
 .co-layout .panel-mediciones .formulario-mediciones textarea { min-height: 80px; resize: vertical; }
 .co-layout .panel-mediciones .formulario-mediciones :is(input,textarea):focus-visible { outline: 2px solid var(--co-primary); outline-offset: 2px; }
 .co-layout .panel-mediciones .formulario-mediciones > .acciones-turno { margin: 0; justify-content: flex-end; gap: 12px; }

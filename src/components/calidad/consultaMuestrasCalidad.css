@@ -33,3 +33,20 @@
   .co-layout .calidad-consulta-agrupada .cmc-detalle > summary { padding:10px; }
   .co-layout .calidad-consulta-agrupada .cmc-detalle time { flex-basis:100%; }
 }
+.co-layout .calidad-consulta-agrupada .cmc-muestra { border-color:#c7d9f3; border-radius:12px; overflow:hidden; }
+.co-layout .calidad-consulta-agrupada .cmc-detalle>summary {
+  box-sizing:border-box; min-height:60px; padding:10px 16px; gap:14px; background:#fff; font-family:inherit;
+}
+.co-layout .calidad-consulta-agrupada .cmc-detalle>summary::before {
+  content:''; flex:0 0 8px; width:8px; height:8px; border-radius:50%; background:#194dbb; border:1px solid #1041a3;
+}
+.co-layout .calidad-consulta-agrupada .cmc-detalle>summary>span:first-child { flex:1; align-items:center; gap:6px 16px; }
+.co-layout .calidad-consulta-agrupada .cmc-detalle>summary strong { font-weight:650; }
+.co-layout .calidad-consulta-agrupada .cmc-detalle>summary small {
+  display:inline-block; padding:4px 11px; border-radius:999px; background:#e8f0ff; color:#1242a5;
+  font-family:inherit; font-size:12px; font-weight:650; line-height:1.4; white-space:nowrap;
+}
+.co-layout .calidad-consulta-agrupada .cmc-detalle>summary>:is(.cmc-ver,.cmc-ocultar) {
+  padding:8px 18px; border:1px solid #1041a3; border-radius:9px; background:#194dbb; color:#fff;
+  font-family:inherit; font-size:14px; font-weight:650; line-height:1.4;
+}

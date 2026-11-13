@@ -93,3 +93,30 @@ test('mantiene el estado incierto ante fallos de conexión y los rechazos defini
   respuesta = () => ({ data: null, error: { code: '42501', message: 'El turno está cerrado.' } })
   await assert.rejects(guardar(), e => e instanceof servicio.ErrorCalidad && !e.resultadoIncierto)
 })
+test('la consulta habitual no toma una lectura adicional como reemplazo de la muestra completa', async () => {
+  const normal=muestra()
+  normal.turno.operador_acompanante={id:id(5),nombre:'Segundo operador'}
+  const adicional=structuredClone(normal)
+  adicional.id=id(99); adicional.seguimiento_id=id(90)
+  adicional.resultados[0].muestra_id=adicional.id
+  adicional.resultados[0].valor=120
+  const filas=[adicional,normal]
+  globalThis.__confirmacionCalidadPrueba.from=()=>{
+    const filtros={}
+    const q={
+      select(){return q},eq(k,v){filtros[k]=v;return q},is(k,v){filtros[k]=v;return q},
+      order(){return q},limit(){return q},abortSignal(){return q},
+      async maybeSingle(){return {data:filas.find(m=>
+        m.turno_id===filtros.turno_id && (!('seguimiento_id' in filtros)||!m.seguimiento_id)),error:null}}
+    }
+    return q
+  }
+  try {
+    const consultado=await servicio.consultarLecturaCalidad(turnoId,new AbortController().signal)
+    assert.equal(consultado.lectura.id,muestraId)
+    assert.equal(consultado.lectura.resultados[0].valor,150)
+    assert.equal(servicio.leerRegistroCalidad(adicional).lectura.seguimientoId,id(90))
+  } finally {
+    globalThis.__confirmacionCalidadPrueba.from=()=>{throw new Error('No se esperaba otra consulta')}
+  }
+})

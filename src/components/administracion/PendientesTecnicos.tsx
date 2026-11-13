@@ -82,13 +82,11 @@ export function CompletarPendiente({ cuenta, turno, cerrar }: { cuenta: string; 
   }
   const editable=!guardando && !incierto && !confirmado
   return <div aria-busy={guardando || incierto}><p>{turno.fecha_operativa.split('-').reverse().join('/')} · {turno.area === 'ptar' ? 'PTAR' : 'Calderas'} · {nombresTurno[turno.turno]}</p>
-    {'equipos' in borrador ? <div className="bc-panel"><FormularioBitacoraCalderas captura={{ borrador,reporte:null,editable,unidadPresion:'kg/cm²',
+    {'equipos' in borrador ? <div className="bc-panel"><FormularioBitacoraCalderas completarAdministracion={{ guardando, confirmado, incierto, guardar: () => { void guardar() }, cerrar }} captura={{ borrador,reporte:null,editable,unidadPresion:'kg/cm²',
       cambiarBorrador: cambiar => { if(editable) setBorrador(b => 'equipos' in b ? cambiar(b) : b) } }} observaciones={null} nombresOperadores={turno.operador_acompanante ? [turno.operador, turno.operador_acompanante] : undefined} /></div>
-      : <div className="bpt-panel"><FormularioBitacoraPTAR captura={{ borrador,reporte:null,editable,
+      : <div className="bpt-panel"><FormularioBitacoraPTAR completarAdministracion={{ guardando, confirmado, incierto, guardar: () => { void guardar() }, cerrar }} captura={{ borrador,reporte:null,editable,
         cambiarBorrador: cambiar => { if(editable) setBorrador(b => 'bombas' in b ? cambiar(b) : b) } }} observaciones={null} nombresOperadores={turno.operador_acompanante ? [turno.operador, turno.operador_acompanante] : undefined} /></div>}
     {mensaje && <p role={confirmado ? 'status' : 'alert'}>{mensaje}</p>}
-    <button type="button" className="boton-secundario" disabled={guardando || incierto} onClick={cerrar}>Cerrar</button>
-    {!confirmado && <button type="button" className="boton-primario" disabled={guardando} onClick={() => { void guardar() }}>{guardando ? 'Guardando…' : incierto ? 'Reintentar envío original' : 'Guardar reporte completo'}</button>}
   </div>
 }
 

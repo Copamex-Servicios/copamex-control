@@ -3,10 +3,10 @@ import { esFechaOperativa, esTipoTurno } from './turnos'
 import type { TipoTurno } from './tiposTurno'
 import { etiquetaOperadoresTurno } from './tiposTurno'
 
-export async function consultarResumenesTecnicosPlanta(area: 'calderas' | 'ptar', filtros: { desde: string; hasta: string; turno: TipoTurno | 'todos' }, pagina: number, signal: AbortSignal) {
+export async function consultarResumenesTecnicosPlanta(area: 'calderas' | 'ptar', filtros: { desde: string; hasta: string; turno: TipoTurno | 'todos' }, pagina: number, signal: AbortSignal, limite = 20) {
   const { data, error } = await supabase.rpc('consultar_bitacoras_tecnicas_planta', {
     p_desde: filtros.desde || '1900-01-01', p_hasta: filtros.hasta || '9999-12-31', p_area: area,
-    p_turno: filtros.turno, p_limite: 20, p_offset: pagina * 20,
+    p_turno: filtros.turno, p_limite: limite, p_offset: pagina * limite,
   }).abortSignal(signal)
   if (error) {
     if (error.code === 'PGRST202') throw new Error('Falta instalar la consulta compartida de bitácoras técnicas en este proyecto.')
@@ -25,6 +25,6 @@ export async function consultarResumenesTecnicosPlanta(area: 'calderas' | 'ptar'
     return { id: r.id, turnoId: r.turno_id, fechaOperativa: r.fecha_operativa, turno: r.turno,
       operador: etiquetaOperadoresTurno(r.operador, r.operador_acompanante as string | null), creadoEn: r.creado_en, revision: Number(r.revision) }
   })
-  if (filas.length > 20 || new Set(filas.map((r: { id: string }) => r.id)).size !== filas.length) throw new Error('Historial inconsistente. Actualiza.')
+  if (filas.length > limite || new Set(filas.map((r: { id: string }) => r.id)).size !== filas.length) throw new Error('Historial inconsistente. Actualiza.')
   return { filas, hayMas: data.mas as boolean }
 }

@@ -68,6 +68,21 @@ test('pagina todas las muestras del dia sin depender de las 20 visibles', async 
   assert.deepEqual(llamadas.filter(l => !l.head).map(l => l.rango),[[0,199],[200,399],[400,599]])
   assert.equal(llamadas.length,4)
 })
+test('una muestra habitual y tres adicionales conservan cuatro horarios y el valor original', async () => {
+  filas = Array.from({length:4},(_,n)=>muestra(n))
+  for (const m of filas.slice(1)) {
+    m.seguimiento_id = id(900)
+    m.resultados = m.resultados.slice(0,1)
+  }
+  const resultado = await servicio.consultarDiaCompletoCalidad(solicitud,signal())
+  assert.equal(resultado.totalMuestras,4)
+  const muestras=resultado.turnos[0].muestras
+  assert.equal(muestras[0].lectura.seguimientoId,undefined)
+  assert.equal(muestras[0].lectura.resultados.length,2)
+  assert.equal(muestras[0].lectura.resultados[0].valor,0)
+  assert.equal(muestras.filter(m=>m.lectura.seguimientoId===id(900)).length,3)
+  assert.equal(new Set(muestras.map(m=>m.lectura.capturado_en)).size,4)
+})
 test('Noche conserva la fecha operativa al cruzar medianoche y ordena por hora de registro', async () => {
   filas = [muestra(30,'noche'),muestra(0,'noche')]
   const resultado = await servicio.consultarDiaCompletoCalidad(solicitud,signal())

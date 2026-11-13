@@ -7,18 +7,18 @@ type Valor = string | number | boolean | null
 export type FilaAdmin = Record<string, Valor> & { id: string }
 export type TablaAdmin = 'operadores' | 'avisos' | 'puntos_muestreo' | 'parametros_calidad' | 'maquinas' | 'catalogo_papeles' | 'programa_produccion' | 'eventos_calendario'
 export interface CampoAdmin { clave: string; nombre: string; tipo: 'texto' | 'largo' | 'booleano' | 'entero' | 'fecha' | 'instante' | 'opcion' | 'referencia'; opcional?: boolean; referencia?: TablaAdmin; opciones?: readonly (readonly [string, string])[] }
-export interface ConfigAdmin { tabla: TablaAdmin; nombre: string; singular: string; ayuda: string; campos: readonly CampoAdmin[]; columnas: string; metadata: boolean; autor: boolean }
+export interface ConfigAdmin { tabla: TablaAdmin; nombre: string; singular: string; ayuda: string; campos: readonly CampoAdmin[]; camposSoloLectura?: readonly CampoAdmin[]; columnas: string; metadata: boolean; autor: boolean }
 const campo = (clave: string, nombre: string, tipo: CampoAdmin['tipo'] = 'texto', opcional = false): CampoAdmin => ({ clave, nombre, tipo, opcional })
 const activo = campo('activo', 'Activo', 'booleano')
 const referencia = (clave: string, nombre: string, tabla: TablaAdmin): CampoAdmin => ({ clave, nombre, tipo: 'referencia', referencia: tabla })
-function config(tabla: TablaAdmin, nombre: string, singular: string, ayuda: string, campos: CampoAdmin[], metadata = false, autor = false): ConfigAdmin {
-  return { tabla, nombre, singular, ayuda, campos, metadata, autor, columnas: ['id', ...campos.map(c => c.clave), ...(metadata ? ['creado_en'] : []), ...(autor ? ['creado_por'] : [])].join(',') }
+function config(tabla: TablaAdmin, nombre: string, singular: string, ayuda: string, campos: CampoAdmin[], metadata = false, autor = false, camposSoloLectura: CampoAdmin[] = []): ConfigAdmin {
+  return { tabla, nombre, singular, ayuda, campos, camposSoloLectura, metadata, autor, columnas: ['id', ...campos.map(c => c.clave), ...camposSoloLectura.map(c => c.clave), ...(metadata ? ['creado_en'] : []), ...(autor ? ['creado_por'] : [])].join(',') }
 }
 export const seccionesAdmin: readonly ConfigAdmin[] = [
   config('operadores', 'Operadores', 'operador', 'Agrega operadores para las sugerencias al iniciar turno. Desactivar conserva su historial. Cambiar el nombre también cambia cómo aparece en consultas anteriores; para otra persona, crea otro operador.', [campo('nombre', 'Nombre completo'), campo('numero_empleado', 'Número de empleado', 'texto', true), activo], true),
   config('avisos', 'Avisos', 'aviso', 'Los avisos se muestran en el panel de las áreas. Para retirar uno, quita Permanente y asigna una fecha de fin pasada. Las horas se interpretan en México.', [campo('mensaje', 'Mensaje', 'largo'), campo('permanente', 'Permanente', 'booleano'), campo('inicio', 'Mostrar desde (México)', 'instante', true), campo('fin', 'Mostrar hasta (México)', 'instante', true)], true, true),
   config('puntos_muestreo', 'Puntos de muestreo', 'punto', 'Asigna un área solo cuando esté confirmada. Sin asignar permite usar el punto en ambas áreas. Cambiar nombres se refleja en las consultas anteriores.', [campo('nombre', 'Nombre'), { clave: 'area', nombre: 'Área', tipo: 'opcion', opcional: true, opciones: [['calderas', 'Calderas'], ['ptar', 'PTAR']] }, campo('orden', 'Orden en el formulario', 'entero'), activo]),
-  config('parametros_calidad', 'Parámetros de Calidad', 'parámetro', 'Configura nombres y unidades confirmadas. Deja la unidad vacía si todavía no la conoces. Este catálogo no cambia los límites aplicados a las muestras.', [campo('nombre', 'Nombre'), campo('unidad', 'Unidad', 'texto', true), activo]),
+  config('parametros_calidad', 'Parámetros de Calidad', 'parámetro', 'Configura nombres y unidades confirmadas. Deja la unidad vacía si todavía no la conoces. Este catálogo no cambia los límites aplicados a las muestras.', [campo('nombre', 'Nombre'), campo('unidad', 'Unidad', 'texto', true), activo], false, false, [campo('evaluar_limites', 'Evaluación de límites', 'booleano')]),
   config('maquinas', 'Máquinas', 'máquina', 'El código debe ser único. Desactivar conserva los papeles y programas históricos.', [campo('codigo', 'Código'), campo('nombre', 'Nombre'), activo]),
   config('catalogo_papeles', 'Papeles', 'papel', 'Cada papel pertenece a una máquina. Los papeles inactivos se conservan para consultar el historial.', [referencia('maquina_id', 'Máquina', 'maquinas'), campo('nombre', 'Nombre del papel'), activo]),
   config('programa_produccion', 'Producción', 'programa', 'El programa activo de la fecha seleccionada se muestra en las áreas. El papel debe pertenecer a la máquina. Color y consumo objetivo se guardan como texto, según el catálogo existente.', [campo('fecha', 'Fecha', 'fecha'), referencia('maquina_id', 'Máquina', 'maquinas'), referencia('papel_id', 'Papel', 'catalogo_papeles'), campo('color_objetivo', 'Color objetivo', 'texto', true), campo('consumo_objetivo', 'Consumo objetivo', 'texto', true), activo], true, true),
@@ -61,7 +61,7 @@ export function leerFilaAdmin(v: unknown, c: ConfigAdmin): FilaAdmin {
   const r = v as Record<string, unknown>
   if (!uuid(r.id) || (c.metadata && !instante(r.creado_en)) || (c.autor && !uuid(r.creado_por))) throw new ErrorAdmin('No se pudo comprobar el registro.')
   const fila: FilaAdmin = { id: r.id }
-  for (const f of c.campos) {
+  for (const f of [...c.campos,...(c.camposSoloLectura ?? [])]) {
     const valor = r[f.clave]
     if (valor === null && f.opcional) { fila[f.clave] = null; continue }
     if (f.tipo === 'booleano' ? typeof valor !== 'boolean'

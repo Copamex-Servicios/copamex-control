@@ -18,7 +18,8 @@ const pestanas = [
   { nombre: 'Historial', titulo: 'Historial de Bitácora' },
 ]
 type CamposFormulario = Pick<ReturnType<typeof useReportePTAR>, 'borrador' | 'cambiarBorrador' | 'editable' | 'reporte'>
-export function FormularioBitacoraPTAR({ captura, observaciones, nombresOperadores }: { captura: ReturnType<typeof useReportePTAR> | CamposFormulario; observaciones: ReactNode; nombresOperadores?: readonly string[] }) {
+type NavegacionCompletarAdmin = { guardando: boolean; confirmado: boolean; incierto: boolean; guardar: () => void; cerrar: () => void; contenidoFinal?: ReactNode }
+export function FormularioBitacoraPTAR({ captura, observaciones, nombresOperadores, completarAdministracion }: { captura: ReturnType<typeof useReportePTAR> | CamposFormulario; observaciones: ReactNode; nombresOperadores?: readonly string[]; completarAdministracion?: NavegacionCompletarAdmin }) {
   const prefijo = useId()
   const { raiz: raizValidacion, faltas: faltasValidacion, revisar: revisarValidacion, alCambiar: actualizarValidacion } = useValidacionReporte()
   const [activo, setActivo] = useState(0)
@@ -39,16 +40,17 @@ export function FormularioBitacoraPTAR({ captura, observaciones, nombresOperador
     return () => window.cancelAnimationFrame(frame)
   }, [activo])
   const { borrador, cambiarBorrador: setBorrador, editable: habilitado } = captura
+  const pestanasVisibles = completarAdministracion ? pestanas.slice(0, -1) : pestanas
   const operacion = 'guardar' in captura ? captura : null
   const ayudaGuardado = operacion?.guardando ? 'Esperando confirmación del servidor…' : captura.reporte ? null
     : operacion?.estado === 'cargando' ? 'Consultando el reporte técnico del turno…'
     : operacion?.pendiente ? 'El reintento comprueba el envío original; las ediciones posteriores no sustituyen sus datos.' : null
   function navegar(evento: KeyboardEvent<HTMLButtonElement>, indice: number) {
     let siguiente: number
-    if (evento.key === 'ArrowRight') siguiente = (indice + 1) % pestanas.length
-    else if (evento.key === 'ArrowLeft') siguiente = (indice - 1 + pestanas.length) % pestanas.length
+    if (evento.key === 'ArrowRight') siguiente = (indice + 1) % pestanasVisibles.length
+    else if (evento.key === 'ArrowLeft') siguiente = (indice - 1 + pestanasVisibles.length) % pestanasVisibles.length
     else if (evento.key === 'Home') siguiente = 0
-    else if (evento.key === 'End') siguiente = pestanas.length - 1
+    else if (evento.key === 'End') siguiente = pestanasVisibles.length - 1
     else return
     evento.preventDefault()
     mostrarSeccion(siguiente)
@@ -59,7 +61,7 @@ export function FormularioBitacoraPTAR({ captura, observaciones, nombresOperador
       puedeEditar={operacion.puedeEditar} editando={operacion.editando} editar={operacion.editar} />}
     {faltasValidacion.length > 0 && <p className="reporte-aviso-campos" role="alert">Completa todos los campos</p>}
     <div ref={tabsRef} className="bpt-tabs" role="tablist" aria-label="Secciones de Bitácora de PTAR">
-      {pestanas.map((pestana, indice) => <button key={pestana.nombre} type="button" role="tab"
+      {pestanasVisibles.map((pestana, indice) => <button key={pestana.nombre} type="button" role="tab"
         id={`${prefijo}-tab-${indice}`} aria-controls={`${prefijo}-panel-${indice}`}
         aria-selected={activo === indice} tabIndex={activo === indice ? 0 : -1}
         onClick={() => mostrarSeccion(indice)} onKeyDown={e => navegar(e, indice)}>{pestana.nombre}</button>)}
@@ -149,10 +151,11 @@ export function FormularioBitacoraPTAR({ captura, observaciones, nombresOperador
       </div>
     </div>)}
     {operacion?.mensaje && operacion.mensaje !== 'Reporte técnico registrado. Solo Administración puede corregirlo.' && <p className="bpt-ayuda" role={operacion.estado === 'error' || (!captura.reporte && !operacion.guardando) ? 'alert' : 'status'}>{operacion.mensaje}</p>}
-    {operacion && activo < pestanas.length - 1 && <footer className="bpt-acciones"><span className="bpt-ayuda" id={`${prefijo}-guardado`} hidden={!ayudaGuardado}>{ayudaGuardado}</span>
-      {activo < pestanas.length - 2 ? <button type="button" className="boton-primario" disabled={operacion.guardando}
+    {completarAdministracion && <div className="co-pendiente-contenido-final" hidden={activo !== pestanasVisibles.length - 1}>{completarAdministracion.contenidoFinal}</div>}
+    {(operacion || completarAdministracion) && activo < pestanasVisibles.length - 1 && <footer className="bpt-acciones"><span className="bpt-ayuda" id={`${prefijo}-guardado`} hidden={!ayudaGuardado}>{ayudaGuardado}</span>
+      {completarAdministracion || activo < pestanasVisibles.length - 2 ? <button type="button" className="boton-primario" disabled={operacion?.guardando || completarAdministracion?.guardando}
         onClick={() => { mostrarSeccion(activo + 1); document.getElementById(`${prefijo}-tab-${activo + 1}`)?.focus({ preventScroll: true }) }}>Siguiente</button>
-      : <GuardadoReporteTecnico captura={operacion} descripcionId={`${prefijo}-guardado`} alIntentar={() => {
+      : operacion ? <GuardadoReporteTecnico captura={operacion} descripcionId={`${prefijo}-guardado`} alIntentar={() => {
         if (operacion.pendiente) return true
         const faltas = revisarValidacion()
         if (faltas.length) {
@@ -161,7 +164,13 @@ export function FormularioBitacoraPTAR({ captura, observaciones, nombresOperador
           return false
         }
         return true
-      }} />}
+      }} /> : null}
+    </footer>}
+    {completarAdministracion && activo === pestanasVisibles.length - 1 && <footer className="bpt-acciones bpt-acciones-admin-pendiente">
+      <button type="button" className="boton-secundario" disabled={completarAdministracion.guardando} onClick={completarAdministracion.cerrar}>Cerrar</button>
+      {!completarAdministracion.confirmado && <button type="button" className="boton-primario" disabled={completarAdministracion.guardando}
+        onClick={() => { const faltas = revisarValidacion(); if (faltas.length) { mostrarSeccion(faltas[0].seccion); window.requestAnimationFrame(() => faltas[0].campo.focus({ preventScroll: true })); return } completarAdministracion.guardar() }}>
+        {completarAdministracion.guardando ? 'Guardando…' : completarAdministracion.incierto ? 'Reintentar envío original' : 'Guardar reporte completo'}</button>}
     </footer>}
   </div>
 }

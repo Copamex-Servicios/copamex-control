@@ -1,40 +1,44 @@
 import { Fragment, useEffect, useId, useRef, useState } from 'react'
-import { consultarDiasTecnicos } from '../../lib/consultarConsolidadoTecnico'
-import { nombreAreaTecnica, nombreTurnoTecnico, seleccionarTecnicos, turnosConsolidado, validarConsolidado } from '../../lib/consolidadoTecnico'
+import { consultarDiasTecnicos, diasTecnicosPorPagina } from '../../lib/consultarConsolidadoTecnico'
+import { diasEnPeriodoTecnico, nombreAreaTecnica, nombreTurnoTecnico, seleccionarTecnicos, turnosConsolidado, validarConsolidado } from '../../lib/consolidadoTecnico'
 import type { DiaTecnico } from '../../lib/consolidadoTecnico'
 import { consultarTecnicoAdmin } from '../../lib/revisionTecnica'
 import type { DetalleTecnicoAdmin, FilaTecnicaAdmin } from '../../lib/revisionTecnica'
 import { exigirAdminRevision } from '../../lib/revisionCapturas'
 import { descargarArchivo, descargarTecnicoDiario, prepararPdfTecnicoDiario } from '../../lib/exportarTecnicoDiario'
 import type { FiltrosPlanta } from '../../lib/planta'
-import type { AreaOperativa, TipoTurno } from '../../lib/tiposTurno'
+import type { AreaOperativa } from '../../lib/tiposTurno'
 import { DetalleReporteCalderasPlanta } from '../planta/DetalleReporteCalderasPlanta'
 import { DetalleReportePTARPlanta } from '../planta/DetalleReportePTARPlanta'
+import { PaginacionHistorial } from '../diseno/PaginacionHistorial'
 import './consolidadoTecnico.css'
 
 interface Props { cuenta: string; filtros: FiltrosPlanta; corregir: (fila: FilaTecnicaAdmin) => void }
 const fecha = (s: string) => s.split('-').reverse().join('/')
-
 export function ConsolidadoReportesTecnicos({ cuenta, filtros, corregir }: Props) {
   const id = useId()
-  const [vista, setVista] = useState<{ dias: DiaTecnico[] | null; error: string | null }>({ dias: null, error: null })
+  const [vista, setVista] = useState<{ pagina: number; dias: DiaTecnico[] | null; error: string | null } | null>(null)
   const [diaAbierto, setDiaAbierto] = useState<string | null>(null)
+  const [pagina, setPagina] = useState(0)
+  const totalDias = diasEnPeriodoTecnico(filtros.desde, filtros.hasta)
+  const totalPaginas = Math.ceil(totalDias / diasTecnicosPorPagina)
   useEffect(() => {
     let vigente = true
     const control = new AbortController(), limite = window.setTimeout(() => control.abort(), 30000)
-    void consultarDiasTecnicos(cuenta, filtros, control.signal)
-      .then(dias => { if (vigente) setVista({ dias, error: null }) })
-      .catch(e => { if (vigente) setVista({ dias: null, error: control.signal.aborted ? 'La consulta tardó demasiado. Vuelve a consultar.' : e instanceof Error ? e.message : 'No se pudieron consultar los reportes técnicos.' }) })
+    void consultarDiasTecnicos(cuenta, filtros, control.signal, pagina)
+      .then(dias => { if (vigente) setVista({ pagina, dias, error: null }) })
+      .catch(e => { if (vigente) setVista({ pagina, dias: null, error: control.signal.aborted ? 'La consulta tardó demasiado. Vuelve a consultar.' : e instanceof Error ? e.message : 'No se pudieron consultar los reportes técnicos.' }) })
       .finally(() => window.clearTimeout(limite))
     return () => { vigente = false; control.abort(); window.clearTimeout(limite) }
-  }, [cuenta, filtros])
+  }, [cuenta, filtros, pagina])
+  const actual = vista?.pagina === pagina ? vista : null
   return <section className="panel-informacion consolidado-tecnico" aria-labelledby="consolidado-tecnico-titulo">
     <div className="ct-encabezado"><h2 id="consolidado-tecnico-titulo">Reportes técnicos por día</h2><p>Cada área debe entregar 3 reportes por día</p></div>
-    {vista.error ? <p className="mensaje-error" role="alert">{vista.error}</p> : !vista.dias ? <p role="status">Consultando disponibilidad de los tres turnos…</p> : <>
-      {vista.dias.length > 0 && <div className={`ct-lista-cabecera${filtros.area === 'todas' ? '' : ' ct-lista-una-area'}`} aria-hidden="true">
-        <span>Día</span>{(filtros.area === 'todas' ? ['calderas', 'ptar'] as const : [filtros.area]).map(area => <span key={area}>{nombreAreaTecnica(area)}</span>)}<span />
+    {actual?.error ? <p className="mensaje-error" role="alert">{actual.error}</p> : !actual?.dias ? <p role="status">Consultando disponibilidad de los tres turnos…</p> : <>
+      {actual.dias.length > 0 && <div className={`ct-lista-cabecera${filtros.area === 'todas' ? '' : ' ct-lista-una-area'}`} aria-hidden="true">
+        <span>Fecha</span>{(filtros.area === 'todas' ? ['calderas', 'ptar'] as const : [filtros.area]).map(area => <span key={area}>{nombreAreaTecnica(area)}</span>)}<span />
       </div>}
-      {vista.dias.map(dia => {
+      {actual.dias.map(dia => {
         const areas = filtros.area === 'todas' ? ['calderas', 'ptar'] as const : [filtros.area]
         const expandido = diaAbierto === dia.fecha
         const contenidoId = `${id}-dia-${dia.fecha}`
@@ -44,8 +48,8 @@ export function ConsolidadoReportesTecnicos({ cuenta, filtros, corregir }: Props
             {areas.map(area => {
               const cantidad = Object.keys(dia[area]).length
               return <span className="ct-indicador-area" key={area}>
-                <span className="ct-puntos" aria-hidden="true">{[0, 1, 2].map(i => <span className={i < cantidad ? 'ct-punto ct-punto-lleno' : 'ct-punto'} key={i} />)}</span>
                 <span className="ct-conteo" aria-label={`${cantidad} de 3 reportes`}>{cantidad} de 3</span>
+                <span className="ct-puntos" aria-hidden="true">{[0, 1, 2].map(i => <span className={i < cantidad ? 'ct-punto ct-punto-lleno' : 'ct-punto'} key={i} />)}</span>
               </span>
             })}
             <button className="ct-ver-dia" type="button" aria-expanded={expandido} aria-controls={contenidoId}
@@ -57,14 +61,17 @@ export function ConsolidadoReportesTecnicos({ cuenta, filtros, corregir }: Props
         </section>
       })}
     </>}
+    {totalPaginas > 0 && <PaginacionHistorial etiqueta="reportes técnicos por día" pagina={pagina}
+      anterior={() => { setPagina(actualPagina => Math.max(0, actualPagina - 1)); setDiaAbierto(null) }}
+      siguiente={() => { setPagina(actualPagina => Math.min(totalPaginas - 1, actualPagina + 1)); setDiaAbierto(null) }}
+      hayAnterior={pagina > 0} haySiguiente={pagina + 1 < totalPaginas} cargando={!actual} />}
   </section>
 }
 
-function ContenidoDia({ cuenta, dia, filtros, corregir }: Omit<Props, 'filtros'> & { dia: DiaTecnico; filtros: FiltrosPlanta }) {
+export function ContenidoDia({ cuenta, dia, filtros, corregir }: Omit<Props, 'filtros'> & { dia: DiaTecnico; filtros: FiltrosPlanta }) {
   const inicial = filtros.area === 'todas' ? 'calderas' : filtros.area
   const [area, setArea] = useState<AreaOperativa>(inicial)
-  const seleccionInicial = (a: AreaOperativa) => turnosConsolidado.filter(t => !!dia[a][t] && (filtros.turno === 'todos' || filtros.turno === t))
-  const [seleccion, setSeleccion] = useState<TipoTurno[]>(() => seleccionInicial(inicial))
+  const hayReportes = turnosConsolidado.some(t => !!dia[area][t])
   const [vista, setVista] = useState<{ id: string; detalle: DetalleTecnicoAdmin | null; error: string | null } | null>(null)
   const [exportando, setExportando] = useState(false), [errorExportacion, setErrorExportacion] = useState<string | null>(null)
   const [vistaPreviaPdf, setVistaPreviaPdf] = useState<{ url: string; blob: Blob; nombre: string } | null>(null)
@@ -117,12 +124,20 @@ function ContenidoDia({ cuenta, dia, filtros, corregir }: Omit<Props, 'filtros'>
     activo.current = true; setExportando(true); setErrorExportacion(null)
     // Releer para exportar la revisión vigente, incluso tras una consulta previa.
     try {
-      const filas = seleccionarTecnicos(dia, area, seleccion)
-      if (!filas.length) throw new Error('Selecciona al menos un turno con reporte.')
+      const control = new AbortController(), limite = window.setTimeout(() => control.abort(),30000)
+      controles.current.add(control)
+      let vigente: DiaTecnico | undefined
+      try {
+        const dias = await consultarDiasTecnicos(cuenta,{desde:dia.fecha,hasta:dia.fecha,area,turno:'todos'},control.signal)
+        vigente = dias.find(d => d.fecha === dia.fecha)
+      } finally { window.clearTimeout(limite); controles.current.delete(control) }
+      if (!vigente) throw new Error('No se pudo comprobar la disponibilidad del día completo. Actualiza.')
+      const filas = seleccionarTecnicos(vigente, area, turnosConsolidado)
+      if (!filas.length) throw new Error('No hay reportes registrados para exportar este día.')
       for (const f of filas) cache.current.delete(`${f.area}:${f.id}`)
       const detalles = await Promise.all(filas.map(cargar))
       exigirAdminRevision(cuenta); validarConsolidado(dia.fecha, area, detalles)
-      const disponibles = turnosConsolidado.filter(t => !!dia[area][t])
+      const disponibles = turnosConsolidado.filter(t => !!vigente[area][t])
       if (tipo === 'excel') descargarTecnicoDiario(dia.fecha, area, detalles, disponibles)
       else {
         const pdf = await prepararPdfTecnicoDiario(dia.fecha, area, detalles, disponibles, () => exigirAdminRevision(cuenta))
@@ -145,16 +160,17 @@ function ContenidoDia({ cuenta, dia, filtros, corregir }: Omit<Props, 'filtros'>
 
   return <div className="ct-contenido" aria-busy={exportando}>
     <div className="ct-barra">
+      <div className="ct-detalle-titulo"><h3>Detalle del día</h3><p>Turnos registrados para la fecha seleccionada</p>
       <label>Área<select aria-label={`Área del ${fecha(dia.fecha)}`} value={area} disabled={exportando} onChange={e => {
         const nueva = e.target.value as AreaOperativa
-        setArea(nueva); setSeleccion(seleccionInicial(nueva)); setVista(null); setErrorExportacion(null)
-      }}>{(filtros.area === 'todas' ? ['calderas', 'ptar'] as const : [filtros.area]).map(a => <option key={a} value={a}>{nombreAreaTecnica(a)}</option>)}</select></label>
+        setArea(nueva); setVista(null); setErrorExportacion(null)
+      }}>{(filtros.area === 'todas' ? ['calderas', 'ptar'] as const : [filtros.area]).map(a => <option key={a} value={a}>{nombreAreaTecnica(a)}</option>)}</select></label></div>
       <div className="ct-acciones">
-        <button type="button" className="boton-principal ct-excel" disabled={!seleccion.length || exportando} onClick={() => { void exportar('excel') }}>Excel</button>
-        <button type="button" className="boton-principal ct-pdf" disabled={!seleccion.length || exportando} onClick={() => { void exportar('pdf') }}>PDF</button>
+        <button type="button" className="boton-principal ct-excel" disabled={!hayReportes || exportando} onClick={() => { void exportar('excel') }}>Excel</button>
+        <button type="button" className="boton-principal ct-pdf" disabled={!hayReportes || exportando} onClick={() => { void exportar('pdf') }}>PDF</button>
       </div>
     </div>
-    {exportando && <p role="status">Preparando los reportes seleccionados…</p>}
+    {exportando && <p role="status">Preparando los reportes del día completo…</p>}
     {errorExportacion && <p role="alert" className="mensaje-error">{errorExportacion}</p>}
     <dialog ref={dialogoPdf} className="ct-vista-previa-pdf" aria-labelledby={`ct-pdf-titulo-${dia.fecha}-${area}`}
       onClose={() => { setVistaPreviaPdf(null); setErrorVistaPrevia(null) }} onClick={e => { if (e.target === e.currentTarget) e.currentTarget.close() }}>
@@ -167,19 +183,20 @@ function ContenidoDia({ cuenta, dia, filtros, corregir }: Omit<Props, 'filtros'>
           <button type="button" className="boton-principal ct-pdf" onClick={descargarPrevia}>Descargar PDF</button></footer>
       </div>}
     </dialog>
-    <div className="ct-turnos">{turnosConsolidado.map(turno => {
+    <div className="ct-turnos"><div className="ct-detalle-cabecera" aria-hidden="true"><span>Turno</span><span>Estado</span><span>Responsable / detalle</span><span>Acciones</span></div>{turnosConsolidado.map(turno => {
       const fila = dia[area][turno], abierto = !!fila && vista?.id === fila.id
       const detalleId = `ct-${dia.fecha}-${area}-${turno}`
       return <Fragment key={turno}>
         <div className="ct-turno">
-          <label><input type="checkbox" disabled={!fila || exportando} checked={!!fila && seleccion.includes(turno)} onChange={e => setSeleccion(s => e.target.checked ? [...s, turno] : s.filter(t => t !== turno))} /><strong>{nombreTurnoTecnico[turno]}</strong></label>
-          <div className="ct-operador">{fila ? <><span>{fila.operador}</span><small>Revisión {fila.revision}{seleccion.includes(turno) ? '' : ' · No seleccionado'}</small></> : <span>Sin reporte</span>}</div>
-          {fila && <div className="ct-acciones"><button type="button" className="boton-secundario ct-icono-accion" aria-label={abierto ? `Ocultar reporte del turno ${nombreTurnoTecnico[turno]}` : `Ver reporte del turno ${nombreTurnoTecnico[turno]}`} title={abierto ? 'Ocultar reporte' : 'Ver reporte'} aria-expanded={abierto} aria-controls={detalleId} onClick={() => { void ver(fila) }}>
+          <strong className="ct-turno-nombre">{nombreTurnoTecnico[turno]}</strong>
+          <span className={`ct-estado-reporte ${fila ? 'ct-registrado' : 'ct-sin-reporte'}`}>{fila ? 'Registrado' : 'Sin reporte'}</span>
+          <div className="ct-operador">{fila ? <><span>{fila.operador}</span><small>Revisión {fila.revision}</small></> : <span>No hay captura registrada</span>}</div>
+          {fila ? <div className="ct-acciones"><button type="button" className="boton-secundario ct-icono-accion" aria-label={abierto ? `Ocultar reporte del turno ${nombreTurnoTecnico[turno]}` : `Ver reporte del turno ${nombreTurnoTecnico[turno]}`} title={abierto ? 'Ocultar reporte' : 'Ver reporte'} aria-expanded={abierto} aria-controls={detalleId} onClick={() => { void ver(fila) }}>
             {abierto ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 10.6a2 2 0 002.8 2.8"/><path d="M9.9 5.2A11.2 11.2 0 0121 12a11.7 11.7 0 01-3.1 4.2M6.2 6.2A11.4 11.4 0 003 12s3 7 9 7a9.3 9.3 0 003.2-.6"/></svg>
               : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2.5 12s3.3-7 9.5-7 9.5 7 9.5 7-3.3 7-9.5 7-9.5-7-9.5-7z"/><circle cx="12" cy="12" r="2.7"/></svg>}
           </button><button type="button" className="boton-secundario ct-icono-accion" aria-label={`Corrección administrativa del turno ${nombreTurnoTecnico[turno]}`} title="Corrección administrativa" disabled={exportando} onClick={() => corregir(fila)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L8 18l-4 1 1-4z"/></svg>
-          </button></div>}
+          </button></div> : <span className="ct-sin-acciones">—</span>}
         </div>
         {abierto && <div className="ct-detalle" id={detalleId}>
           {!vista.detalle ? vista.error ? <><p role="alert" className="mensaje-error">{vista.error}</p><button type="button" className="boton-secundario" onClick={() => { void ver(fila, true) }}>Reintentar detalle</button></> : <p role="status">Consultando reporte completo…</p>

@@ -267,7 +267,7 @@ export async function consultarHistorialUF(signal: AbortSignal): Promise<Registr
     const { data, error } = await supabase.from('lecturas_uf').select(seleccion)
       .eq('turno.area', 'calderas').is('eliminado_en', null)
       .order('capturado_en', { ascending: false }).order('id', { ascending: false })
-      .limit(20).abortSignal(signal)
+      .limit(21).abortSignal(signal)
     if (error) lanzarFallo(error, 'No se pudo consultar el historial de UF. Reintenta.')
     if (!Array.isArray(data)) throw new ErrorUF('No se pudo comprobar el historial de UF. Actualiza la consulta.')
     const registros = data.map(leerRegistro)
@@ -278,6 +278,28 @@ export async function consultarHistorialUF(signal: AbortSignal): Promise<Registr
   } catch (fallo) {
     if (fallo instanceof ErrorUF) throw fallo
     throw new ErrorUF('No se pudo consultar el historial de UF. Revisa la conexión e intenta de nuevo.')
+  }
+}
+
+export async function consultarPaginaHistorialUF(offset: number, signal: AbortSignal, excluirTurnoId: string | null, limite = 7): Promise<{ registros: RegistroUF[]; hayMas: boolean }> {
+  comprobarCancelacion(signal)
+  if (!Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(limite) || limite < 1 || limite > 50
+    || (excluirTurnoId !== null && !esUuid(excluirTurnoId))) throw new ErrorUF('La página del historial de UF no es válida.')
+  try {
+    let consulta = supabase.from('lecturas_uf').select(seleccion)
+      .eq('turno.area', 'calderas').is('eliminado_en', null)
+    if (excluirTurnoId) consulta = consulta.neq('turno_id', excluirTurnoId)
+    const { data, error } = await consulta.order('capturado_en', { ascending: false }).order('id', { ascending: false })
+      .range(offset, offset + limite).abortSignal(signal)
+    if (error) lanzarFallo(error, 'No se pudo consultar la siguiente página de UF.')
+    if (!Array.isArray(data)) throw new ErrorUF('No se pudo comprobar la siguiente página de UF.')
+    const lote = data.map(leerRegistro)
+    if (lote.some(registro => registro.turno.area !== 'calderas')
+      || new Set(lote.map(registro => registro.lectura.turno_id)).size !== lote.length) throw new ErrorUF('La página de UF contiene registros repetidos o de otra área.')
+    return { registros: lote.slice(0, limite), hayMas: lote.length > limite }
+  } catch (fallo) {
+    if (fallo instanceof ErrorUF) throw fallo
+    throw new ErrorUF('No se pudo consultar la siguiente página de UF. Reintenta.')
   }
 }
 

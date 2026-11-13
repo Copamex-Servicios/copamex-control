@@ -8,6 +8,7 @@ import { useInformacionDia } from '../../hooks/useInformacionDia'
 import { InformacionDelDia } from '../operativo/InformacionDelDia'
 import { ResumenPendientesDashboard } from './ResumenPendientesDashboard'
 import { AlmacenamientoDashboard } from './AlmacenamientoDashboard'
+import { SeguimientoColorM4 } from '../calidad/SeguimientoColorM4'
 import './dashboardAdministracion.css'
 
 export function DashboardAdministracion({ contenedorAcciones }: { contenedorAcciones: HTMLDivElement | null }) {
@@ -39,6 +40,7 @@ export function DashboardAdministracion({ contenedorAcciones }: { contenedorAcci
         })}</div></>}
     </section>
     <div className="co-dashboard-dia"><InformacionDelDia fecha={datos?.fecha ?? null} informacion={informacionDia} compacto />
+      <SeguimientoColorM4 key={cuenta} cuenta={cuenta} administracion />
       <ResumenPendientesDashboard key={`${cuenta}:${datos?.fecha ?? ''}:${datos?.consultado ?? ''}`} cuenta={cuenta} fecha={datos?.fecha ?? null} />
       {datos && <AlmacenamientoDashboard cuenta={cuenta} revision={String(datos.consultado)} />}
     </div>

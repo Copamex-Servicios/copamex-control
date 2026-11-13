@@ -4,6 +4,7 @@ import type { CampoCalderas } from './tiposBitacoraCalderas'
 import { equiposCalderas, equiposAguaCalderas, pilasCalderas } from './tiposBitacoraCalderas.ts'
 import { medicionesBitacoraPTAR, bombasBitacoraPTAR, prensasBitacoraPTAR } from './tiposBitacoraPTAR.ts'
 import { fechaHoraBitacora } from './formatoBitacora.ts'
+import { esFechaOperativa } from './turnos'
 
 export const turnosConsolidado = ['dia', 'tarde', 'noche'] as const
 export const nombreTurnoTecnico: Record<TipoTurno, string> = { dia: 'Día', tarde: 'Tarde', noche: 'Noche' }
@@ -28,6 +29,14 @@ export interface MatrizTecnica {
   area: AreaOperativa
   columnas: { turno: TipoTurno; operador: string; estado: 'seleccionado' | 'sin_reporte' | 'no_seleccionado'; revision: number | null; formato: number | null; captura: string; reporteId: string; turnoId: string; autorId: string }[]
   filas: FilaTecnicaComparativa[]
+}
+
+export function diasEnPeriodoTecnico(desde: string, hasta: string): number {
+  const inicio = Date.parse(`${desde}T12:00:00Z`), fin = Date.parse(`${hasta}T12:00:00Z`)
+  if (!esFechaOperativa(desde) || !esFechaOperativa(hasta) || !Number.isFinite(inicio) || !Number.isFinite(fin) || fin < inicio) {
+    throw new Error('Revisa las fechas del período.')
+  }
+  return Math.floor((fin - inicio) / 86400000) + 1
 }
 
 export function textoCeldaTecnica(celda: CeldaTecnicaComparativa, unidadPorTurno = false): string {
@@ -74,8 +83,7 @@ export function matrizTecnicoDiario(fecha: string, area: AreaOperativa, detalles
 export function agruparTecnicos(desde: string, hasta: string, filas: FilaTecnicaAdmin[]): DiaTecnico[] {
   const dias = new Map<string, DiaTecnico>()
   const inicio = Date.parse(`${desde}T12:00:00Z`), fin = Date.parse(`${hasta}T12:00:00Z`)
-  if (!Number.isFinite(inicio) || !Number.isFinite(fin) || fin < inicio || fin - inicio > 30 * 86400000
-    || new Date(inicio).toISOString().slice(0, 10) !== desde || new Date(fin).toISOString().slice(0, 10) !== hasta) throw new Error('Consulta hasta 31 fechas operativas válidas.')
+  diasEnPeriodoTecnico(desde, hasta)
   for (let t = inicio; t <= fin; t += 86400000) {
     const fecha = new Date(t).toISOString().slice(0, 10)
     dias.set(fecha, { fecha, calderas: {}, ptar: {} })

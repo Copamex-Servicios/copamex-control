@@ -118,3 +118,6 @@
 .co-layout .calidad-referencia .calidad-encabezado button[data-actualizar] svg { display:block; width:18px; height:18px; }
 .co-layout .calidad-referencia .calidad-captura-cabecera { padding-bottom:8px; gap:8px; }
 .co-layout .calidad-referencia .calidad-campos { gap:10px; }
+.co-layout .calidad-referencia .calidad-acciones-cabecera { display:flex; align-items:center; gap:8px; margin-left:auto; }
+.co-layout .calidad-referencia .calidad-acciones-cabecera>div:empty { display:none; }
+.co-layout .calidad-referencia .calidad-acciones-cabecera .co-tomar-color-m4 { min-height:38px; margin:0; padding:8px 16px; border-radius:8px; font:inherit; font-size:14px; font-weight:650; white-space:nowrap; }

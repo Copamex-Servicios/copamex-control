@@ -51,3 +51,15 @@ test('Excel existente conserva títulos y filtros; Calidad admite una tabla vac�
   assert.match(vacia, /<autoFilter ref="A1:E1"/)
   assert.doesNotMatch(vacia, /<row r="2"/)
 })
+test('los resultados sin límites conservan su valor y exportan guiones sin clasificación',()=>{
+ const hoja=hojaResultadosCalidad([{...resultados[2],parametro:{nombre:'SST',unidad:null},valor:2}])
+ assert.deepEqual(hoja.filas[0].slice(2),[2,'—','—'])
+})
+test('exportar la hoja integrada identifica las filas adicionales con su hora',()=>{
+ const original={...resultados[0],id:'original'},extra={...resultados[0],id:'adicional',valor:30}
+ const hoja=hojaResultadosCalidad([original,extra],new Map([['adicional','Adicional · 12/11/2026, 11:30:00']]))
+ assert.equal(hoja.filas.length,2)
+ assert.doesNotMatch(hoja.filas[0][1],/Adicional/)
+ assert.match(hoja.filas[1][1],/Adicional · 12\/11\/2026, 11:30:00/)
+ assert.equal(hoja.filas[1][2],30)
+})

@@ -47,7 +47,14 @@ export function PendienteDashboardDialogo({ cuenta, turno, cerrar }: {
       e.preventDefault()
       if (!dialogo.current?.querySelector('[aria-busy="true"]') && !pendienteTecnica(cuenta)) cerrar()
     }}>
-    <h2 id="co-pendiente-dialogo-titulo">Reporte pendiente · {turno.area === 'ptar' ? 'PTAR' : 'Calderas'}</h2>
+    <div className="co-pendiente-dialogo-encabezado">
+      <h2 id="co-pendiente-dialogo-titulo">Reporte pendiente · {turno.area === 'ptar' ? 'PTAR' : 'Calderas'}</h2>
+      <button type="button" className="co-pendiente-cerrar" aria-label="Cerrar ventana de reporte"
+        onClick={() => {
+          if (dialogo.current?.querySelector('[aria-busy="true"]') || pendienteTecnica(cuenta)) return
+          cerrar()
+        }}>×</button>
+    </div>
     {!turno.reporte_id
       ? <CompletarPendiente cuenta={cuenta} turno={turno} cerrar={cerrar} />
       : detalle
