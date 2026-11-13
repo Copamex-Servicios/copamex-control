@@ -44,7 +44,7 @@ function ContenidoPozos({ datos }: PropsContenidoPozos) {
     pozo1: lecturaTurnoAnterior.lectura.pozo1_fin,
     pozo2: lecturaTurnoAnterior.lectura.pozo2_fin,
   } : undefined
-  const paginaHistorial = useHistorialPaginado(anteriores, `${cuentaId}:${actual?.lectura.id ?? ''}`, rol === 'calderas' && historial.length >= 21,
+  const paginaHistorial = useHistorialPaginado(anteriores, `${cuentaId}:${actual?.lectura.id ?? ''}`, rol === 'calderas' && historial.length >= 14,
     actual?.lectura.turno_id ?? null, consultarPaginaHistorialPozos, 7)
   const filasHistorial = rol === 'calderas' ? paginaHistorial.visibles : anteriores
   const confirmado = mensajeAccion === 'Lectura de Pozos guardada.'

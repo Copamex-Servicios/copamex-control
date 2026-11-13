@@ -12,7 +12,10 @@ import { enviarReportePTAR, prepararDatosPTAR } from '../../lib/bitacoraTecnicaP
 import type { EnvioReportePTAR } from '../../lib/bitacoraTecnicaPTAR'
 import { FormularioBitacoraCalderas } from '../bitacora/FormularioBitacoraCalderas'
 import { FormularioBitacoraPTAR } from '../bitacora/FormularioBitacoraPTAR'
+import { ConfirmacionGuardadoTecnico } from '../bitacora/GuardadoReporteTecnico'
 import './pendientesTecnicos.css'
+
+const pendientesPorPagina = 3
 
 export function PendientesTecnicos({ cuenta, filtros, corregir, actualizar }: { cuenta: string; filtros: FiltrosPlanta; corregir: (f: FilaTecnicaAdmin) => void; actualizar: () => void }) {
   const [pagina, setPagina] = useState(0), [intento, setIntento] = useState(0)
@@ -21,7 +24,7 @@ export function PendientesTecnicos({ cuenta, filtros, corregir, actualizar }: { 
   const clave = JSON.stringify([cuenta,filtros,pagina,intento])
   useEffect(() => {
     let vivo = true; const control = new AbortController(), limite = window.setTimeout(() => control.abort(), 20000)
-    void consultarPendientesTecnicos(cuenta,filtros,pagina,control.signal).then(datos => { if (vivo) setVista({ clave,datos,error:null }) })
+    void consultarPendientesTecnicos(cuenta,filtros,pagina,control.signal,pendientesPorPagina).then(datos => { if (vivo) setVista({ clave,datos,error:null }) })
       .catch(e => { if (vivo) setVista({ clave,datos:null,error:e instanceof Error ? e.message : 'Consulta no disponible.' }) })
       .finally(() => window.clearTimeout(limite))
     return () => { vivo=false; control.abort(); window.clearTimeout(limite) }
@@ -45,11 +48,13 @@ export function PendientesTecnicos({ cuenta, filtros, corregir, actualizar }: { 
               operador:t.operador+(t.operador_acompanante ? ' · '+t.operador_acompanante : ''),revision:t.revision!,creadoEn:t.creado_en! })
             else setElegido(t)
           }}>Completar</button></div>)}
-      <nav className="pendientes-paginacion" aria-label="Páginas de pendientes técnicos">
-        <button type="button" className="boton-secundario" disabled={!actual || pagina===0} onClick={() => setPagina(n => n-1)}>Anterior</button>
-        <button type="button" className="boton-secundario" disabled={!actual?.datos?.mas} onClick={() => setPagina(n => n+1)}>Siguiente</button>
+      {(actual?.error || pagina > 0 || actual?.datos?.mas) && <nav className="pendientes-paginacion" aria-label="Páginas de pendientes técnicos">
+        {(pagina > 0 || actual?.datos?.mas) && <>
+          <button type="button" className="boton-secundario" disabled={!actual || pagina===0} onClick={() => setPagina(n => n-1)}>Anterior</button>
+          <button type="button" className="boton-secundario" disabled={!actual?.datos?.mas} onClick={() => setPagina(n => n+1)}>Siguiente</button>
+        </>}
         {actual?.error && <button type="button" className="boton-secundario" onClick={() => setIntento(n => n+1)}>Reintentar</button>}
-      </nav>
+      </nav>}
     </>}
   </section>
 }
@@ -73,7 +78,7 @@ export function CompletarPendiente({ cuenta, turno, cerrar }: { cuenta: string; 
       const p=pendiente.current
       if (p.area==='calderas') await enviarReporteCalderas(p.envio,control.signal)
       else await enviarReportePTAR(p.envio,control.signal)
-      pendiente.current=null;setIncierto(false);setConfirmado(true);setMensaje('Reporte completado por supervisión. Se conservan el turno y la fecha originales.')
+      pendiente.current=null;setIncierto(false);setConfirmado(true);setMensaje(null)
     } catch(e) {
       const desconocido=!!pendiente.current && (!(e instanceof Error) || !('incierto' in e) || !!e.incierto)
       if (!desconocido) pendiente.current=null
@@ -86,7 +91,9 @@ export function CompletarPendiente({ cuenta, turno, cerrar }: { cuenta: string; 
       cambiarBorrador: cambiar => { if(editable) setBorrador(b => 'equipos' in b ? cambiar(b) : b) } }} observaciones={null} nombresOperadores={turno.operador_acompanante ? [turno.operador, turno.operador_acompanante] : undefined} /></div>
       : <div className="bpt-panel"><FormularioBitacoraPTAR completarAdministracion={{ guardando, confirmado, incierto, guardar: () => { void guardar() }, cerrar }} captura={{ borrador,reporte:null,editable,
         cambiarBorrador: cambiar => { if(editable) setBorrador(b => 'bombas' in b ? cambiar(b) : b) } }} observaciones={null} nombresOperadores={turno.operador_acompanante ? [turno.operador, turno.operador_acompanante] : undefined} /></div>}
-    {mensaje && <p role={confirmado ? 'status' : 'alert'}>{mensaje}</p>}
+    {mensaje && !confirmado && <p role="alert">{mensaje}</p>}
+    <ConfirmacionGuardadoTecnico abierto={guardando || confirmado} guardando={guardando}
+      alAceptar={cerrar} />
   </div>
 }
 

@@ -5,6 +5,7 @@ import { createServer } from 'vite'
 import { readFileSync } from 'node:fs'
 const id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`
 const logo=new Uint8Array(readFileSync(new URL('../src/assets/plantillas/logo-relevantes.png',import.meta.url)))
+const plantilla=JSON.parse(readFileSync(new URL('../src/assets/plantillas/relevantes.json',import.meta.url),'utf8'))
 const fila=(n,area='ptar')=>({id:id(n),area,actividad:`Actividad ${n}`,fecha:'2026-11-05',creado_en:`2026-11-05T12:00:${String(n%60).padStart(2,'0')}Z`,actualizado_en:'2026-11-05T12:02:00Z',revision:0})
 const reporte=()=>({mes:'2026-11',areas:[{area:'ptar',nombre:'PTAR',actividades:[fila(1),fila(2)]},{area:'calderas',nombre:'Calderas',actividades:[fila(3,'calderas')]},{area:'obra_civil',nombre:'Obra Civil',actividades:[]}]})
 function unzip(bytes){
@@ -35,10 +36,12 @@ after(async()=>{await server?.close();globalThis.fetch=fetchAnterior;delete glob
 beforeEach(()=>{
  store.setState({estado:'sin-sesion',perfil:null,sesion:null});sesion();consultas=[];logoError=false
  filas=Array.from({length:58},(_,i)=>fila(58-i,['ptar','calderas','obra_civil'][i%3]))
- globalThis.fetch=async()=>new Response(logoError?null:logo,{status:logoError?404:200})
+ globalThis.fetch=async entrada=>String(entrada).includes('logo-relevantes')
+  ?new Response(logoError?null:logo,{status:logoError?404:200})
+  :new Response(JSON.stringify(plantilla),{status:200,headers:{'Content-Type':'application/json'}})
 })
 test('DOCX real editable: logo, mes, secciones y viñetas con solo el día',()=>{
- const files=unzip(crear(reporte(),logo)),xml=new TextDecoder().decode(files['word/document.xml'])
+ const files=unzip(crear(reporte(),logo,plantilla)),xml=new TextDecoder().decode(files['word/document.xml'])
  assert.equal(Object.keys(files).length,19);assert.deepEqual(files['word/media/image1.png'],logo)
  for(const texto of ['RELEVANTES SERVICIOS-ENERGETICOS','Noviembre','Servicios y energéticos','PTAR','Calderas y compresores','Obra Civil','El día 05, actividad 1','Sin actividades.'])assert.ok(xml.replace(/<[^>]*>/g,'').includes(texto),texto)
  assert.ok(new TextDecoder().decode(files['word/header1.xml']).includes('COINSA Noviembre-2026'))
@@ -52,16 +55,16 @@ test('DOCX real editable: logo, mes, secciones y viñetas con solo el día',()=>
 test('conserva texto largo, saltos, acentos y caracteres XML sin insertar instrucciones',()=>{
  const r=reporte(),texto='Árbol & revisión <equipo> "A"\n\n'+'Texto extenso '.repeat(600)+'</w:t><w:instrText>PRUEBA</w:instrText>'
  r.areas[0].actividades[0].actividad=texto
- const xml=new TextDecoder().decode(unzip(crear(r,logo))['word/document.xml'])
+ const xml=new TextDecoder().decode(unzip(crear(r,logo,plantilla))['word/document.xml'])
  assert.ok(xml.includes('árbol &amp; revisión &lt;equipo&gt; &quot;a&quot;'));assert.ok(xml.includes('&lt;/w:t&gt;'))
  assert.ok(!xml.includes('<w:instrText>PRUEBA'));assert.equal((xml.match(/texto extenso /g)||[]).length,600)
  assert.ok(xml.includes('<w:t xml:space="preserve"></w:t>'))
 })
 test('rechaza datos repetidos, áreas mezcladas y registros de otro mes',()=>{
- const r=reporte();r.areas[0].actividades.push(r.areas[0].actividades[0]);assert.throws(()=>crear(r,logo),/repetidas/)
- const otro=reporte();otro.areas[0].actividades[0].area='calderas';assert.throws(()=>crear(otro,logo))
- const mes=reporte();mes.areas[0].actividades[0].fecha='2026-12-01';assert.throws(()=>crear(mes,logo))
- assert.throws(()=>crear(reporte(),new Uint8Array()),/logo/)
+ const r=reporte();r.areas[0].actividades.push(r.areas[0].actividades[0]);assert.throws(()=>crear(r,logo,plantilla),/repetidas/)
+ const otro=reporte();otro.areas[0].actividades[0].area='calderas';assert.throws(()=>crear(otro,logo,plantilla))
+ const mes=reporte();mes.areas[0].actividades[0].fecha='2026-12-01';assert.throws(()=>crear(mes,logo,plantilla))
+ assert.throws(()=>crear(reporte(),new Uint8Array(),plantilla),/logo/)
 })
 test('exporta las tres páginas del mes y todas las áreas sin depender de las 25 visibles',async()=>{
  const archivo=await servicio.prepararWordBitacora('2026-11','todas',new AbortController().signal)

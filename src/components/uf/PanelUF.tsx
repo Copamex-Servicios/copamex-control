@@ -34,7 +34,7 @@ function ContenidoUF({ datos }: PropsContenidoUF) {
   const actual = lecturaActual ?? historial.find((registro) => registro.lectura.turno_id === turno?.id) ?? null
   const turnoPropio = rol === 'calderas' && turno !== null && turno.iniciado_por === cuentaId
   const anteriores = actual ? historial.filter((registro) => registro.lectura.id !== actual.lectura.id) : historial
-  const paginaHistorial = useHistorialPaginado(anteriores, `${cuentaId}:${actual?.lectura.id ?? ''}`, rol === 'calderas' && historial.length >= 21,
+  const paginaHistorial = useHistorialPaginado(anteriores, `${cuentaId}:${actual?.lectura.id ?? ''}`, rol === 'calderas' && historial.length >= 14,
     actual?.lectura.turno_id ?? null, consultarPaginaHistorialUF, 7)
   const filasHistorial = rol === 'calderas' ? paginaHistorial.visibles : anteriores
   const confirmado = mensajeAccion === 'Lectura de UF guardada.'

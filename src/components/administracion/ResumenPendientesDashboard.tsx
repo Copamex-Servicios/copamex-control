@@ -44,10 +44,10 @@ export function ResumenPendientesDashboard({ cuenta, fecha }: { cuenta: string; 
       <span className="co-pendiente-operadores">{[f.operador, f.operador_acompanante].filter(Boolean).join(' · ')}</span>
       <span className="co-pendiente-etiqueta">Cerrado con pendientes</span>
     </button></li>)}</ul>
-    <nav className="co-pendiente-paginacion" aria-label="Páginas de reportes pendientes">
+    {filas.length > 3 && <nav className="co-pendiente-paginacion" aria-label="Páginas de reportes pendientes">
       <button type="button" className="boton-secundario" disabled={paginaActual === 0} onClick={() => setPagina(paginaActual - 1)}>Anterior</button>
       <button type="button" className="boton-secundario" disabled={(paginaActual + 1) * 3 >= filas.length} onClick={() => setPagina(paginaActual + 1)}>Siguiente</button>
-    </nav>
+    </nav>}
     {elegido && <Suspense fallback={<p role="status">Abriendo pendiente…</p>}>
       <PendienteDashboardDialogo key={`${cuenta}:${elegido.turno_id}`} cuenta={cuenta} turno={elegido}
         cerrar={() => { setElegido(null); setRevision(n => n + 1) }} />

@@ -5,8 +5,8 @@ export function Seccion({ titulo, children }: { titulo: string; children: ReactN
   return <section className="pcr-seccion"><h5>{titulo}</h5>{children}</section>
 }
 
-export function Estado({ valor }: { valor: string }) {
-  if (!valor) return <span className="pcr-vacio">Sin registrar</span>
+export function Estado({ valor, vacio = 'Sin registrar' }: { valor: string; vacio?: string }) {
+  if (!valor) return <span className="pcr-vacio">{vacio}</span>
   const tono = valor === 'Servicio' || valor === 'En servicio' ? 'servicio'
     : valor === 'Reserva' || valor === 'Preparado' ? 'reserva'
       : valor === 'Mantenimiento' ? 'mantenimiento' : 'neutro'

@@ -267,7 +267,7 @@ export async function consultarHistorialUF(signal: AbortSignal): Promise<Registr
     const { data, error } = await supabase.from('lecturas_uf').select(seleccion)
       .eq('turno.area', 'calderas').is('eliminado_en', null)
       .order('capturado_en', { ascending: false }).order('id', { ascending: false })
-      .limit(21).abortSignal(signal)
+      .limit(14).abortSignal(signal)
     if (error) lanzarFallo(error, 'No se pudo consultar el historial de UF. Reintenta.')
     if (!Array.isArray(data)) throw new ErrorUF('No se pudo comprobar el historial de UF. Actualiza la consulta.')
     const registros = data.map(leerRegistro)

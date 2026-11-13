@@ -246,7 +246,7 @@ export async function consultarHistorialPozos(signal: AbortSignal): Promise<Regi
     const { data, error } = await supabase.from('lecturas_pozos').select(seleccion)
       .eq('turno.area', 'calderas').is('eliminado_en', null)
       .order('capturado_en', { ascending: false }).order('id', { ascending: false })
-      .limit(21).abortSignal(signal)
+      .limit(14).abortSignal(signal)
     if (error) lanzarFallo(error, 'No se pudo consultar el historial de Pozos. Reintenta.')
     if (!Array.isArray(data)) throw new ErrorPozos('No se pudo comprobar el historial de Pozos. Actualiza la consulta.')
     const registros = data.map(leerRegistro)

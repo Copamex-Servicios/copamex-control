@@ -1,8 +1,9 @@
+import { useState } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { StatusBadge } from '../diseno/Elementos'
 import { useDashboardAdministracion } from '../../hooks/useDashboardAdministracion'
-import { modulosArea, nombresModuloDashboard } from '../../lib/dashboardAdministracion'
+import { intervaloHoyDashboard, modulosArea, nombresModuloDashboard } from '../../lib/dashboardAdministracion'
 import { nombresTurno } from '../../lib/planta'
 import { useInformacionDia } from '../../hooks/useInformacionDia'
 import { InformacionDelDia } from '../operativo/InformacionDelDia'
@@ -13,7 +14,10 @@ import './dashboardAdministracion.css'
 
 export function DashboardAdministracion({ contenedorAcciones }: { contenedorAcciones: HTMLDivElement | null }) {
   const { cuenta, datos, cargando, error, actualizar } = useDashboardAdministracion()
-  const informacionDia = useInformacionDia('todas', datos?.fecha ?? null)
+  const [fechaInicial] = useState(() => intervaloHoyDashboard(new Date()).fecha)
+  // Producción/Eventos cargan con la fecha de México sin esperar la consulta general.
+  const fechaHoy = datos?.fecha ?? fechaInicial
+  const informacionDia = useInformacionDia('todas', fechaHoy)
   if (!cuenta) return null
   const activos = datos?.turnos.valor
   const completo = activos && activos.total === activos.filas.length
@@ -39,7 +43,7 @@ export function DashboardAdministracion({ contenedorAcciones }: { contenedorAcci
             })}</article>
         })}</div></>}
     </section>
-    <div className="co-dashboard-dia"><InformacionDelDia fecha={datos?.fecha ?? null} informacion={informacionDia} compacto />
+    <div className="co-dashboard-dia"><InformacionDelDia fecha={fechaHoy} informacion={informacionDia} compacto />
       <SeguimientoColorM4 key={cuenta} cuenta={cuenta} administracion />
       <ResumenPendientesDashboard key={`${cuenta}:${datos?.fecha ?? ''}:${datos?.consultado ?? ''}`} cuenta={cuenta} fecha={datos?.fecha ?? null} />
       {datos && <AlmacenamientoDashboard cuenta={cuenta} revision={String(datos.consultado)} />}

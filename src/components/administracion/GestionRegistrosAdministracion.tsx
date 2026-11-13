@@ -116,11 +116,8 @@ function ReportesTecnicosAdmin() {
   const actual = vista?.clave === clave ? vista : null, pendiente = pendienteTecnica(cuenta)
   const detalle = pendiente?.detalle ?? actual?.detalle
   return <div className="admin-panel">
-    <section className="panel-informacion">
-      <h2>Gestión de registros</h2>
-      {errorPeriodoActual && <div><p role="alert" className="mensaje-error">{errorPeriodoActual}</p><button type="button" className="boton-secundario" onClick={() => setIntentoPeriodo(n => n + 1)}>Reintentar</button></div>}
-      {!periodoActual && !errorPeriodoActual && <p role="status">Preparando el historial técnico desde el primer reporte hasta hoy…</p>}
-    </section>
+    {errorPeriodoActual && <div><p role="alert" className="mensaje-error">{errorPeriodoActual}</p><button type="button" className="boton-secundario" onClick={() => setIntentoPeriodo(n => n + 1)}>Reintentar</button></div>}
+    {!periodoActual && !errorPeriodoActual && <p role="status">Preparando el historial técnico desde el primer reporte hasta hoy…</p>}
     {fila && <section className="panel-informacion">
       {!detalle ? actual?.error ? <><p role="alert" className="mensaje-error">{actual.error}</p><button type="button" className="boton-secundario" onClick={() => setRevision(n => n + 1)}>Reintentar detalle</button></> : <p role="status">Consultando reporte técnico…</p> :
         <EditorTecnico key={`${cuenta}:${fila.id}`} cuenta={cuenta} detalle={detalle} cerrar={() => { setFila(null); setVista(null); setRevision(n => n + 1) }} guardado={d => { setVista({ clave, detalle: d, error: null }) }} />}

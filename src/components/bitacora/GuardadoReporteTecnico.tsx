@@ -72,3 +72,48 @@ export function GuardadoReporteTecnico({ captura, descripcionId, alIntentar }: {
     </dialog>
   </>
 }
+
+/** Reutiliza la confirmación visual al completar un reporte pendiente desde Administración. */
+export function ConfirmacionGuardadoTecnico({ abierto, guardando, mensaje, alAceptar }: {
+  abierto: boolean; guardando: boolean; mensaje?: string; alAceptar: () => void
+}) {
+  const id = useId()
+  const dialogo = useRef<HTMLDialogElement>(null)
+  const aceptar = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    const elemento = dialogo.current
+    if (abierto && elemento && !elemento.open) elemento.showModal()
+    if (!abierto && elemento?.open) elemento.close()
+    return () => { if (elemento?.open) elemento.close() }
+  }, [abierto])
+  useEffect(() => {
+    if (!abierto) return
+    if (guardando) dialogo.current?.focus()
+    else aceptar.current?.focus()
+  }, [abierto, guardando])
+
+  function confirmarSalida() {
+    if (guardando) return
+    if (dialogo.current?.open) dialogo.current.close()
+    alAceptar()
+  }
+
+  return <dialog ref={dialogo} className="co-guardado-reporte" aria-labelledby={`${id}-titulo`}
+    aria-describedby={guardando || mensaje ? `${id}-mensaje` : undefined} aria-busy={guardando} tabIndex={-1}
+    onCancel={evento => { evento.preventDefault(); confirmarSalida() }}>
+    {abierto && <>
+      <div className="co-guardado-reporte-estado" role="status" aria-live="polite" aria-atomic="true">
+        {guardando
+          ? <span className="co-guardado-reporte-cargando" aria-hidden="true" />
+          : <svg className="co-guardado-reporte-exito" viewBox="0 0 56 56" fill="none" aria-hidden="true">
+            <circle cx="28" cy="28" r="27" fill="currentColor" fillOpacity=".1" />
+            <path d="m17 28 7 7 15-15" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>}
+        <h2 id={`${id}-titulo`}>{guardando ? 'Guardando reporte técnico...' : '¡Reporte guardado correctamente!'}</h2>
+        {(guardando || mensaje) && <p id={`${id}-mensaje`}>{guardando ? 'Espera la confirmación del servidor.' : mensaje}</p>}
+      </div>
+      {!guardando && <button ref={aceptar} type="button" className="boton-primario" onClick={confirmarSalida}>Aceptar</button>}
+    </>}
+  </dialog>
+}
