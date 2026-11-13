@@ -17,7 +17,7 @@ export interface ColumnaCalidadDiaria {
   minimo: number | null; maximo: number | null
 }
 export function limiteColumnaCalidad(c: ColumnaCalidadDiaria): string {
-  return c.minimo === null && c.maximo === null ? 'Sin límite registrado'
+  return c.minimo === null && c.maximo === null ? '—'
     : [c.minimo === null ? '' : '≥ ' + formatearNumeroCalidad(c.minimo), c.maximo === null ? '' : '≤ ' + formatearNumeroCalidad(c.maximo)].filter(Boolean).join(' · ')
 }
 export function matrizCalidadDiaria(dia: DiaCompletoCalidad) {

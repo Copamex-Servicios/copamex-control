@@ -9,6 +9,9 @@ import { FormularioUF } from './FormularioUF'
 import { formatearVolumenUF } from '../../lib/formatoUF'
 import { LecturaUFGuardada } from './LecturaUFGuardada'
 import { LecturaUFHistorial } from './LecturaUFHistorial'
+import { useHistorialPaginado } from '../../hooks/useHistorialPaginado'
+import { consultarPaginaHistorialUF } from '../../lib/uf'
+import { PaginacionHistorial } from '../diseno/PaginacionHistorial'
 
 const nombresTurno: Record<TipoTurno, string> = {
   dia: 'Día', tarde: 'Tarde', noche: 'Noche',
@@ -31,6 +34,9 @@ function ContenidoUF({ datos }: PropsContenidoUF) {
   const actual = lecturaActual ?? historial.find((registro) => registro.lectura.turno_id === turno?.id) ?? null
   const turnoPropio = rol === 'calderas' && turno !== null && turno.iniciado_por === cuentaId
   const anteriores = actual ? historial.filter((registro) => registro.lectura.id !== actual.lectura.id) : historial
+  const paginaHistorial = useHistorialPaginado(anteriores, `${cuentaId}:${actual?.lectura.id ?? ''}`, rol === 'calderas' && historial.length >= 14,
+    actual?.lectura.turno_id ?? null, consultarPaginaHistorialUF, 7)
+  const filasHistorial = rol === 'calderas' ? paginaHistorial.visibles : anteriores
   const confirmado = mensajeAccion === 'Lectura de UF guardada.'
     || mensajeAccion === 'Corrección de UF confirmada.'
 
@@ -101,16 +107,22 @@ function ContenidoUF({ datos }: PropsContenidoUF) {
       )}
       {listo && (
         <div className="historial-uf">
-          <div className="uf-historial-cabecera"><h3>Historial de UF</h3><span>{anteriores.length} {anteriores.length === 1 ? 'registro' : 'registros'}</span></div>
+          <div className="uf-historial-cabecera"><h3>Historial de UF</h3>{rol !== 'calderas' && <span>{anteriores.length} {anteriores.length === 1 ? 'registro' : 'registros'}</span>}</div>
           
           {anteriores.length === 0 ? (
             <p>{actual ? 'No hay otras lecturas guardadas para consultar.' : 'No hay lecturas guardadas para consultar.'}</p>
-          ) : anteriores.map((registro) => (
+          ) : filasHistorial.map((registro) => (
             <details className="item-historial-uf co-acordeon-historial" name={grupoHistorial} key={registro.lectura.id}>
               <ResumenHistorial fecha={registro.turno.fecha_operativa} titulo={`Lectura de ultrafiltración · ${registro.turno.area==='calderas'?'Calderas':'PTAR'}`} operador={registro.operadorNombre} turno={registro.turno.turno} />
               <LecturaUFHistorial registro={registro} />
             </details>
           ))}
+          {rol === 'calderas' && (paginaHistorial.hayAnterior || paginaHistorial.haySiguiente) && <>
+            <PaginacionHistorial etiqueta="historial de UF" pagina={paginaHistorial.pagina} anterior={paginaHistorial.anterior}
+              siguiente={() => { void paginaHistorial.siguiente() }} hayAnterior={paginaHistorial.hayAnterior}
+              haySiguiente={paginaHistorial.haySiguiente} cargando={paginaHistorial.cargando} />
+            {paginaHistorial.error && <p className="mensaje-error" role="alert">{paginaHistorial.error}</p>}
+          </>}
         </div>
       )}
     </section>

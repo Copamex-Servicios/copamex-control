@@ -28,9 +28,10 @@ function comprobarLote(data: unknown, count: number | null, offset: number, limi
     throw new Error('La consulta de Calidad está incompleta o cambió. Actualiza antes de continuar.')
   }
 }
-export async function consultarGruposMuestras(f: FiltrosMuestrasCalidad, pagina: number, signal: AbortSignal) {
+export async function consultarGruposMuestras(f: FiltrosMuestrasCalidad, pagina: number, signal: AbortSignal, limite = gruposPorPaginaCalidad) {
+  if (!Number.isSafeInteger(limite) || limite < 1 || limite > 100) throw new Error('Tamaño de página de Calidad inválido.')
   validarFiltrosMuestras(f); comprobarPagina(pagina); signal.throwIfAborted()
-  const offset = pagina * gruposPorPaginaCalidad
+  const offset = pagina * limite
   // Una fila por turno. El embed solo comprueba que existe una muestra vigente.
   let q = supabase.from('turnos_operativos')
     .select(`${columnasTurno},muestras:muestras_calidad!inner(id)`, { count: 'exact' })
@@ -40,10 +41,10 @@ export async function consultarGruposMuestras(f: FiltrosMuestrasCalidad, pagina:
   if (f.area !== 'todas') q = q.eq('area', f.area)
   if (f.turno !== 'todos') q = q.eq('turno', f.turno)
   const r = await q.order('fecha_operativa', { ascending: false }).order('iniciado_en', { ascending: false })
-    .order('id', { ascending: false }).range(offset, offset + gruposPorPaginaCalidad - 1).abortSignal(signal)
+    .order('id', { ascending: false }).range(offset, offset + limite - 1).abortSignal(signal)
   signal.throwIfAborted()
   if (r.error) throw new Error('No se pudieron consultar los turnos con muestras de Calidad.')
-  comprobarLote(r.data, r.count, offset, gruposPorPaginaCalidad)
+  comprobarLote(r.data, r.count, offset, limite)
   const grupos = r.data.map(v => {
     const grupo = leerTurnoPlanta(v), t = grupo.turno
     if ((f.desde && t.fecha_operativa < f.desde) || (f.hasta && t.fecha_operativa > f.hasta)
@@ -74,4 +75,30 @@ export async function consultarPaginaMuestras(grupo: TurnoPlanta, pagina: number
     throw new Error('Una muestra no corresponde al turno consultado.')
   }
   return { muestras, total: r.count!, hayMas: offset + muestras.length < r.count! }
+}
+
+// Completar las filas adicionales de la hoja sin depender de la página visible del historial.
+export async function consultarAdicionalesTurnoCalidad(grupo: TurnoPlanta, signal: AbortSignal): Promise<RegistroCalidad[]> {
+  const registros: RegistroCalidad[] = []
+  const limite = 200
+  let total: number | null = null
+  const consulta = () => supabase.from('muestras_calidad').select(seleccionRegistroCalidad,{count:'exact'})
+    .eq('turno_id',grupo.turno.id).is('eliminado_en',null).not('seguimiento_id','is',null)
+  for (let offset=0; ; offset+=limite) {
+    signal.throwIfAborted()
+    const r = await consulta().order('capturado_en',{ascending:true}).order('id',{ascending:true})
+      .range(offset,offset+limite-1).abortSignal(signal)
+    signal.throwIfAborted()
+    if (r.error) throw new Error('No se pudieron consultar todas las lecturas adicionales del turno.')
+    comprobarLote(r.data,r.count,offset,limite)
+    if (total !== null && total !== r.count) throw new Error('Las lecturas adicionales cambiaron. Actualiza el turno.')
+    total=r.count
+    const lote=r.data.map(v=>leerRegistroCalidad(v))
+    if (lote.some(m=>!m.lectura.seguimientoId || m.turno.id!==grupo.turno.id
+      || m.turno.area!==grupo.turno.area || m.turno.fecha_operativa!==grupo.turno.fecha_operativa)) {
+      throw new Error('Una lectura adicional no pertenece al turno consultado.')
+    }
+    registros.push(...lote)
+    if (registros.length===total) return ordenarMuestrasCalidad(registros)
+  }
 }

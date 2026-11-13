@@ -79,11 +79,13 @@ function leerLecturaCalidad(v: unknown, incierto: boolean): LecturaCalidad {
     || (notas !== null && typeof notas !== 'string')
     || !Array.isArray(m.resultados) || !m.resultados.length) throw new ErrorCalidad('No se pudo comprobar la muestra y su turno. Actualiza.', incierto)
   const resultados = m.resultados.map(r => leerResultado(r, id, incierto))
+  if (m.seguimiento_id != null && !uuid(m.seguimiento_id)) throw new ErrorCalidad('El seguimiento de la muestra no es válido.', incierto)
   if (new Set(resultados.map(r => r.id)).size !== resultados.length
     || new Set(resultados.map(r => claveResultadoCalidad(r.punto_id, r.parametro_id))).size !== resultados.length) {
     throw new ErrorCalidad('La muestra contiene resultados repetidos. Actualiza.', incierto)
   }
-  return { id, turno_id, hora_muestra, notas, capturado_en, recibido_en, creado_por, eliminado_en, eliminado_por, resultados }
+  return { id, turno_id, hora_muestra, notas, capturado_en, recibido_en, creado_por, eliminado_en, eliminado_por, resultados,
+    ...(m.seguimiento_id ? { seguimientoId: m.seguimiento_id as string } : {}) }
 }
 export function leerRegistroCalidad(v: unknown, incierto = false): RegistroCalidad {
   const m = objeto(v, incierto), t = objeto(m.turno, incierto), o = objeto(t.operador, incierto)
@@ -102,7 +104,7 @@ export function leerRegistroCalidad(v: unknown, incierto = false): RegistroCalid
   return { lectura,
     turno: { id: idTurno, fecha_operativa, area, turno, operador_id, operador_acompanante_id, iniciado_por: creado_por, iniciado_en, finalizado_en, notas_cierre }, operadorNombre: etiquetaOperadoresTurno(o.nombre, acompananteNombre) }
 }
-const seleccion = `id,turno_id,hora_muestra,notas,capturado_en,recibido_en,creado_por,eliminado_en,eliminado_por,turno:turnos_operativos!inner(id,fecha_operativa,area,turno,operador_id,operador_acompanante_id,iniciado_por,iniciado_en,finalizado_en,notas_cierre,${relacionOperadorPrincipal},${relacionOperadorAcompanante}),resultados:resultados_calidad(id,muestra_id,punto_id,parametro_id,valor,limite_min_aplicado,limite_max_aplicado,fuera_norma,punto:puntos_muestreo(id,nombre,area),parametro:parametros_calidad(id,nombre,unidad))`
+const seleccion = `id,turno_id,hora_muestra,notas,capturado_en,recibido_en,creado_por,eliminado_en,eliminado_por,seguimiento_id,turno:turnos_operativos!inner(id,fecha_operativa,area,turno,operador_id,operador_acompanante_id,iniciado_por,iniciado_en,finalizado_en,notas_cierre,${relacionOperadorPrincipal},${relacionOperadorAcompanante}),resultados:resultados_calidad(id,muestra_id,punto_id,parametro_id,valor,limite_min_aplicado,limite_max_aplicado,fuera_norma,punto:puntos_muestreo(id,nombre,area),parametro:parametros_calidad(id,nombre,unidad))`
 export { seleccion as seleccionRegistroCalidad }
 function fallo(error: unknown, mensaje: string, mutacion = false): never {
   const e = error && typeof error === 'object' ? error as Record<string, unknown> : {}
@@ -117,7 +119,7 @@ export async function consultarCatalogosCalidad(signal: AbortSignal): Promise<Ca
   cancelada(signal)
   const [p, q] = await Promise.all([
     supabase.from('puntos_muestreo').select('id,nombre,area,activo,orden').eq('activo',true).order('orden').order('id').abortSignal(signal),
-    supabase.from('parametros_calidad').select('id,nombre,unidad,activo').eq('activo',true).order('nombre').order('id').abortSignal(signal),
+    supabase.from('parametros_calidad').select('id,nombre,unidad,activo,areas_captura,puntos_permitidos,evaluar_limites').eq('activo',true).order('nombre').order('id').abortSignal(signal),
   ])
   if (p.error || q.error) fallo(p.error || q.error, 'No se pudieron consultar los puntos y parámetros de Calidad.')
   if (!Array.isArray(p.data) || !Array.isArray(q.data)) throw new ErrorCalidad('No se pudo comprobar la lista de puntos y parámetros.')
@@ -128,7 +130,11 @@ export async function consultarCatalogosCalidad(signal: AbortSignal): Promise<Ca
   })
   const parametros = q.data.map(v => { const r = objeto(v)
     if (!uuid(r.id) || typeof r.nombre !== 'string' || !r.nombre.trim() || r.activo !== true || (r.unidad !== null && typeof r.unidad !== 'string')) throw new ErrorCalidad('Revisa la configuración de los parámetros de Calidad.')
-    return { id: r.id, nombre: r.nombre, unidad: r.unidad as string | null, activo: true }
+    if (!Array.isArray(r.areas_captura) || !r.areas_captura.every(a => a === 'calderas' || a === 'ptar')
+      || (r.puntos_permitidos !== null && (!Array.isArray(r.puntos_permitidos) || !r.puntos_permitidos.every(uuid)))
+      || typeof r.evaluar_limites !== 'boolean') throw new ErrorCalidad('Revisa las reglas de captura de los parámetros de Calidad.')
+    return { id: r.id, nombre: r.nombre, unidad: r.unidad as string | null, activo: true,
+      areas_captura: r.areas_captura as AreaPlanta[], puntos_permitidos: r.puntos_permitidos as string[] | null, evaluar_limites: r.evaluar_limites }
   })
   if (new Set(puntos.map(punto => punto.id)).size !== puntos.length || new Set(parametros.map(parametro => parametro.id)).size !== parametros.length) throw new ErrorCalidad('Se recibieron puntos o parámetros repetidos.')
   return { puntos, parametros }
@@ -136,7 +142,7 @@ export async function consultarCatalogosCalidad(signal: AbortSignal): Promise<Ca
 export async function consultarLecturaCalidad(turnoId: string, signal: AbortSignal): Promise<RegistroCalidad | null> {
   cancelada(signal)
   if (!uuid(turnoId)) throw new ErrorCalidad('Selecciona un turno válido.')
-  const { data, error } = await supabase.from('muestras_calidad').select(seleccion).eq('turno_id',turnoId).is('eliminado_en',null)
+  const { data, error } = await supabase.from('muestras_calidad').select(seleccion).eq('turno_id',turnoId).is('eliminado_en',null).is('seguimiento_id',null)
     .order('capturado_en',{ascending:false}).order('id',{ascending:false}).limit(1).abortSignal(signal).maybeSingle()
   if (error) fallo(error,'No se pudo consultar la última muestra del turno.')
   if (data === null) return null

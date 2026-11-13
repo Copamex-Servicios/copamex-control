@@ -1,0 +1,39 @@
+.ct-alta-historica {
+  box-sizing:border-box; width:min(1120px,calc(100vw - 32px)); max-width:none; max-height:calc(100dvh - 32px);
+  padding:0; overflow:hidden; border:1px solid #d6e1f0; border-radius:14px; background:#fff; color:var(--co-text);
+  font-family:var(--co-font); box-shadow:0 24px 70px rgb(16 36 66 / 28%);
+}
+.ct-alta-historica::backdrop { background:rgb(12 24 43 / 48%); backdrop-filter:blur(4px); }
+.ct-alta-historica-marco { display:flex; flex-direction:column; max-height:calc(100dvh - 34px); min-height:0; }
+.ct-alta-historica-cabecera { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px 22px; border-bottom:1px solid var(--co-border); }
+.ct-alta-historica-cabecera h2 { margin:0; color:var(--co-navy); font-size:20px; line-height:1.35; }
+.ct-alta-historica-cabecera p { margin:4px 0 0; color:var(--co-muted); font-size:14px; }
+.ct-alta-historica-cerrar { flex:0 0 40px; width:40px; min-width:40px!important; min-height:40px!important; padding:4px!important; font-size:25px!important; line-height:1; }
+.ct-alta-historica-cuerpo { min-height:0; overflow:auto; padding:18px 22px 22px; }
+.ct-alta-historica-identidad { display:grid; grid-template-columns:minmax(150px,.7fr) minmax(200px,1fr) minmax(200px,1fr); align-items:end; gap:12px; }
+.ct-alta-historica-identidad label { display:grid; gap:5px; color:var(--co-text); font-size:13px; font-weight:600; }
+.ct-alta-historica-identidad :is(select,input) { box-sizing:border-box; width:100%; min-height:42px; padding:8px 11px; border:1px solid #cfdff4; border-radius:8px; background:#fff; color:var(--co-text); font:inherit; font-size:14px; }
+.ct-alta-historica-identidad :is(select,input):disabled { background:#f5f8fc; color:var(--co-muted); }
+.ct-alta-historica-operador-caja { display:block; overflow:hidden; border:1px solid #cfdff4; border-radius:8px; background:#fff; font-weight:400; }
+.ct-alta-historica-operador-caja:focus-within { outline:2px solid var(--co-primary); outline-offset:2px; }
+.ct-alta-historica-operador-caja input { display:block; min-height:42px!important; padding:8px 11px!important; border:0!important; border-radius:0!important; background:transparent!important; outline:none!important; }
+.ct-alta-historica-operador-caja input:focus-visible { outline:none!important; }
+.ct-alta-historica-nombre,.ct-alta-historica-busqueda,.ct-alta-historica-error-operador { display:block; padding:0 11px 9px; font-size:12px; line-height:1.4; overflow-wrap:anywhere; }
+.ct-alta-historica-nombre { color:#167044; font-weight:650; }
+.ct-alta-historica-busqueda { color:#536783; }
+.ct-alta-historica-error-operador { color:#b42332; }
+.ct-alta-historica-ayuda { margin:16px 0 10px; color:#536783; font-size:13px; }
+.ct-alta-historica-error { margin:12px 0 0; }
+.ct-alta-historica-cuerpo>.bc-panel,.ct-alta-historica-cuerpo>.bpt-panel { min-width:0; padding:0; background:#fff; }
+.ct-alta-historica-cuerpo :is(.bc-panel,.bpt-panel)>:first-child { margin-top:0; }
+.ct-alta-historica-cuerpo :is(button,select,input,textarea):focus-visible { outline:2px solid var(--co-primary); outline-offset:2px; }
+@media(max-width:700px) {
+  .ct-alta-historica { width:calc(100vw - 16px); max-height:calc(100dvh - 16px); border-radius:11px; }
+  .ct-alta-historica-marco { max-height:calc(100dvh - 18px); }
+  .ct-alta-historica-cabecera { padding:14px 16px; }
+  .ct-alta-historica-cabecera h2 { font-size:17px; }
+  .ct-alta-historica-cuerpo { padding:14px 16px 18px; }
+  .ct-alta-historica-identidad { grid-template-columns:1fr; }
+  .ct-alta-historica-operadores { grid-template-columns:1fr; gap:5px; }
+}
+@media(prefers-reduced-motion:reduce) { .ct-alta-historica::backdrop { backdrop-filter:none; } }

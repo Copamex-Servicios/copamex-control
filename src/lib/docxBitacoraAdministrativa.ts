@@ -1,26 +1,24 @@
 import { crearPaqueteOffice } from './paqueteOffice'
 import { formatoTextoBitacora } from './formatoTextoBitacora'
-import plantillaCruda from '../assets/plantillas/relevantes.json?raw'
 import type { recuperarMesAdministrativo } from './bitacoraAdministrativa'
 export type MesAdministrativo = Awaited<ReturnType<typeof recuperarMesAdministrativo>>
-interface PlantillaRelevantes {
+export interface PlantillaRelevantes {
   area: string; calderas: string; actividad: string; vacio: string
   despuesArea: string; despuesCalderas: string; separador: string
   partes: { ruta: string; binario: boolean; contenido: string }[]
 }
 // Plantilla obtenida de «formato de relevantes.doc», sin registros de ejemplo.
-const plantilla = JSON.parse(plantillaCruda) as PlantillaRelevantes
 const xml = (s: string) => Array.from(s).filter(c => {
   const n = c.codePointAt(0)!
   return n === 9 || n === 10 || n === 13 || (n >= 32 && n <= 0xd7ff) || (n >= 0xe000 && n <= 0xfffd) || n >= 0x10000
 }).join('').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;')
 const marcador = /<w:p(?:\s[^>]*)?>\s*<w:r(?:\s[^>]*)?>\s*<w:t[^>]*>\{\{CONTENIDO\}\}<\/w:t>\s*<\/w:r>\s*<\/w:p>/
-function actividadConVineta(dia: string, actividad: string) {
+function actividadConVineta(dia: string, actividad: string, plantilla: PlantillaRelevantes) {
   const texto = xml('El día ' + dia + ', ' + formatoTextoBitacora(actividad))
     .replace(/\r\n|\r|\n/g, '</w:t><w:br/><w:t xml:space="preserve">')
   return plantilla.actividad.replace('{{ACTIVIDAD}}', () => texto)
 }
-export function crearDocxBitacoraAdministrativa(reporte: MesAdministrativo, logo: Uint8Array): Uint8Array {
+export function crearDocxBitacoraAdministrativa(reporte: MesAdministrativo, logo: Uint8Array, plantilla: PlantillaRelevantes): Uint8Array {
   if (!/^(?!0000)\d{4}-(0[1-9]|1[0-2])$/.test(reporte.mes)) throw new Error('Mes de documento inválido.')
   if (logo.length < 24 || new DataView(logo.buffer, logo.byteOffset).getUint32(0) !== 0x89504e47) throw new Error('No se pudo incorporar el logo COPAMEX.')
   const ids = new Set<string>(), areas = new Set<string>()
@@ -35,7 +33,7 @@ export function crearDocxBitacoraAdministrativa(reporte: MesAdministrativo, logo
     return encabezado + area.actividades.map(f => {
       if (ids.has(f.id) || f.area !== area.area || !f.fecha.startsWith(reporte.mes + '-') || !f.actividad.trim()) throw new Error('Actividades repetidas o fuera del mes seleccionado.')
       ids.add(f.id)
-      return actividadConVineta(f.fecha.slice(8, 10), f.actividad)
+      return actividadConVineta(f.fecha.slice(8, 10), f.actividad, plantilla)
     }).join('')
   }).join('')
   return crearPaqueteOffice(plantilla.partes.map(p => {

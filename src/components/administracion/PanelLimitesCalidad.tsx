@@ -21,7 +21,7 @@ export function PanelLimitesCalidad({ datos, cargandoCatalogos = false }: { dato
  const bloqueado = !!pendiente || disenoPendiente || !!estado?.guardando
  const disponible = !cargandoCatalogos && !!datos && !datos.puntos_muestreo.error && !datos.parametros_calidad.error && !datos.puntos_muestreo.limitada && !datos.parametros_calidad.limitada
  const puntos = (datos?.puntos_muestreo.filas ?? []).filter(p => p.activo)
- const parametros = (datos?.parametros_calidad.filas ?? []).filter(p => p.activo)
+ const parametros = (datos?.parametros_calidad.filas ?? []).filter(p => p.activo && p.evaluar_limites === true)
  function celda(punto: string, parametro: string): Celda {
   const l = limites.find(l => l.punto_id === punto && l.parametro_id === parametro && l.vigente_hasta === null)
   const minimo = l?.limite_min == null ? '' : String(l.limite_min), maximo = l?.limite_max == null ? '' : String(l.limite_max)

@@ -10,6 +10,9 @@ import { formatearVolumenPozos } from '../../lib/formatoPozos'
 import { LecturaPozosGuardada } from './LecturaPozosGuardada'
 import { LecturaPozosHistorial } from './LecturaPozosHistorial'
 import { MonitorConcesionPozos } from './MonitorConcesionPozos'
+import { useHistorialPaginado } from '../../hooks/useHistorialPaginado'
+import { consultarPaginaHistorialPozos } from '../../lib/pozos'
+import { PaginacionHistorial } from '../diseno/PaginacionHistorial'
 
 const nombresTurno: Record<TipoTurno, string> = {
   dia: 'Día', tarde: 'Tarde', noche: 'Noche',
@@ -33,6 +36,17 @@ function ContenidoPozos({ datos }: PropsContenidoPozos) {
   const actual = lecturaActual ?? historial.find((registro) => registro.lectura.turno_id === turno?.id) ?? null
   const turnoPropio = rol === 'calderas' && turno !== null && turno.iniciado_por === cuentaId
   const anteriores = actual ? historial.filter((registro) => registro.lectura.id !== actual.lectura.id) : historial
+  const lecturaTurnoAnterior = turno ? anteriores
+    .filter(registro => registro.turno.area === 'calderas' && Date.parse(registro.turno.iniciado_en) < Date.parse(turno.iniciado_en))
+    .reduce<typeof anteriores[number] | null>((ultima, registro) => !ultima
+      || Date.parse(registro.turno.iniciado_en) > Date.parse(ultima.turno.iniciado_en) ? registro : ultima, null) : null
+  const lecturasIniciales = lecturaTurnoAnterior ? {
+    pozo1: lecturaTurnoAnterior.lectura.pozo1_fin,
+    pozo2: lecturaTurnoAnterior.lectura.pozo2_fin,
+  } : undefined
+  const paginaHistorial = useHistorialPaginado(anteriores, `${cuentaId}:${actual?.lectura.id ?? ''}`, rol === 'calderas' && historial.length >= 14,
+    actual?.lectura.turno_id ?? null, consultarPaginaHistorialPozos, 7)
+  const filasHistorial = rol === 'calderas' ? paginaHistorial.visibles : anteriores
   const confirmado = mensajeAccion === 'Lectura de Pozos guardada.'
     || mensajeAccion === 'Corrección de Pozos confirmada.'
 
@@ -95,6 +109,7 @@ function ContenidoPozos({ datos }: PropsContenidoPozos) {
             <p className="ayuda-turno">Confirma la operación del turno antes de guardar una lectura nueva.</p>
           )}
           <FormularioPozos key={`${cuentaId}:${turno.id}:captura`} alGuardar={guardarPozos}
+            lecturasIniciales={lecturasIniciales}
             deshabilitado={!listo || !puedeCrear || ocupado || actual !== null} />
         </div>
       )}
@@ -108,12 +123,18 @@ function ContenidoPozos({ datos }: PropsContenidoPozos) {
           
           {anteriores.length === 0 ? (
             <p>{actual ? 'No hay otras lecturas guardadas para consultar.' : 'No hay lecturas guardadas para consultar.'}</p>
-          ) : anteriores.map((registro) => (
+          ) : filasHistorial.map((registro) => (
             <details className="item-historial-pozos co-acordeon-historial" name={grupoHistorial} key={registro.lectura.id}>
               <ResumenHistorial fecha={registro.turno.fecha_operativa} titulo="Lectura de pozos" operador={registro.operadorNombre} turno={registro.turno.turno} />
               <LecturaPozosHistorial registro={registro} />
             </details>
           ))}
+          {rol === 'calderas' && (paginaHistorial.hayAnterior || paginaHistorial.haySiguiente) && <>
+            <PaginacionHistorial etiqueta="historial de Pozos" pagina={paginaHistorial.pagina} anterior={paginaHistorial.anterior}
+              siguiente={() => { void paginaHistorial.siguiente() }} hayAnterior={paginaHistorial.hayAnterior}
+              haySiguiente={paginaHistorial.haySiguiente} cargando={paginaHistorial.cargando} />
+            {paginaHistorial.error && <p className="mensaje-error" role="alert">{paginaHistorial.error}</p>}
+          </>}
         </div>
       )}
     </section>

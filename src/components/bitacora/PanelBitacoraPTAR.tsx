@@ -10,7 +10,7 @@ export function PanelBitacoraPTAR() {
     && datos.turno?.finalizado_en === null && datos.turno.iniciado_por === datos.cuentaId
   const captura = useReportePTAR(datos.rol === 'ptar' ? datos.cuentaId : null, datos.turno?.id ?? null, habilitado)
   if (!datos.cuentaId || (datos.rol !== 'ptar' && datos.rol !== 'admin') || datos.estadoCarga === 'sin-cuenta') return null
-  const observaciones = <HistorialReportesPTAR key={`${datos.cuentaId}:${datos.rol}`} actualizacion={`${captura.reporte?.id ?? ''}:${captura.reporte?.revision ?? ''}`} />
+  const observaciones = <HistorialReportesPTAR key={`${datos.cuentaId}:${datos.rol}`} actualizacion={`${captura.reporte?.id ?? ''}:${captura.reporte?.revision ?? ''}`} operador={datos.rol === 'ptar'} />
   return <section className="panel-informacion bpt-panel" aria-label="Bitácora de PTAR">
     {datos.rol === 'admin' && <header className="bpt-cabecera"><h2>Bitácora de PTAR</h2></header>}
     {datos.rol === 'admin' ? <div className="bpt-contenido bpt-consulta">

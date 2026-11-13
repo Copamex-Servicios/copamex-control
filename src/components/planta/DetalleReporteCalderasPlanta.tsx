@@ -80,7 +80,7 @@ export function DetalleReporteCalderasPlanta({ reporte }: { reporte: ReporteTecn
         <dl className="pcr-datos pcr-agua">
           <Dato nombre="Nivel de tanques de agua potable" valor={m.nivel_agua_potable} unidad="%" />
           {equiposAguaCalderas.map(e => <div className="pcr-dato" key={e.id}>
-            <dt>{e.nombre}</dt><dd><Estado valor={reporte.versionFormato === 2 && b.servicioAgua[e.id] ? 'En servicio' : ''} /></dd>
+            <dt>{e.nombre}</dt><dd><Estado valor={reporte.versionFormato === 2 && b.servicioAgua[e.id] ? 'En servicio' : ''} vacio="—" /></dd>
           </div>)}
         </dl>
       </Seccion>

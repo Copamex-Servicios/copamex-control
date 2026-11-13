@@ -1,25 +1,25 @@
 import type { RegistroCalidad, ResultadoCalidad } from './tiposCalidad'
-import { formatearNumeroCalidad as numero } from './formatoCalidad.ts'
+import { textoLimitesResultadoCalidad, textoEvaluacionCalidad } from './formatoCalidad.ts'
 import { crearXlsxReporte } from './xlsxReporte.ts'
 import type { HojaReporte } from './xlsxReporte'
 
-export function hojaResultadosCalidad(resultados: readonly ResultadoCalidad[]): HojaReporte {
+export function hojaResultadosCalidad(resultados: readonly ResultadoCalidad[], detallePorResultado: ReadonlyMap<string,string> = new Map()): HojaReporte {
   return {
     nombre: 'Resultados', titulo: '', contexto: '', soloTabla: true,
     columnas: ['Punto', 'Parámetro', 'Valor', 'Límites', 'Evaluación'],
     filas: resultados.map(r => [
       r.punto.nombre,
-      r.parametro.nombre + (r.parametro.unidad ? ` (${r.parametro.unidad})` : ''),
+      r.parametro.nombre + (r.parametro.unidad ? ` (${r.parametro.unidad})` : '')
+        + (detallePorResultado.has(r.id) ? '\n' + detallePorResultado.get(r.id) : ''),
       r.valor,
-      r.limite_min_aplicado === null && r.limite_max_aplicado === null ? 'Sin límites'
-        : [r.limite_min_aplicado !== null ? `≥ ${numero(r.limite_min_aplicado)}` : '', r.limite_max_aplicado !== null ? `≤ ${numero(r.limite_max_aplicado)}` : ''].filter(Boolean).join(' · '),
-      r.fuera_norma === null ? 'Sin límites' : r.fuera_norma ? 'Fuera de norma' : 'Dentro de norma',
+      textoLimitesResultadoCalidad(r.limite_min_aplicado,r.limite_max_aplicado),
+      textoEvaluacionCalidad(r.fuera_norma),
     ]),
   }
 }
 
-export function descargarResultadosCalidad(registro: RegistroCalidad, resultados: readonly ResultadoCalidad[]): void {
-  const bytes = crearXlsxReporte([hojaResultadosCalidad(resultados)])
+export function descargarResultadosCalidad(registro: RegistroCalidad, resultados: readonly ResultadoCalidad[], detallePorResultado?: ReadonlyMap<string,string>): void {
+  const bytes = crearXlsxReporte([hojaResultadosCalidad(resultados,detallePorResultado)])
   const buffer = new ArrayBuffer(bytes.byteLength)
   new Uint8Array(buffer).set(bytes)
   const url = URL.createObjectURL(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }))

@@ -1,0 +1,41 @@
+.co-layout .co-seguimiento-m4 { margin:12px 0; padding:18px 20px; border:1px solid #d7e2f1; border-radius:12px; background:#fff; color:inherit; font:inherit; }
+.co-layout .co-seguimiento-cabecera { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.co-layout .co-seguimiento-cabecera h2 { margin:0; font-size:18px; }
+.co-layout .co-seguimiento-cabecera>span { padding:4px 10px; border-radius:999px; color:#536783; background:#f0f4fa; font-size:13px; }
+.co-layout .co-seguimiento-cabecera>.co-seguimiento-activo { color:#14623b; background:#e5f5ed; }
+.co-layout .co-seguimiento-m4 label { display:grid; gap:8px; margin-bottom:12px; }
+.co-layout .co-seguimiento-m4 textarea,.co-layout .co-seguimiento-m4 input { box-sizing:border-box; width:100%; padding:10px 12px; border:1px solid #b9cae3; border-radius:7px; font:inherit; color:inherit; background:#fff; }
+.co-layout .co-seguimiento-m4 input { max-width:320px; }
+.co-layout .co-seguimiento-m4 small { display:block; margin-top:8px; color:#536783; }
+@media(max-width:600px) { .co-layout .co-seguimiento-m4 { padding:16px; } .co-layout .co-seguimiento-cabecera { flex-wrap:wrap; } }
+.co-layout .co-seguimiento-m4.co-seguimiento-admin {
+  display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center;
+  gap:10px 12px; padding:10px 14px; font-family:inherit;
+}
+.co-layout .co-seguimiento-admin .co-seguimiento-cabecera { grid-column:1; justify-content:flex-start; gap:10px; margin:0; }
+.co-layout .co-seguimiento-admin .co-seguimiento-cabecera h2 { font-size:14px; font-weight:650; white-space:nowrap; }
+.co-layout .co-seguimiento-admin .co-seguimiento-cabecera>span { padding:3px 9px; font-size:12px; white-space:nowrap; }
+.co-layout .co-seguimiento-admin>form { display:contents; }
+.co-layout .co-seguimiento-admin input.co-seguimiento-instruccion { grid-column:2; max-width:none; min-width:0; height:36px; padding:7px 11px; font-size:13px; }
+.co-layout .co-seguimiento-admin>form>button,.co-layout .co-seguimiento-admin>button { grid-column:3; min-height:36px; margin:0; padding:7px 18px; font-family:inherit; font-size:13px; white-space:nowrap; }
+.co-layout .co-seguimiento-admin>p.notas-turno { grid-column:2; margin:0; font-size:14px; overflow-wrap:anywhere; }
+.co-layout .co-seguimiento-admin>p:not(.notas-turno),.co-layout .co-seguimiento-admin>small,
+.co-layout .co-seguimiento-admin>div:not(.co-seguimiento-cabecera) { grid-column:1/-1; margin:0; }
+.co-layout .co-seguimiento-admin .co-seguimiento-cabecera,
+.co-layout .co-seguimiento-admin input.co-seguimiento-instruccion,
+.co-layout .co-seguimiento-admin>p.notas-turno,
+.co-layout .co-seguimiento-admin>form>button,.co-layout .co-seguimiento-admin>button { grid-row:1; }
+@media(max-width:800px) {
+  .co-layout .co-seguimiento-m4.co-seguimiento-admin { grid-template-columns:minmax(0,1fr) auto; }
+  .co-layout .co-seguimiento-admin .co-seguimiento-cabecera { grid-column:1/-1; }
+  .co-layout .co-seguimiento-admin input.co-seguimiento-instruccion,.co-layout .co-seguimiento-admin>p.notas-turno { grid-column:1; }
+  .co-layout .co-seguimiento-admin>form>button,.co-layout .co-seguimiento-admin>button { grid-column:2; }
+  .co-layout .co-seguimiento-admin input.co-seguimiento-instruccion,.co-layout .co-seguimiento-admin>p.notas-turno,
+  .co-layout .co-seguimiento-admin>form>button,.co-layout .co-seguimiento-admin>button { grid-row:2; }
+}
+.co-color-m4-dialogo { box-sizing:border-box; width:min(440px,calc(100vw - 32px)); max-height:calc(100dvh - 40px); margin:auto; padding:24px; overflow:auto; border:1px solid #cbdcf2; border-radius:14px; background:#fff; color:inherit; font:inherit; box-shadow:0 24px 80px #09275040; }
+.co-color-m4-dialogo::backdrop { background:rgb(10 27 52 / 40%); backdrop-filter:blur(5px); }
+.co-color-m4-dialogo h2 { margin:0 0 20px; font-size:20px; }
+.co-color-m4-dialogo label { display:grid; gap:8px; margin-bottom:20px; }
+.co-color-m4-dialogo input { box-sizing:border-box; width:100%; padding:12px; border:1px solid #b9cae3; border-radius:8px; color:inherit; background:#fff; font:inherit; }
+.co-color-m4-dialogo .acciones-turno { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:10px; }

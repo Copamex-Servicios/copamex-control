@@ -1,6 +1,9 @@
 import type { AreaOperativa as AreaPlanta, TurnoOperativo } from './tiposTurno'
 export interface PuntoCalidad { id: string; nombre: string; area: AreaPlanta | null; activo: boolean; orden: number }
-export interface ParametroCalidad { id: string; nombre: string; unidad: string | null; activo: boolean }
+export interface ParametroCalidad {
+  id: string; nombre: string; unidad: string | null; activo: boolean
+  areas_captura: AreaPlanta[]; puntos_permitidos: string[] | null; evaluar_limites: boolean
+}
 export interface CatalogosCalidad { puntos: PuntoCalidad[]; parametros: ParametroCalidad[] }
 export interface ResultadoCalidad {
   id: string; muestra_id: string; punto_id: string; parametro_id: string; valor: number
@@ -9,6 +12,7 @@ export interface ResultadoCalidad {
   parametro: Pick<ParametroCalidad, 'id' | 'nombre' | 'unidad'>
 }
 export interface LecturaCalidad {
+  seguimientoId?: string
   id: string; turno_id: string; hora_muestra: string; notas: string | null
   capturado_en: string; recibido_en: string; creado_por: string
   eliminado_en: null; eliminado_por: null; resultados: readonly ResultadoCalidad[]

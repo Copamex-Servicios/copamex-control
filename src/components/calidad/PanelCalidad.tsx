@@ -8,11 +8,14 @@ import { useCalidad } from '../../hooks/useCalidad'
 import type { AreaOperativa } from '../../lib/tiposTurno'
 import type { CamposCalidad } from '../../lib/tiposCalidad'
 import { FormularioCalidad } from './FormularioCalidad'
+import { SeguimientoColorM4 } from './SeguimientoColorM4'
 
 interface ContextoVisualCalidad { informacion?: ReturnType<typeof useInformacionDia>; horaServidor?: string | null }
 
 function ContenidoCalidad({ datos, area, informacion, horaServidor }: { datos: ReturnType<typeof useCalidad>; area: AreaOperativa } & ContextoVisualCalidad) {
   const [numeroCaptura, setNumeroCaptura] = useState(0)
+  const [revisionAdicional, setRevisionAdicional] = useState(0)
+  const [accionesCabecera, setAccionesCabecera] = useState<HTMLDivElement | null>(null)
   const { rol, cuentaId, turno, catalogos, lecturaActual, estadoCarga, mensaje, mensajeAccion,
     solicitudPendiente, guardando, puedeCrear, guardarCalidad,
     actualizarCalidad, reintentarGuardadoCalidad } = datos
@@ -32,8 +35,14 @@ function ContenidoCalidad({ datos, area, informacion, horaServidor }: { datos: R
     }
   }
   return <section className="calidad-referencia" aria-label={`Calidad de ${area === 'calderas' ? 'Calderas' : 'PTAR'}`}>
-    <header className="calidad-encabezado"><div className="calidad-encabezado-titulo"><div><h2>Calidad</h2></div></div><button className="boton-secundario" type="button"
-      disabled={guardando || estadoCarga === 'cargando'} onClick={() => { void actualizarCalidad() }} data-actualizar="true" aria-label="Actualizar Calidad" title="Actualizar Calidad"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button></header>
+    <header className="calidad-encabezado"><div className="calidad-encabezado-titulo"><div><h2>Calidad</h2><p>Análisis de calidades de agua</p></div></div>
+      <div className="calidad-acciones-cabecera"><div ref={setAccionesCabecera} />
+        <button className="boton-secundario" type="button"
+          disabled={guardando || estadoCarga === 'cargando'} onClick={() => { void actualizarCalidad() }} data-actualizar="true" aria-label="Actualizar Calidad" title="Actualizar Calidad"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button>
+      </div></header>
+    {propio && cuentaId && area === 'calderas' && <SeguimientoColorM4 cuenta={cuentaId} turno={turno} contenedorAcciones={accionesCabecera}
+      habilitado={puedeCrear && !ocupado} muestraHabitual={!!lecturaActual}
+      alGuardar={() => { setRevisionAdicional(n => n + 1); void actualizarCalidad() }} />}
     {informacion && rol === area && <aside className="calidad-produccion" aria-label="Objetivos de producción actual"><div><h3>Objetivos de producción actual</h3>
       {informacion.datos?.produccion.error ? <p role="alert">No se pudo consultar la producción.</p>
         : !informacion.datos ? <p role="status">Consultando producción…</p>
@@ -54,7 +63,7 @@ function ContenidoCalidad({ datos, area, informacion, horaServidor }: { datos: R
       <FormularioCalidad key={`${turno.id}:${numeroCaptura}`} area={area} catalogos={catalogos} horaServidor={horaServidor} alGuardar={guardar}
         deshabilitado={!puedeCrear || ocupado} />
     </div>}
-    {listo && <ConsultaMuestrasCalidad titulo="Historial de Calidad" areaFija={area} actualizacion={lecturaActual?.lectura.id ?? ''} />}
+    {listo && <ConsultaMuestrasCalidad titulo="Historial de Calidad" areaFija={area} actualizacion={`${lecturaActual?.lectura.id ?? ''}:${revisionAdicional}`} />}
   </section>
 }
 

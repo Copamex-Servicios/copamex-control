@@ -91,15 +91,16 @@ export function crearXlsxTecnicoDiario(matriz: MatrizTecnica): Uint8Array {
     for (const parte of fragmentosObservacion(texto)) completa(parte, estilo)
   }
   const fecha = matriz.fecha.split('-').reverse().join('/')
-  const seleccionados = matriz.columnas.filter(c => c.estado === 'seleccionado')
   completa('COPAMEX · Reportes técnicos', 1, 30)
   completa(`${nombreAreaTecnica(matriz.area)} · Fecha operativa: ${fecha}`, 2, 24)
-  completa(`Turnos seleccionados: ${seleccionados.map(c => nombreTurnoTecnico[c.turno]).join(', ')}`, 0)
-  const ausentes = matriz.columnas.filter(c => c.estado !== 'seleccionado')
-  if (ausentes.length) completa(ausentes.map(c => `${nombreTurnoTecnico[c.turno]}: ${c.estado === 'sin_reporte' ? 'Sin reporte' : 'No seleccionado'}`).join(' · '), 6)
-  for (const columna of seleccionados) {
+  completa(`Turnos del día: ${matriz.columnas.map(c => nombreTurnoTecnico[c.turno]).join(', ')}`, 0)
+  for (const columna of matriz.columnas) {
     const posicion = matriz.columnas.indexOf(columna)
     completa(`Turno ${nombreTurnoTecnico[columna.turno]}`, 1, 28)
+    if (columna.estado !== 'seleccionado') {
+      completa(columna.estado === 'sin_reporte' ? 'Sin reporte' : 'No seleccionado',6)
+      continue
+    }
     completa(`Operador: ${columna.operador}`)
     completa(`Fecha operativa: ${fecha} · Captura: ${columna.captura} (México)`, 0)
     completa(`Revisión ${columna.revision} · Formato ${columna.formato}`, 0)

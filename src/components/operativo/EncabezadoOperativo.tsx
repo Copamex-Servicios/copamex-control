@@ -8,10 +8,11 @@ interface Props {
   area: AreaOperativa
   fecha: string | null
   informacion: ReturnType<typeof useInformacionDia>
+  mostrarTurno: boolean
 }
-export function EncabezadoOperativo({ area, fecha, informacion }: Props) {
-  return <div className="co-encabezado-operativo co-paneles-compactos" aria-label="Información de producción, eventos y turno">
+export function EncabezadoOperativo({ area, fecha, informacion, mostrarTurno }: Props) {
+  return <div className="co-encabezado-operativo co-paneles-compactos" aria-label={mostrarTurno ? 'Información de producción, eventos y turno' : 'Información de producción y eventos'}>
     <InformacionDelDia fecha={fecha} informacion={informacion} compacto />
-    <PanelTurno area={area} referencia />
+    {mostrarTurno && <PanelTurno area={area} referencia />}
   </div>
 }
