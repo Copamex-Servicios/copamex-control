@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { cacheConsultas } from '../lib/cacheConsultas'
 import { useAuthStore } from '../stores/authStore'
-import { usePozosStore } from '../stores/pozosStore'
 import { consultarConcesionPozos } from '../lib/concesionPozos'
 import type { ResumenConcesion } from '../lib/concesionPozos'
 
@@ -16,29 +15,23 @@ export function useConcesionPozos(revision: number) {
   const auth = useAuthStore()
   const cuenta = auth.estado === 'autenticado' && auth.perfil?.activo && auth.perfil.id === auth.sesion?.user.id
     && ['calderas', 'admin'].includes(auth.perfil.rol) ? auth.perfil.id : null
-  const historial = usePozosStore(s => s.historial)
-  const lecturaActual = usePozosStore(s => s.lecturaActual)
-  const [anio, setAnio] = useState(anioMexico)
-  const [recarga, setRecarga] = useState(0)
+  const [anio] = useState(anioMexico)
+  const revisionAnterior = useRef(revision)
   const [vista, setVista] = useState<Vista>({ clave: '', resumen: null, error: null, cargando: true, actualizadoEn: null })
   const clave = `${cuenta}:${anio}`
 
   useEffect(() => {
-    function alVolver() {
-      if (document.visibilityState !== 'visible') return
-      setAnio(anioMexico())
-      setRecarga(n => n + 1)
+    const forzarConsulta = revision !== revisionAnterior.current
+    revisionAnterior.current = revision
+    const reciente = forzarConsulta ? null : cache.leer(clave)
+    if (reciente) {
+      setVista({ ...reciente, cargando: false, error: null })
+      return
     }
-    window.addEventListener('focus', alVolver)
-    document.addEventListener('visibilitychange', alVolver)
-    return () => { window.removeEventListener('focus', alVolver); document.removeEventListener('visibilitychange', alVolver) }
-  }, [])
-
-  useEffect(() => {
     const guardarCache = cache.preparar()
     if (!cuenta) return
     const control = new AbortController()
-    // Agrupa la actualización del historial y de la lectura actual, y foco/visibilidad.
+    // Evita duplicar la consulta al montar y al cargar los demás datos de Pozos.
     const timer = window.setTimeout(() => {
       setVista(v => ({ ...(v.clave === clave ? v : cache.leer(clave) ?? { clave, resumen: null, actualizadoEn: null }), error: null, cargando: true }))
       void consultarConcesionPozos(anio, control.signal).then(resumen => {
@@ -55,7 +48,7 @@ export function useConcesionPozos(revision: number) {
       control.abort()
     }, 20000)
     return () => { window.clearTimeout(timer); window.clearTimeout(limite); control.abort() }
-  }, [cuenta, clave, anio, historial, lecturaActual, revision, recarga])
+  }, [cuenta, clave, anio, revision])
 
   const actual = cuenta && vista.clave === clave ? vista : (cuenta ? cache.leer(clave) : null) ?? { resumen: null, error: null, cargando: true, actualizadoEn: null }
   return { ...actual, anio }

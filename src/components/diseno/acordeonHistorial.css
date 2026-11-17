@@ -10,3 +10,7 @@
 @media (prefers-reduced-motion:reduce) {
  .co-acordeon-historial::details-content { transition:none; }
 }
+.co-layout .co-paginacion-historial { display:flex; align-items:center; justify-content:flex-end; gap:8px; margin:12px 0 4px; color:var(--co-muted); font:inherit; font-size:13px; }
+.co-layout .co-paginacion-historial button { display:grid; place-items:center; width:34px; height:34px; margin:0; padding:0; border:1px solid var(--co-border); border-radius:8px; background:#fff; color:var(--co-primary); cursor:pointer; }
+.co-layout .co-paginacion-historial button:disabled { opacity:.45; cursor:not-allowed; }
+.co-layout .co-paginacion-historial button:focus-visible { outline:2px solid var(--co-primary); outline-offset:2px; }

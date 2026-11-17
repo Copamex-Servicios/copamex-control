@@ -12,15 +12,23 @@ export function useVentanaReporte(cuenta: string | null, area: AreaOperativa, tu
     let vivo = true, control: AbortController | null = null, secuencia = 0
     async function consultar() {
       const s = ++secuencia; control?.abort(); const peticion = new AbortController(); control = peticion
-      const limite = window.setTimeout(() => peticion.abort(), 15000)
+      let excedioTiempo = false
+      const limite = window.setTimeout(() => { excedioTiempo = true; peticion.abort() }, 15000)
       // Contar también el viaje de red: nunca ampliar el vencimiento por una respuesta tardía.
       const referencia = performance.now()
       try {
         const contexto = await consultarContextoReporte(cuenta!, area, turnoId, peticion.signal)
         if (vivo && s === secuencia) { setPulso(performance.now()); setVista({ clave, contexto, referencia, error: null }) }
       } catch (e) {
-        if (vivo && s === secuencia) setVista(v => ({ clave, contexto: v?.clave === clave ? v.contexto : null, referencia,
-          error: e instanceof Error ? e.message : 'No se pudo comprobar el horario.' }))
+        if (!vivo || s !== secuencia) return
+        // Las cancelaciones al actualizar o desmontar son normales; no deben aparecer como error.
+        if (peticion.signal.aborted && !excedioTiempo) return
+        const error = excedioTiempo
+          ? 'La consulta del horario tardó más de 15 segundos. Revisa la conexión e intenta actualizar.'
+          : e instanceof Error && /abort/i.test(`${e.name} ${e.message}`)
+            ? 'La consulta del horario se interrumpió. Intenta actualizar de nuevo.'
+            : e instanceof Error ? e.message : 'No se pudo comprobar el horario.'
+        setVista(v => ({ clave, contexto: v?.clave === clave ? v.contexto : null, referencia, error }))
       } finally { window.clearTimeout(limite) }
     }
     const volver = () => { if (document.visibilityState === 'visible') void consultar() }

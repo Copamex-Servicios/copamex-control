@@ -1,5 +1,5 @@
 import './formularioUF.css'
-import { useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { mayusculasNota } from '../../lib/notasOperativas'
 import type { FormEvent, ReactNode } from 'react'
 import { calcularConsumosUF, calcularResultadosUF, ErrorUF, validarCamposUF } from '../../lib/uf'
@@ -8,6 +8,7 @@ import type { CamposUF, ValoresUF } from '../../lib/tiposUF'
 interface PropsFormularioUF {
   alGuardar: (campos: CamposUF) => Promise<boolean>
   valoresIniciales?: ValoresUF
+  lecturasIniciales?: { alimentacion: number; aceptacion: number }
   modo?: 'capturar' | 'corregir'
   deshabilitado?: boolean
   alCancelar?: () => void
@@ -30,11 +31,11 @@ function textoDecimal(numero: number): string {
   return negativo ? `-${decimal}` : decimal
 }
 
-function crearCampos(valores?: ValoresUF): CamposUF {
+function crearCampos(valores?: ValoresUF, lecturasIniciales?: PropsFormularioUF['lecturasIniciales']): CamposUF {
   return {
-    alimentacionInicial: valores ? textoDecimal(valores.alim_ini) : '',
+    alimentacionInicial: valores ? textoDecimal(valores.alim_ini) : lecturasIniciales ? textoDecimal(lecturasIniciales.alimentacion) : '',
     alimentacionFinal: valores ? textoDecimal(valores.alim_fin) : '',
-    aceptacionInicial: valores ? textoDecimal(valores.acep_ini) : '',
+    aceptacionInicial: valores ? textoDecimal(valores.acep_ini) : lecturasIniciales ? textoDecimal(lecturasIniciales.aceptacion) : '',
     aceptacionFinal: valores ? textoDecimal(valores.acep_fin) : '',
     notas: valores?.notas ?? '',
   }
@@ -55,16 +56,25 @@ function consumoPrevio(inicial: string, final: string): string | null {
 // El padre debe usar una key distinta al cambiar de cuenta, turno o lectura.
 // Los valores iniciales se toman al montar; un refresco no reemplaza lo escrito.
 export function FormularioUF({
-  alGuardar, valoresIniciales, modo = 'capturar', deshabilitado = false, alCancelar, accionSecundaria,
+  alGuardar, valoresIniciales, lecturasIniciales, modo = 'capturar', deshabilitado = false, alCancelar, accionSecundaria,
 }: PropsFormularioUF) {
   const id = useId()
-  const [campos, setCampos] = useState<CamposUF>(() => crearCampos(valoresIniciales))
+  const [campos, setCampos] = useState<CamposUF>(() => crearCampos(valoresIniciales, lecturasIniciales))
   const [error, setError] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
   const [confirmado, setConfirmado] = useState(false)
   const envioActivo = useRef(false)
   const bloqueado = deshabilitado || enviando || confirmado
   const correccion = modo === 'corregir'
+
+  useEffect(() => {
+    if (!lecturasIniciales || correccion) return
+    setCampos((actuales) => ({
+      ...actuales,
+      alimentacionInicial: textoDecimal(lecturasIniciales.alimentacion),
+      aceptacionInicial: textoDecimal(lecturasIniciales.aceptacion),
+    }))
+  }, [lecturasIniciales, correccion])
 
   function cambiar(campo: keyof CamposUF, valor: string): void {
     if (bloqueado || envioActivo.current) return
@@ -122,6 +132,7 @@ export function FormularioUF({
                   <td key={campo}>
                     <input id={`${id}-${nombre}`} name={nombre} type="text" inputMode="decimal"
                       aria-label={etiqueta} placeholder="0.00" autoComplete="off" required value={campos[campo]}
+                      readOnly={Boolean(lecturasIniciales && (campo === 'alimentacionInicial' || campo === 'aceptacionInicial'))}
                       onChange={(evento) => cambiar(campo, evento.target.value)} />
                   </td>
                 ))}
@@ -140,6 +151,11 @@ export function FormularioUF({
             {resultados && resultados.rendimiento === null && <p>Sin alimentación</p>}
           </div>
         </div>
+        {modo === 'capturar' && <p className="ayuda-turno">
+          {lecturasIniciales
+            ? 'Las lecturas iniciales se copiaron automáticamente de las lecturas finales del turno anterior.'
+            : 'No hay una lectura anterior registrada; captura las lecturas iniciales de ambos medidores.'}
+        </p>}
       </fieldset>
 
       {error && <p id={`${id}-error`} className="mensaje-error" role="alert">{error}</p>}

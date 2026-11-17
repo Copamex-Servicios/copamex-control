@@ -14,3 +14,11 @@ export function fechaHoraCalidad(fecha: string): string {
   return new Intl.DateTimeFormat('es-MX', { timeZone: 'America/Mexico_City',
     day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(new Date(fecha))
 }
+
+export function textoLimitesResultadoCalidad(minimo: number | null, maximo: number | null): string {
+  return [minimo === null ? '' : `≥ ${formatearNumeroCalidad(minimo)}`,
+    maximo === null ? '' : `≤ ${formatearNumeroCalidad(maximo)}`].filter(Boolean).join(' · ') || '—'
+}
+export function textoEvaluacionCalidad(fueraNorma: boolean | null): string {
+  return fueraNorma === null ? '—' : fueraNorma ? 'Fuera de norma' : 'Dentro de norma'
+}

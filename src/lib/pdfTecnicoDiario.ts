@@ -12,17 +12,16 @@ export function crearPdfTecnicoDiario(matriz: MatrizTecnica, fuente: string): js
   doc.setFont('DejaVuSans', 'normal')
   doc.setProperties({ title:`COPAMEX · Reportes técnicos · ${nombreAreaTecnica(matriz.area)} · ${matriz.fecha}`, author:'COPAMEX' })
   const fecha = matriz.fecha.split('-').reverse().join('/')
-  const seleccionados = matriz.columnas.filter(c => c.estado === 'seleccionado')
   const cabecera = () => {
     doc.setFont('DejaVuSans', 'normal'); doc.setTextColor(0,45,114); doc.setFontSize(17)
     doc.text('COPAMEX · Reportes técnicos', 14, 17)
     doc.setFontSize(10)
     doc.text(`${nombreAreaTecnica(matriz.area)} · Fecha operativa: ${fecha}`, 14, 24)
     doc.setFontSize(9)
-    doc.text(`Turnos seleccionados: ${seleccionados.map(c => nombreTurnoTecnico[c.turno]).join(', ')}`, 14, 30)
+    doc.text(`Turnos del día: ${matriz.columnas.map(c => nombreTurnoTecnico[c.turno]).join(', ')}`, 14, 30)
     doc.setDrawColor(0,45,114); doc.setLineWidth(0.2); doc.line(14, 34, 196, 34)
   }
-  seleccionados.forEach((columna, indice) => {
+  matriz.columnas.forEach((columna, indice) => {
     if (indice) doc.addPage()
     const posicion = matriz.columnas.indexOf(columna)
     const body: RowInput[] = []
@@ -32,10 +31,9 @@ export function crearPdfTecnicoDiario(matriz: MatrizTecnica, fuente: string): js
       for (let i = 0; i < lineas.length; i += 10) body.push([{ content:lineas.slice(i,i+10).join('\n'), colSpan:3,
         styles:{ fontSize:discreto ? 8 : 10, textColor:discreto ? [83,101,129] : [23,43,77], fillColor:[255,255,255] } }])
     }
-    if (!indice) {
-      const ausentes = matriz.columnas.filter(c => c.estado !== 'seleccionado')
-      if (ausentes.length) parrafo(ausentes.map(c => `${nombreTurnoTecnico[c.turno]}: ${c.estado === 'sin_reporte' ? 'Sin reporte' : 'No seleccionado'}`).join(' · '), true)
-    }
+    if (columna.estado !== 'seleccionado') {
+      parrafo(columna.estado === 'sin_reporte' ? 'Sin reporte' : 'No seleccionado')
+    } else {
     for (const seccion of [...new Set(matriz.filas.map(f => f.seccion))]) {
       const filas = matriz.filas.filter(f => f.seccion === seccion && f.celdas[posicion].estado !== 'no_capturado')
       if (!filas.length) continue
@@ -49,14 +47,17 @@ export function crearPdfTecnicoDiario(matriz: MatrizTecnica, fuente: string): js
     }
     if (matriz.area === 'calderas' && columna.formato === 1) parrafo('Formato histórico 1: servicio de agua potable y pozos no capturado. Unidades originales, sin conversiones.', true)
     parrafo(`Reporte: ${columna.reporteId} · Turno: ${columna.turnoId}\nAutor: ${columna.autorId}`, true)
+    }
     autoTable(doc, {
-      startY:38, margin:{ top:38, right:14, bottom:14, left:14 },
-      head:[[{ content:`Turno ${nombreTurnoTecnico[columna.turno]}\nOperador: ${columna.operador}\nFecha operativa: ${fecha} · Captura: ${columna.captura} (México)\nRevisión ${columna.revision} · Formato ${columna.formato}`, colSpan:3 }]],
-      body, theme:'plain', showHead:'everyPage', rowPageBreak:'avoid',
+      startY:38, margin:{ top:14, right:14, bottom:14, left:14 },
+      head:[[{ content:columna.estado === 'seleccionado'
+        ? `Turno ${nombreTurnoTecnico[columna.turno]}\nOperador: ${columna.operador}\nFecha operativa: ${fecha} · Captura: ${columna.captura} (México)\nRevisión ${columna.revision} · Formato ${columna.formato}`
+        : `Turno ${nombreTurnoTecnico[columna.turno]}\nFecha operativa: ${fecha}`, colSpan:3 }]],
+      body, theme:'plain', showHead:'firstPage', rowPageBreak:'avoid',
       styles:{ font:'DejaVuSans', fontStyle:'normal', fontSize:10, cellPadding:2, textColor:[23,43,77], valign:'top', overflow:'linebreak', lineWidth:{ bottom:0.15 }, lineColor:[214,225,242] },
       headStyles:{ fillColor:[255,255,255], textColor:[0,45,114], fontSize:11, cellPadding:{ top:2, bottom:4, left:0, right:0 } },
       columnStyles:{ 0:{ cellWidth:105 }, 1:{ cellWidth:49 }, 2:{ cellWidth:28 } },
-      willDrawPage:cabecera,
+      willDrawPage: datos => { if (datos.pageNumber === 1) cabecera() },
     })
   })
   const paginas = doc.getNumberOfPages()

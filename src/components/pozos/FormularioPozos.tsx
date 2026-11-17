@@ -8,6 +8,7 @@ import type { CamposPozos, ValoresPozos } from '../../lib/tiposPozos'
 interface PropsFormularioPozos {
   alGuardar: (campos: CamposPozos) => Promise<boolean>
   valoresIniciales?: ValoresPozos
+  lecturasIniciales?: { pozo1: number; pozo2: number }
   modo?: 'capturar' | 'corregir'
   deshabilitado?: boolean
   alCancelar?: () => void
@@ -30,11 +31,11 @@ function textoDecimal(numero: number): string {
   return negativo ? `-${decimal}` : decimal
 }
 
-function crearCampos(valores?: ValoresPozos): CamposPozos {
+function crearCampos(valores?: ValoresPozos, lecturasIniciales?: { pozo1: number; pozo2: number }): CamposPozos {
   return {
-    pozo1Inicial: valores ? textoDecimal(valores.pozo1_ini) : '',
+    pozo1Inicial: lecturasIniciales ? textoDecimal(lecturasIniciales.pozo1) : valores ? textoDecimal(valores.pozo1_ini) : '',
     pozo1Final: valores ? textoDecimal(valores.pozo1_fin) : '',
-    pozo2Inicial: valores ? textoDecimal(valores.pozo2_ini) : '',
+    pozo2Inicial: lecturasIniciales ? textoDecimal(lecturasIniciales.pozo2) : valores ? textoDecimal(valores.pozo2_ini) : '',
     pozo2Final: valores ? textoDecimal(valores.pozo2_fin) : '',
     notas: valores?.notas ?? '',
   }
@@ -55,10 +56,10 @@ function consumoPrevio(inicial: string, final: string): string | null {
 // El padre debe usar una key distinta al cambiar de cuenta, turno o lectura.
 // Los valores iniciales se toman al montar; un refresco no reemplaza lo escrito.
 export function FormularioPozos({
-  alGuardar, valoresIniciales, modo = 'capturar', deshabilitado = false, alCancelar, accionSecundaria,
+  alGuardar, valoresIniciales, lecturasIniciales, modo = 'capturar', deshabilitado = false, alCancelar, accionSecundaria,
 }: PropsFormularioPozos) {
   const id = useId()
-  const [campos, setCampos] = useState<CamposPozos>(() => crearCampos(valoresIniciales))
+  const [campos, setCampos] = useState<CamposPozos>(() => crearCampos(valoresIniciales, lecturasIniciales))
   const [error, setError] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
   const [confirmado, setConfirmado] = useState(false)
@@ -119,6 +120,7 @@ export function FormularioPozos({
                     <label htmlFor={`${id}-${nombre}`}>{etiqueta}</label>
                     <input id={`${id}-${nombre}`} name={nombre} type="text" inputMode="decimal"
                       autoComplete="off" required value={campos[campo]}
+                      readOnly={Boolean(lecturasIniciales && (campo === 'pozo1Inicial' || campo === 'pozo2Inicial'))}
                       onChange={(evento) => cambiar(campo, evento.target.value)} />
                   </div>
                 ))}
@@ -132,6 +134,11 @@ export function FormularioPozos({
             </GrupoMediciones>
           ))}
         </div>
+        {modo === 'capturar' && <p className="ayuda-turno">
+          {lecturasIniciales
+            ? 'Las lecturas iniciales se copiaron automáticamente de las lecturas finales del turno anterior.'
+            : 'No hay una lectura anterior registrada; captura las lecturas iniciales de ambos pozos.'}
+        </p>}
         <div className="campo-turno campo-turno-ancho">
           <label htmlFor={`${id}-notas`}>Notas (opcional)</label>
           <textarea id={`${id}-notas`} name="notas" rows={3} value={campos.notas}

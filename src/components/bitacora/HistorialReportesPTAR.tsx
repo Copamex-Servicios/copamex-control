@@ -2,6 +2,7 @@ import { RefreshCw } from 'lucide-react'
 import { cacheConsultas } from '../../lib/cacheConsultas'
 import { ResumenHistorial } from '../diseno/ResumenHistorial'
 import { DetalleReportePTARPlanta } from '../planta/DetalleReportePTARPlanta'
+import { PaginacionHistorial } from '../diseno/PaginacionHistorial'
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import '../diseno/acordeonHistorial.css'
 import './historialFichaTecnica.css'
@@ -41,23 +42,24 @@ function ReporteHistorico({ resumen, compartido, grupo }: { resumen: ResumenRepo
 
 const cacheHistorial = cacheConsultas<{ filas: ResumenReportePTAR[]; hayMas: boolean; error: string | null }>('historial-PTAR')
 
-export function HistorialReportesPTAR({ actualizacion, compartido = false, filtroArea }: { actualizacion: string; compartido?: boolean; filtroArea?: ReactNode }) {
+export function HistorialReportesPTAR({ actualizacion, compartido = false, filtroArea, operador = false }: { actualizacion: string; compartido?: boolean; filtroArea?: ReactNode; operador?: boolean }) {
+  const tamanoPagina = operador ? 7 : 20
   const grupoHistorial = useId()
   const [filtros, setFiltros] = useState<FiltrosReportesPTAR>({ desde: '', hasta: '', turno: 'todos' })
   const [pagina, setPagina] = useState(0), [intento, setIntento] = useState(0)
-  const clave = `${filtros.desde}:${filtros.hasta}:${filtros.turno}:${pagina}:${intento}:${actualizacion}`
-  const filtroCache = JSON.stringify([filtros, pagina, compartido])
+  const clave = `${filtros.desde}:${filtros.hasta}:${filtros.turno}:${pagina}:${intento}:${actualizacion}:${tamanoPagina}`
+  const filtroCache = JSON.stringify([filtros, pagina, compartido, tamanoPagina])
   const [resultado, setResultado] = useState<{ clave: string; filas: ResumenReportePTAR[]; hayMas: boolean; error: string | null } | null>(null)
   useEffect(() => {
     const guardarCache = cacheHistorial.preparar()
     let vigente = true
     const control = new AbortController(), limite = window.setTimeout(() => control.abort(), 15000)
-    void consultarHistorialReportesPTAR({ desde: filtros.desde, hasta: filtros.hasta, turno: filtros.turno }, pagina, control.signal, compartido).then(r => {
+    void consultarHistorialReportesPTAR({ desde: filtros.desde, hasta: filtros.hasta, turno: filtros.turno }, pagina, control.signal, compartido, tamanoPagina).then(r => {
       if (vigente) { guardarCache(filtroCache, { ...r, error: null }); setResultado({ ...r, clave, error: null }) }
     }).catch(e => { if (vigente) setResultado({ clave, filas: [], hayMas: false, error: control.signal.aborted ? 'La consulta tardó demasiado. Reintenta.'
       : e instanceof Error ? e.message : 'No se pudo consultar el historial técnico.' }) })
     return () => { vigente = false; window.clearTimeout(limite); control.abort() }
-  }, [clave, filtros.desde, filtros.hasta, filtros.turno, pagina, compartido, filtroCache])
+  }, [clave, filtros.desde, filtros.hasta, filtros.turno, pagina, compartido, filtroCache, tamanoPagina])
   const datos = resultado?.clave === clave ? resultado : cacheHistorial.leer(filtroCache)
   return <section className="bpt-historial-tecnico" aria-label="Reportes técnicos de PTAR">
     <div className="bpt-historial-cabecera">{!filtroArea && <h4>Reportes técnicos</h4>}<button type="button" className="boton-secundario"
@@ -76,9 +78,8 @@ export function HistorialReportesPTAR({ actualizacion, compartido = false, filtr
     {!datos ? <p className="bpt-ayuda" role="status">Consultando reportes técnicos…</p> : datos.error ? <p className="bpt-ayuda" role="alert">{datos.error}</p>
       : datos.filas.length === 0 ? <p className="bpt-ayuda">No hay reportes técnicos para esta consulta.</p>
       : datos.filas.map(r => <ReporteHistorico key={`${r.id}:${r.revision}`} resumen={r} compartido={compartido} grupo={grupoHistorial} />)}
-    {((datos && !datos.error && (pagina > 0 || datos.hayMas)) || pagina > 0) && <nav className="bpt-paginacion-tecnica" aria-label="Páginas de reportes técnicos">
-      <button type="button" className="boton-secundario" disabled={!datos || pagina === 0} onClick={() => setPagina(n => n - 1)}>Anterior</button>
-      <span>Página {pagina + 1}</span><button type="button" className="boton-secundario" disabled={!datos || !datos.hayMas} onClick={() => setPagina(n => n + 1)}>Siguiente</button>
-    </nav>}
+    {((datos && !datos.error && (pagina > 0 || datos.hayMas)) || pagina > 0) && <PaginacionHistorial etiqueta="reportes técnicos"
+      pagina={pagina} anterior={() => setPagina(n => n - 1)} siguiente={() => setPagina(n => n + 1)}
+      hayAnterior={pagina > 0} haySiguiente={!!datos && !datos.error && datos.hayMas} />}
   </section>
 }

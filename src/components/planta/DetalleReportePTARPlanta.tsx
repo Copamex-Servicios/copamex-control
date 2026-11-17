@@ -16,7 +16,7 @@ export function DetalleReportePTARPlanta({ reporte }: { reporte: ReporteTecnicoP
     </div>
     <div className="pcr-secciones">
       <Seccion titulo="Reporte relevante del turno">
-        {b.reportesOperadores ? b.reportesOperadores.map((r, i) => <div key={i}><h4>{r.nombre}</h4><p className="pcr-narrativa">{r.comentario}</p></div>)
+        {b.reportesOperadores ? b.reportesOperadores.map((r, i) => <div className="pcr-reporte-operador" key={i}><h4>{r.nombre}</h4><p className="pcr-narrativa">{r.comentario}</p></div>)
           : <p className={`pcr-narrativa${b.reporteRelevante ? '' : ' pcr-vacio'}`}>{b.reporteRelevante || 'Sin registrar'}</p>}
       </Seccion>
       <Seccion titulo="Clarificador primario">

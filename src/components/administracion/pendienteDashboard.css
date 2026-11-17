@@ -33,7 +33,19 @@
   background:#fff; color:inherit; font:inherit; box-shadow:0 24px 80px #09275040;
 }
 .co-pendiente-dialogo::backdrop { background:rgb(10 27 52 / 40%); backdrop-filter:blur(5px); }
-.co-pendiente-dialogo>h2 { margin:0 0 20px; font-size:1.25rem; }
+.co-pendiente-dialogo-encabezado { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:20px; }
+.co-pendiente-dialogo-encabezado h2 { margin:0; font-size:1.25rem; }
+.co-pendiente-cerrar { display:grid; place-items:center; flex:0 0 36px; width:36px; height:36px; margin:-4px -4px 0 0; padding:0; border:1px solid #cbdcf2; border-radius:8px; background:#fff; color:inherit; font:inherit; font-size:24px; line-height:1; cursor:pointer; }
+.co-pendiente-cerrar:hover { background:#f0f5ff; }
+.co-pendiente-cerrar:focus-visible { outline:2px solid #075ee5; outline-offset:2px; }
+.co-pendiente-editor > .planta-encabezado > button { display:none; }
+.co-pendiente-dialogo :is(.bc-panel,.bpt-panel) { padding:14px; }
+.co-pendiente-dialogo :is(.bc-formulario,.bpt-formulario) { gap:14px; }
+.co-pendiente-dialogo :is(.bc-tabs,.bpt-tabs) { margin-bottom:8px; }
+.co-pendiente-dialogo :is(.bc-contenido,.bpt-contenido) { padding:16px; }
+.co-pendiente-dialogo .co-pendiente-contenido-final { margin-top:14px; }
+.co-pendiente-dialogo :is(.bc-acciones-admin-pendiente,.bpt-acciones-admin-pendiente) { justify-content:flex-end; gap:10px; margin-top:14px; }
+.co-pendiente-dialogo :is(.bc-acciones-admin-pendiente,.bpt-acciones-admin-pendiente) button { min-height:38px; padding:8px 14px; }
 @media(max-width:480px) {
   .co-layout .co-dashboard-pendientes { padding:18px 16px; }
   .co-layout .co-dashboard-pendientes-encabezado { align-items:flex-start; flex-wrap:wrap; }

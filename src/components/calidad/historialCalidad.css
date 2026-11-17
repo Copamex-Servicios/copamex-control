@@ -38,3 +38,4 @@
   .co-layout article.calidad-historial-ficha .calidad-historial-filtros button { min-height:44px; }
 }
 @media(max-width:600px) { .co-layout article.co-ficha-registro.calidad-historial-ficha { padding:12px; } }
+.co-layout .co-calidad-lectura-adicional { display:block; margin-top:4px; font-size:12px; font-weight:400; color:#536783; }

@@ -1,7 +1,7 @@
 import { useId, useState, type KeyboardEvent } from 'react'
+import { useAuth } from '../../hooks/useAuth'
 import { ConsultaMuestrasCalidad } from '../calidad/ConsultaMuestrasCalidad'
 import { ReportesTecnicosPlanta } from './ReportesTecnicosPlanta'
-import { useAuth } from '../../hooks/useAuth'
 import { PanelSupervisionPlanta } from './PanelSupervisionPlanta'
 
 type ConsultaOperativa = 'reportes' | 'calidad'

@@ -3,7 +3,7 @@ import { useTurnoStore } from '../stores/turnoStore'
 import { useUFStore } from '../stores/ufStore'
 import type { ContextoCuentaUF, SolicitudPendienteUF } from '../stores/ufStore'
 import {
-  consultarHistorialUF, consultarLecturaUF, ErrorUF,
+  consultarHistorialUF, consultarLecturaUF, consultarLecturasInicialesUF, ErrorUF,
   guardarLecturaUF, validarCamposUF,
 } from '../lib/uf'
 import type { CamposUF, LecturaUF } from '../lib/tiposUF'
@@ -100,18 +100,20 @@ export async function actualizarDatosUF(): Promise<void> {
   consultaActiva = control
   anteriores.establecerEstado({
     ...anteriores, cuentaId: contexto.cuentaId, rol: contexto.rol,
-    turnoConsultadoId: turnoId, lecturaActual: null, historial: [],
+    turnoConsultadoId: turnoId, lecturaActual: null, lecturasIniciales: null, historial: [],
     estadoCarga: 'cargando', mensaje: null,
   })
   try {
-    const [lecturaActual, historial] = await conLimite(() => Promise.all([
+    const [lecturaActual, historial, lecturasIniciales] = await conLimite(() => Promise.all([
       turnoId ? consultarLecturaUF(turnoId, control.signal) : Promise.resolve(null),
       consultarHistorialUF(control.signal),
+      turnoId && contexto.rol === 'calderas'
+        ? consultarLecturasInicialesUF(turnoId, control.signal) : Promise.resolve(null),
     ]), control, 15000)
     if (revision !== revisionConsulta || !sigueLaCuenta(contexto)
       || idTurnoActual(contexto) !== turnoId) return
     const actuales = useUFStore.getState()
-    actuales.establecerEstado({ ...actuales, lecturaActual, historial, estadoCarga: 'listo', mensaje: null })
+    actuales.establecerEstado({ ...actuales, lecturaActual, historial, lecturasIniciales, estadoCarga: 'listo', mensaje: null })
   } catch (fallo) {
     if (revision !== revisionConsulta || !sigueLaCuenta(contexto)
       || idTurnoActual(contexto) !== turnoId) return
@@ -295,6 +297,7 @@ export function useUF() {
     rol: contexto?.rol ?? null,
     turno,
     lecturaActual: mismaVista ? datos.lecturaActual : null,
+    lecturasIniciales: mismaVista ? datos.lecturasIniciales : null,
     historial: mismaVista ? datos.historial : [],
     estadoCarga: mismaVista ? datos.estadoCarga : contexto ? 'cargando' as const : 'sin-cuenta' as const,
     mensaje: mismaVista ? datos.mensaje : null,

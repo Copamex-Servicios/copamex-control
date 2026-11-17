@@ -10,7 +10,7 @@ export function useLimitesCalidad(historial = false) {
   const { estado, perfil, sesion } = useAuth()
   const cuenta = estado === 'autenticado' && perfil?.activo && perfil.id === sesion?.user.id && (!historial || perfil.rol === 'admin') ? perfil.id : null
   const clave = cuenta ? `${cuenta}:${perfil?.rol}:${historial}` : null
-  const [vista, setVista] = useState<{ clave: string | null; limites: LimiteCalidad[]; cargando: boolean; error: string | null }>({ clave: null, limites: [], cargando: false, error: null })
+  const [vista, setVista] = useState<{ clave: string | null; limites: LimiteCalidad[]; disponible: boolean; cargando: boolean; error: string | null }>({ clave: null, limites: [], disponible:false, cargando: false, error: null })
   const actualizarRef = useRef<() => void>(() => {})
   useEffect(() => {
     if (!cuenta || !clave) return
@@ -21,9 +21,11 @@ export function useLimitesCalidad(historial = false) {
       if (!vivo) return
       if (leyendo) { repetir = true; return }
       leyendo = true
-      setVista(v => ({ clave, limites: v.clave === clave ? v.limites : cache.leer(clave!) ?? [], cargando: true, error: null }))
-      try { const limites = await consultarLimites(cuenta!, historial, controller.signal); if (vivo) { guardarCache(clave!, limites); setVista({ clave, limites, cargando: false, error: null }) } }
-      catch (e) { if (vivo) setVista(v => ({ clave, limites: v.clave === clave ? v.limites : cache.leer(clave!) ?? [], cargando: false, error: e instanceof Error ? e.message : 'No se pudieron consultar los límites.' })) }
+      setVista(v => ({ clave, limites: v.clave === clave ? v.limites : cache.leer(clave!) ?? [],
+        disponible:v.clave === clave ? v.disponible : cache.leer(clave!) !== null, cargando: true, error: null }))
+      try { const limites = await consultarLimites(cuenta!, historial, controller.signal); if (vivo) { guardarCache(clave!, limites); setVista({ clave, limites, disponible:true, cargando: false, error: null }) } }
+      catch (e) { if (vivo) setVista(v => ({ clave, limites: v.clave === clave ? v.limites : cache.leer(clave!) ?? [],
+        disponible:v.clave === clave ? v.disponible : cache.leer(clave!) !== null, cargando: false, error: e instanceof Error ? e.message : 'No se pudieron consultar los límites.' })) }
       finally { leyendo = false; if (vivo && repetir) { repetir = false; void cargar() } }
     }
     const actualizar = () => { void cargar() }
@@ -33,6 +35,6 @@ export function useLimitesCalidad(historial = false) {
     window.addEventListener('focus', actualizar)
     return () => { vivo = false; controller.abort(); window.clearInterval(intervalo); window.removeEventListener('focus', actualizar); actualizarRef.current = () => {} }
   }, [cuenta, clave, historial])
-  const actual = clave && vista.clave === clave ? vista : { clave, limites: clave ? cache.leer(clave) ?? [] : [], cargando: !!clave, error: null }
+  const actual = clave && vista.clave === clave ? vista : { clave, limites: clave ? cache.leer(clave) ?? [] : [], disponible:!!clave && cache.leer(clave) !== null, cargando: !!clave, error: null }
   return { cuenta, ...actual, actualizar: () => actualizarRef.current() }
 }

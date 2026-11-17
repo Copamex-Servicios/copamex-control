@@ -156,11 +156,11 @@ export interface ResumenReportePTAR {
   revision: number
 }
 export interface FiltrosReportesPTAR { desde: string; hasta: string; turno: TipoTurno | 'todos' }
-export async function consultarHistorialReportesPTAR(filtros: FiltrosReportesPTAR, pagina: number, signal: AbortSignal, compartido = false) {
+export async function consultarHistorialReportesPTAR(filtros: FiltrosReportesPTAR, pagina: number, signal: AbortSignal, compartido = false, limite = 20) {
   if (!Number.isSafeInteger(pagina) || pagina < 0 || (filtros.desde && !esFechaOperativa(filtros.desde))
     || (filtros.hasta && !esFechaOperativa(filtros.hasta)) || (filtros.turno !== 'todos' && !esTipoTurno(filtros.turno))
     || (filtros.desde && filtros.hasta && filtros.desde > filtros.hasta)) throw new ErrorReportePTAR('Revisa las fechas y el turno de la consulta.')
-  if (compartido) return consultarResumenesTecnicosPlanta('ptar', filtros, pagina, signal)
+  if (compartido) return consultarResumenesTecnicosPlanta('ptar', filtros, pagina, signal, limite)
   // La misma consulta sirve a la cuenta del área y a Administración; RLS decide la lectura.
   let consulta = supabase.from('bitacora_ptar').select(
     `id,turno_id,creado_en,revision,turno:turnos_operativos!inner(id,fecha_operativa,area,turno,operador_id,operador_acompanante_id,${relacionOperadorPrincipal},${relacionOperadorAcompanante})`,
@@ -169,10 +169,10 @@ export async function consultarHistorialReportesPTAR(filtros: FiltrosReportesPTA
   if (filtros.hasta) consulta = consulta.lte('turno.fecha_operativa', filtros.hasta)
   if (filtros.turno !== 'todos') consulta = consulta.eq('turno.turno', filtros.turno)
   const { data, error } = await consulta.order('creado_en', { ascending: false }).order('id', { ascending: false })
-    .range(pagina * 20, pagina * 20 + 20).abortSignal(signal)
+    .range(pagina * limite, pagina * limite + limite).abortSignal(signal)
   if (error) fallo(error)
   if (!Array.isArray(data)) throw new ErrorReportePTAR('No se pudo comprobar el historial técnico.')
-  const filas = data.slice(0, 20).map(v => {
+  const filas = data.slice(0, limite).map(v => {
     const r = objeto(v), t = objeto(r.turno), o = objeto(t.operador)
     const oa = t.operador_acompanante === null ? null : objeto(t.operador_acompanante)
     if (!uuid(r.id) || !uuid(r.turno_id) || t.id !== r.turno_id || t.area !== 'ptar' || !esFechaOperativa(t.fecha_operativa)
@@ -186,7 +186,7 @@ export async function consultarHistorialReportesPTAR(filtros: FiltrosReportesPTA
       operador: etiquetaOperadoresTurno(o.nombre, typeof oa?.nombre === 'string' ? oa.nombre : null), creadoEn: r.creado_en, revision: Number(r.revision) } satisfies ResumenReportePTAR
   })
   if (new Set(filas.map(r => r.id)).size !== filas.length) throw new ErrorReportePTAR('Se recibieron reportes técnicos repetidos.')
-  return { filas, hayMas: data.length > 20 }
+  return { filas, hayMas: data.length > limite }
 }
 export async function enviarReportePTAR(envio: EnvioReportePTAR, signal: AbortSignal): Promise<ReporteTecnicoPTAR> {
   if (envio.operativo) exigirCuentaReporte(envio.cuentaId, "ptar", envio.supervisor)

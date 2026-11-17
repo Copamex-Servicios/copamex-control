@@ -132,9 +132,9 @@ export function PanelOperativo({ area, rol, seleccionExterna, alSeleccionar, sol
       <div><PageHeader titulo={area === 'calderas' ? 'Calderas' : 'PTAR'} icono={area === 'calderas' ? 'calderas' : 'ptar'} /></div>
 
     </div>
-    {rol !== 'admin' && <EncabezadoOperativo area={area} fecha={fechaISO} informacion={informacionDia} />}
+    {rol !== 'admin' && <EncabezadoOperativo area={area} fecha={fechaISO} informacion={informacionDia} mostrarTurno={actual.id === 'bitacora'} />}
 
-    {rol === 'admin' && <div className="identificacion-jornada"><ConsultaTurno area={area} /></div>}
+    {rol === 'admin' && actual.id === 'bitacora' && <div className="identificacion-jornada"><ConsultaTurno area={area} /></div>}
     {seleccionExterna !== undefined && <div className="co-calderas-summary"><span>{rol === 'admin' ? 'Consulta del área' : turno.estadoCarga === 'error' ? 'No se pudo consultar el turno' : turno.estadoCarga !== 'listo' ? 'Consultando turno…' : turnoId ? 'Turno abierto' : 'Sin turno abierto'}</span>{rol !== 'admin' && turnoId && <span>{registrados} de {opciones.length} apartados con registros</span>}<strong>{actual.nombre}</strong></div>}
     <div className="rejilla-operativa">
       <aside className="lateral-operativo" aria-label="Resumen de capturas del turno">

@@ -1,0 +1,51 @@
+.co-layout .planta-reportes-unificados .bc-panel .bc-filtros-tecnicos,
+.co-layout .planta-reportes-unificados .bpt-panel .bpt-filtros-tecnicos {
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  align-items:end;
+  gap:12px;
+  margin-bottom:14px;
+  font-family:var(--co-font);
+}
+
+.co-layout .planta-reportes-unificados :is(.bc-panel .bc-filtros-tecnicos,.bpt-panel .bpt-filtros-tecnicos)>label {
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  gap:5px;
+  min-width:0;
+  color:#334d70;
+  font-family:var(--co-font);
+  font-size:13px;
+  font-weight:600;
+  line-height:1.4;
+}
+
+.co-layout .planta-reportes-unificados :is(.bc-panel .bc-filtros-tecnicos,.bpt-panel .bpt-filtros-tecnicos)>label :is(input,select) {
+  box-sizing:border-box;
+  width:100%;
+  min-width:0;
+  min-height:42px;
+  margin:0;
+  padding:8px 11px;
+  border:1px solid #cbd9eb;
+  border-radius:8px;
+  background:#fff;
+  color:var(--co-text);
+  font-family:var(--co-font);
+  font-size:14px;
+  font-weight:400;
+}
+
+@media(max-width:800px) {
+  .co-layout .planta-reportes-unificados .bc-panel .bc-filtros-tecnicos,
+  .co-layout .planta-reportes-unificados .bpt-panel .bpt-filtros-tecnicos {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+@media(max-width:480px) {
+  .co-layout .planta-reportes-unificados .bc-panel .bc-filtros-tecnicos,
+  .co-layout .planta-reportes-unificados .bpt-panel .bpt-filtros-tecnicos {
+    grid-template-columns:minmax(0,1fr);
+  }
+}

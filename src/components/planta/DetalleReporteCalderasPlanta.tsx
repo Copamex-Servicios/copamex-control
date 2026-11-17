@@ -18,7 +18,7 @@ export function DetalleReporteCalderasPlanta({ reporte }: { reporte: ReporteTecn
     </p>}
     <div className="pcr-secciones">
       <Seccion titulo="Reporte relevante del turno">
-        {b.reportesOperadores ? b.reportesOperadores.map((r, i) => <div key={i}><h4>{r.nombre}</h4><p className="pcr-narrativa">{r.comentario}</p></div>)
+        {b.reportesOperadores ? b.reportesOperadores.map((r, i) => <div className="pcr-reporte-operador" key={i}><h4>{r.nombre}</h4><p className="pcr-narrativa">{r.comentario}</p></div>)
           : <p className={`pcr-narrativa${b.reporteRelevante ? '' : ' pcr-vacio'}`}>{b.reporteRelevante || 'Sin registrar'}</p>}
       </Seccion>
 
@@ -80,7 +80,7 @@ export function DetalleReporteCalderasPlanta({ reporte }: { reporte: ReporteTecn
         <dl className="pcr-datos pcr-agua">
           <Dato nombre="Nivel de tanques de agua potable" valor={m.nivel_agua_potable} unidad="%" />
           {equiposAguaCalderas.map(e => <div className="pcr-dato" key={e.id}>
-            <dt>{e.nombre}</dt><dd><Estado valor={reporte.versionFormato === 2 && b.servicioAgua[e.id] ? 'En servicio' : ''} /></dd>
+            <dt>{e.nombre}</dt><dd><Estado valor={reporte.versionFormato === 2 && b.servicioAgua[e.id] ? 'En servicio' : ''} vacio="—" /></dd>
           </div>)}
         </dl>
       </Seccion>

@@ -147,7 +147,7 @@ test('observaciones extensas se fragmentan sin pérdida y sin filas Excel recort
   assert.ok(hoja.includes("Observación registrada:")); assert.ok(hoja.includes("revisar."))
   assert.ok([...hoja.matchAll(/ht="([\d.]+)"/g)].every(m => Number(m[1]) < 409))
 })
-test('PDF real vertical: tablas por turno, encabezados repetidos y observaciones largas', () => {
+test('PDF real vertical: tablas por turno, encabezados iniciales y observaciones largas', () => {
   for (const area of ['calderas','ptar']) {
     const d = detalle('dia',area), n = detalle('noche',area)
     d.reporte.borrador.reporteRelevante = 'Observación: presión 2 kg/cm² → revisar.\n'.repeat(75) + 'FIN DE OBSERVACIÓN'
@@ -158,7 +158,8 @@ test('PDF real vertical: tablas por turno, encabezados repetidos y observaciones
     assert.ok(pdf.getNumberOfPages() > 1)
     assert.match(pdf.output(), /ToUnicode/)
     assert.ok(textoPdf(pdf).join(' ').includes('FIN DE OBSERVACIÓN'))
-    for (const pagina of textoPdf(pdf)) assert.ok(pagina.includes('COPAMEX · Reportes técnicos'))
+    assert.equal(textoPdf(pdf).filter(p => p.includes('COPAMEX · Reportes técnicos')).length,3)
+    for (const pagina of textoPdf(pdf)) assert.match(pagina,/Página \d+ de \d+/)
     const textos = Object.values(pdf.getFont().metadata.toUnicode).map(v => String.fromCodePoint(v)).join('')
     for (const c of ['í','²','³','→']) if (area === 'calderas' || c !== '³') assert.ok(textos.includes(c), c)
     // Tablas y texto dentro del papel, sin desbordes fuera de las páginas.
@@ -179,6 +180,31 @@ function textoPdf(pdf) {
     return texto
   }).join(' '))
 }
+
+test('PDF del día completo: encabezado una vez por turno y numeración en las continuaciones',()=>{
+  const tarde=detalle('tarde','ptar')
+  tarde.reporte.borrador.reporteRelevante='COMENTARIO EXTENSO DEL TURNO TARDE. '.repeat(550)+'FIN DEL REPORTE TARDE'
+  const pdf=crearPdfTecnicoDiario(crearMatriz([tarde]),fuente.toString('base64'))
+  const paginas=textoPdf(pdf).map(p=>p.replace(/\s+/g,' '))
+  assert.ok(paginas.length>3)
+  assert.match(paginas[0],/Turno Día/)
+  assert.match(paginas[0],/Sin reporte/)
+  assert.doesNotMatch(paginas[0],/Turno Tarde/)
+  assert.match(paginas.at(-1),/Turno Noche/)
+  assert.match(paginas.at(-1),/Sin reporte/)
+  assert.match(paginas[1],/COPAMEX · Reportes técnicos/)
+  assert.match(paginas[1],/Turno Tarde/)
+  assert.match(paginas[1],/Operador:/)
+  assert.match(paginas[1],/Revisión 2 · Formato 1/)
+  for(const pagina of paginas.slice(2,-1)) {
+    assert.doesNotMatch(pagina,/COPAMEX · Reportes técnicos|Turno Tarde|Operador:|Revisión 2 · Formato 1/)
+    assert.match(pagina,/Página \d+ de \d+/)
+  }
+  assert.ok(paginas.some(p=>p.includes('FIN DEL REPORTE TARDE')))
+  const hoja=archivosXlsx(crearXlsxTecnicoDiario(crearMatriz([tarde]))).get('xl/worksheets/sheet1.xml')
+  for(const texto of ['Turno Día','Turno Tarde','Turno Noche','Sin reporte']) assert.ok(hoja.includes(texto))
+  assert.doesNotMatch(hoja,/Turnos seleccionados/)
+})
 
 test('PDF histórico compara PSI y kg/cm² y conserva estados de selección', () => {
   const matriz = crearMatriz([detalle('dia','calderas',1),detalle('tarde','calderas',2)], ['dia','tarde','noche'])

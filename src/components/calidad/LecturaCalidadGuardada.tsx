@@ -1,22 +1,25 @@
 import type { RegistroCalidad } from '../../lib/tiposCalidad'
-import { fechaHoraCalidad, formatearNumeroCalidad as numero } from '../../lib/formatoCalidad'
+import { fechaHoraCalidad, formatearNumeroCalidad as numero, textoLimitesResultadoCalidad, textoEvaluacionCalidad } from '../../lib/formatoCalidad'
 import { CabeceraRegistroGuardado } from '../diseno/CabeceraRegistroGuardado'
 import './historialCalidad.css'
+import { resultadosHojaCalidad } from '../../lib/hojaRegistroCalidad'
 
-interface Props { registro: RegistroCalidad; alCorregir?: () => void; deshabilitado?: boolean; historial?: boolean; exportable?: boolean; compacta?: boolean }
-export function LecturaCalidadGuardada({ registro, alCorregir, deshabilitado = false, historial = false, exportable = false, compacta = false }: Props) {
+interface Props { registro: RegistroCalidad; adicionales?: readonly RegistroCalidad[]; alCorregir?: () => void; deshabilitado?: boolean; historial?: boolean; exportable?: boolean; compacta?: boolean }
+export function LecturaCalidadGuardada({ registro, adicionales = [], alCorregir, deshabilitado = false, historial = false, exportable = false, compacta = false }: Props) {
   const [soloFuera, setSoloFuera] = useState(false)
   const [exportando, setExportando] = useState(false)
   const [errorExportacion, setErrorExportacion] = useState<string | null>(null)
   const { lectura, turno, operadorNombre } = registro
-  const fuera = lectura.resultados.filter(r => r.fuera_norma === true)
-  const resultados = historial && soloFuera ? fuera : lectura.resultados
+  const filas = resultadosHojaCalidad(registro,adicionales)
+  const fuera = filas.filter(f => f.resultado.fuera_norma === true)
+  const resultados = historial && soloFuera ? fuera : filas
   async function exportar() {
     if (exportando) return
     setExportando(true); setErrorExportacion(null)
     try {
       const { descargarResultadosCalidad } = await import('../../lib/exportarCalidad')
-      descargarResultadosCalidad(registro, resultados)
+      descargarResultadosCalidad(registro, resultados.map(f => f.resultado),
+        new Map(resultados.filter(f => f.adicional).map(f => [f.resultado.id,`Adicional · ${fechaHoraCalidad(f.capturadoEn)}`])))
     } catch { setErrorExportacion('No se pudo exportar el Excel. Intenta nuevamente.') }
     finally { setExportando(false) }
   }
@@ -27,7 +30,7 @@ export function LecturaCalidadGuardada({ registro, alCorregir, deshabilitado = f
     <section className={historial ? 'calidad-historial-resultados' : undefined}>
       {historial && <header className="calidad-historial-cabecera"><div><h4>Resultados</h4><p>Límites aplicados al momento de la captura</p></div>
         <div className="calidad-historial-filtros" role="group" aria-label="Filtrar resultados de la muestra">
-          <button type="button" aria-pressed={!soloFuera} onClick={() => setSoloFuera(false)}>Todos ({lectura.resultados.length})</button>
+          <button type="button" aria-pressed={!soloFuera} onClick={() => setSoloFuera(false)}>Todos ({filas.length})</button>
           <button type="button" aria-pressed={soloFuera} onClick={() => setSoloFuera(true)}>Fuera de norma ({fuera.length})</button>
           {exportable && <button type="button" className="calidad-exportar-excel" disabled={exportando} onClick={() => { void exportar() }}>{exportando ? 'Exportando…' : 'Exportar a Excel'}</button>}
         </div>
@@ -36,12 +39,12 @@ export function LecturaCalidadGuardada({ registro, alCorregir, deshabilitado = f
       <div className="tabla-calidad-contenedor"><table className="tabla-calidad co-ficha-tabla" role="table">
       <caption>Resultados y límites aplicados al capturar</caption>
       <thead><tr><th scope="col">Punto</th><th scope="col">Parámetro</th><th scope="col">Valor</th><th scope="col">Límites</th><th scope="col">Evaluación</th></tr></thead>
-      <tbody>{resultados.map(r => <tr key={r.id} className={historial && r.fuera_norma === true ? 'calidad-historial-fuera' : undefined}>
-        <td data-label="Punto">{r.punto.nombre}</td><td data-label="Parámetro">{r.parametro.nombre}{r.parametro.unidad ? ` (${r.parametro.unidad})` : ''}</td>
+      <tbody>{resultados.map(({resultado:r,adicional,capturadoEn}) => <tr key={r.id} className={historial && r.fuera_norma === true ? 'calidad-historial-fuera' : undefined}>
+        <td data-label="Punto">{r.punto.nombre}</td><td data-label="Parámetro">{r.parametro.nombre}{r.parametro.unidad ? ` (${r.parametro.unidad})` : ''}
+          {adicional && <small className="co-calidad-lectura-adicional">Adicional · <time dateTime={capturadoEn}>{fechaHoraCalidad(capturadoEn)}</time></small>}</td>
         <td data-label="Valor">{numero(r.valor)}</td>
-        <td data-label="Límites">{r.limite_min_aplicado === null && r.limite_max_aplicado === null ? 'Sin límites'
-          : [r.limite_min_aplicado !== null ? `≥ ${numero(r.limite_min_aplicado)}` : '', r.limite_max_aplicado !== null ? `≤ ${numero(r.limite_max_aplicado)}` : ''].filter(Boolean).join(' · ')}</td>
-        <td data-label="Evaluación" className={r.fuera_norma === true ? 'resultado-calidad-fuera' : ''}><span className={historial ? `calidad-historial-evaluacion ${r.fuera_norma === null ? 'sin-limites' : r.fuera_norma ? 'fuera' : 'dentro'}` : undefined}>{r.fuera_norma === null ? 'Sin límites' : r.fuera_norma ? 'Fuera de norma' : 'Dentro de norma'}</span></td>
+        <td data-label="Límites">{textoLimitesResultadoCalidad(r.limite_min_aplicado,r.limite_max_aplicado)}</td>
+        <td data-label="Evaluación" className={r.fuera_norma === true ? 'resultado-calidad-fuera' : ''}><span className={historial && r.fuera_norma !== null ? `calidad-historial-evaluacion ${r.fuera_norma ? 'fuera' : 'dentro'}` : undefined}>{textoEvaluacionCalidad(r.fuera_norma)}</span></td>
       </tr>)}</tbody>
     </table></div>
       {historial && soloFuera && fuera.length === 0 && <p className="calidad-historial-vacio" role="status">No hay resultados fuera de norma en esta muestra.</p>}
