@@ -18,6 +18,8 @@
 .co-layout .co-seguimiento-admin>form { display:contents; }
 .co-layout .co-seguimiento-admin input.co-seguimiento-instruccion { grid-column:2; max-width:none; min-width:0; height:36px; padding:7px 11px; font-size:13px; }
 .co-layout .co-seguimiento-admin>form>button,.co-layout .co-seguimiento-admin>button { grid-column:3; min-height:36px; margin:0; padding:7px 18px; font-family:inherit; font-size:13px; white-space:nowrap; }
+.co-layout .co-seguimiento-admin>button.admin-finalizar-aviso { color:#0757c9; border-color:#c3d6f3; background:#edf4ff; }
+.co-layout .co-seguimiento-admin>button.admin-finalizar-aviso:hover:not(:disabled) { background:#e3eeff; }
 .co-layout .co-seguimiento-admin>p.notas-turno { grid-column:2; margin:0; font-size:14px; overflow-wrap:anywhere; }
 .co-layout .co-seguimiento-admin>p:not(.notas-turno),.co-layout .co-seguimiento-admin>small,
 .co-layout .co-seguimiento-admin>div:not(.co-seguimiento-cabecera) { grid-column:1/-1; margin:0; }

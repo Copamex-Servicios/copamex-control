@@ -32,6 +32,18 @@ function decimal(texto: string): string {
   if (limpio.startsWith('.')) limpio = `0${limpio}`
   return /^0(?:\.0*)?$/.test(limpio) ? '0' : `${negativo ? '-' : ''}${limpio}`
 }
+export function validarValorNumericoCalidad(texto: string): number {
+  const limpio = texto.trim()
+  if (!/^[+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+)$/.test(limpio)) {
+    throw new ErrorCalidad('Escribe un número válido, sin separadores de miles.')
+  }
+  const normalizado = limpio.replace(',', '.').replace(/^\+/, '')
+  const valor = Number(normalizado)
+  if (!numero(valor) || decimal(normalizado) !== decimal(String(valor))) {
+    throw new ErrorCalidad('El resultado tiene más cifras de las que se pueden conservar. Revisa el valor.')
+  }
+  return valor === 0 ? 0 : valor
+}
 export function validarCamposCalidad(campos: CamposCalidad): ValoresCalidad {
   const resultados: ValoresCalidad['resultados'][number][] = []
   for (const [clave, texto] of Object.entries(campos.valores)) {
@@ -39,10 +51,7 @@ export function validarCamposCalidad(campos: CamposCalidad): ValoresCalidad {
     if (!uuid(punto_id) || !uuid(parametro_id) || extra !== undefined || typeof texto !== 'string') throw new ErrorCalidad('Revisa el punto y parámetro de cada resultado.')
     const limpio = texto.trim()
     if (!limpio) continue
-    if (!/^[+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+)$/.test(limpio)) throw new ErrorCalidad('Escribe números sin separadores de miles en los resultados.')
-    const valor = Number(limpio.replace(',', '.'))
-    if (!numero(valor) || decimal(limpio) !== decimal(String(valor))) throw new ErrorCalidad('Un resultado tiene más cifras de las que se pueden conservar. Revisa el valor.')
-    resultados.push({ id: '', punto_id, parametro_id, valor: valor === 0 ? 0 : valor })
+    resultados.push({ id: '', punto_id, parametro_id, valor: validarValorNumericoCalidad(limpio) })
   }
   if (!resultados.length) throw new ErrorCalidad('Escribe al menos un resultado de Calidad.')
   return { resultados, notas: normalizarNota(campos.notas) }
@@ -73,19 +82,22 @@ function leerResultado(v: unknown, muestraId: string, incierto: boolean): Result
 function leerLecturaCalidad(v: unknown, incierto: boolean): LecturaCalidad {
   const m = objeto(v, incierto)
   const { id, turno_id, hora_muestra, notas, capturado_en, recibido_en, creado_por, eliminado_en, eliminado_por } = m
+  const seguimientoId = m.seguimiento_id
+  const valorAdicional = m.seguimiento_valor_inicial === undefined ? null : m.seguimiento_valor_inicial
   if (!uuid(id) || !uuid(turno_id) || !uuid(creado_por) || !instante(capturado_en) || !instante(recibido_en)
     || Date.parse(recibido_en) < Date.parse(capturado_en) || eliminado_en !== null || eliminado_por !== null
     || typeof hora_muestra !== 'string' || !/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d{1,6})?$/.test(hora_muestra)
     || (notas !== null && typeof notas !== 'string')
     || !Array.isArray(m.resultados) || !m.resultados.length) throw new ErrorCalidad('No se pudo comprobar la muestra y su turno. Actualiza.', incierto)
   const resultados = m.resultados.map(r => leerResultado(r, id, incierto))
-  if (m.seguimiento_id != null && !uuid(m.seguimiento_id)) throw new ErrorCalidad('El seguimiento de la muestra no es válido.', incierto)
+  if ((seguimientoId != null && !uuid(seguimientoId)) || (valorAdicional !== null && !numero(valorAdicional))
+    || (seguimientoId != null && valorAdicional === null)) throw new ErrorCalidad('La lectura adicional de la muestra no es válida.', incierto)
   if (new Set(resultados.map(r => r.id)).size !== resultados.length
     || new Set(resultados.map(r => claveResultadoCalidad(r.punto_id, r.parametro_id))).size !== resultados.length) {
     throw new ErrorCalidad('La muestra contiene resultados repetidos. Actualiza.', incierto)
   }
   return { id, turno_id, hora_muestra, notas, capturado_en, recibido_en, creado_por, eliminado_en, eliminado_por, resultados,
-    ...(m.seguimiento_id ? { seguimientoId: m.seguimiento_id as string } : {}) }
+    ...(seguimientoId ? { seguimientoId: seguimientoId as string } : {}), esAdicionalColorM4: valorAdicional !== null }
 }
 export function leerRegistroCalidad(v: unknown, incierto = false): RegistroCalidad {
   const m = objeto(v, incierto), t = objeto(m.turno, incierto), o = objeto(t.operador, incierto)
@@ -104,7 +116,7 @@ export function leerRegistroCalidad(v: unknown, incierto = false): RegistroCalid
   return { lectura,
     turno: { id: idTurno, fecha_operativa, area, turno, operador_id, operador_acompanante_id, iniciado_por: creado_por, iniciado_en, finalizado_en, notas_cierre }, operadorNombre: etiquetaOperadoresTurno(o.nombre, acompananteNombre) }
 }
-const seleccion = `id,turno_id,hora_muestra,notas,capturado_en,recibido_en,creado_por,eliminado_en,eliminado_por,seguimiento_id,turno:turnos_operativos!inner(id,fecha_operativa,area,turno,operador_id,operador_acompanante_id,iniciado_por,iniciado_en,finalizado_en,notas_cierre,${relacionOperadorPrincipal},${relacionOperadorAcompanante}),resultados:resultados_calidad(id,muestra_id,punto_id,parametro_id,valor,limite_min_aplicado,limite_max_aplicado,fuera_norma,punto:puntos_muestreo(id,nombre,area),parametro:parametros_calidad(id,nombre,unidad))`
+const seleccion = `id,turno_id,hora_muestra,notas,capturado_en,recibido_en,creado_por,eliminado_en,eliminado_por,seguimiento_id,seguimiento_valor_inicial,turno:turnos_operativos!inner(id,fecha_operativa,area,turno,operador_id,operador_acompanante_id,iniciado_por,iniciado_en,finalizado_en,notas_cierre,${relacionOperadorPrincipal},${relacionOperadorAcompanante}),resultados:resultados_calidad(id,muestra_id,punto_id,parametro_id,valor,limite_min_aplicado,limite_max_aplicado,fuera_norma,punto:puntos_muestreo(id,nombre,area),parametro:parametros_calidad(id,nombre,unidad))`
 export { seleccion as seleccionRegistroCalidad }
 function fallo(error: unknown, mensaje: string, mutacion = false): never {
   const e = error && typeof error === 'object' ? error as Record<string, unknown> : {}
@@ -142,7 +154,7 @@ export async function consultarCatalogosCalidad(signal: AbortSignal): Promise<Ca
 export async function consultarLecturaCalidad(turnoId: string, signal: AbortSignal): Promise<RegistroCalidad | null> {
   cancelada(signal)
   if (!uuid(turnoId)) throw new ErrorCalidad('Selecciona un turno válido.')
-  const { data, error } = await supabase.from('muestras_calidad').select(seleccion).eq('turno_id',turnoId).is('eliminado_en',null).is('seguimiento_id',null)
+  const { data, error } = await supabase.from('muestras_calidad').select(seleccion).eq('turno_id',turnoId).is('eliminado_en',null).is('seguimiento_valor_inicial',null)
     .order('capturado_en',{ascending:false}).order('id',{ascending:false}).limit(1).abortSignal(signal).maybeSingle()
   if (error) fallo(error,'No se pudo consultar la última muestra del turno.')
   if (data === null) return null

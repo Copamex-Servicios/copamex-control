@@ -13,6 +13,7 @@ export interface ResultadoCalidad {
 }
 export interface LecturaCalidad {
   seguimientoId?: string
+  esAdicionalColorM4?: boolean
   id: string; turno_id: string; hora_muestra: string; notas: string | null
   capturado_en: string; recibido_en: string; creado_por: string
   eliminado_en: null; eliminado_por: null; resultados: readonly ResultadoCalidad[]

@@ -13,6 +13,7 @@ import { MonitorConcesionPozos } from './MonitorConcesionPozos'
 import { useHistorialPaginado } from '../../hooks/useHistorialPaginado'
 import { consultarPaginaHistorialPozos } from '../../lib/pozos'
 import { PaginacionHistorial } from '../diseno/PaginacionHistorial'
+import type { CamposPozos } from '../../lib/tiposPozos'
 
 const nombresTurno: Record<TipoTurno, string> = {
   dia: 'Día', tarde: 'Tarde', noche: 'Noche',
@@ -49,6 +50,12 @@ function ContenidoPozos({ datos }: PropsContenidoPozos) {
   const filasHistorial = rol === 'calderas' ? paginaHistorial.visibles : anteriores
   const confirmado = mensajeAccion === 'Lectura de Pozos guardada.'
     || mensajeAccion === 'Corrección de Pozos confirmada.'
+
+  async function guardarPozosYActualizarConsumo(campos: CamposPozos): Promise<boolean> {
+    const guardado = await guardarPozos(campos)
+    if (guardado) setRevisionConcesion(n => n + 1)
+    return guardado
+  }
 
   async function reintentar(): Promise<void> {
     if (guardando || !solicitudPendiente) return
@@ -108,7 +115,7 @@ function ContenidoPozos({ datos }: PropsContenidoPozos) {
           {!puedeCrear && !ocupado && listo && actual === null && (
             <p className="ayuda-turno">Confirma la operación del turno antes de guardar una lectura nueva.</p>
           )}
-          <FormularioPozos key={`${cuentaId}:${turno.id}:captura`} alGuardar={guardarPozos}
+          <FormularioPozos key={`${cuentaId}:${turno.id}:captura`} alGuardar={guardarPozosYActualizarConsumo}
             lecturasIniciales={lecturasIniciales}
             deshabilitado={!listo || !puedeCrear || ocupado || actual !== null} />
         </div>

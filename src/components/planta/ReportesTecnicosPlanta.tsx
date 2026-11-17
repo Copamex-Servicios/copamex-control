@@ -4,6 +4,7 @@ import { HistorialReportesCalderas } from '../bitacora/HistorialReportesCalderas
 import { HistorialReportesPTAR } from '../bitacora/HistorialReportesPTAR'
 import '../bitacora/bitacoraCalderas.css'
 import '../bitacora/bitacoraPTAR.css'
+import './reportesTecnicosPlanta.css'
 
 export function ReportesTecnicosPlanta() {
   const { perfil, sesion, estado } = useAuth()

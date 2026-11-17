@@ -128,14 +128,14 @@ export function FormularioBitacoraPTAR({ captura, observaciones, nombresOperador
                 <option value="">Selecciona</option>{['Servicio', 'Reserva', 'Mantenimiento'].map(v => <option key={v}>{v}</option>)}
               </select>
             </label>
-            <label className="bpt-campo" htmlFor={prefijo + '-velocidad-' + prensa}>
+            {prensa === 'Essity' && <label className="bpt-campo" htmlFor={prefijo + '-velocidad-' + prensa}>
               <span>Velocidad</span>
               <span className="bpt-control bpt-con-unidad"><input id={prefijo + '-velocidad-' + prensa} aria-label={'Velocidad de prensa ' + prensa + ' (m/min)'}
                 type="number" min="0" step="any" inputMode="decimal" value={borrador.velocidadesPrensas?.[prensa] ?? ''}
                 disabled={!habilitado || !!captura.reporte && !captura.reporte.borrador.reporteRelevante}
                 onChange={e => setBorrador(b => ({ ...b, velocidadesPrensas: { ...b.velocidadesPrensas, [prensa]: e.target.value } }))} />
                 <span className="bpt-unidad" aria-hidden="true">m/min</span></span>
-            </label>
+            </label>}
           </div>)}
           <label className="bpt-campo bpt-ancho" htmlFor={`${prefijo}-comentario-prensas`}>
             <span>Motivo por el cual la prensa está parada</span>

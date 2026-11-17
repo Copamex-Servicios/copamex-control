@@ -1,7 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { areasBitacora, consultarPaginaBitacora, eventoBitacora, guardarActividad, pendienteBitacora,
-  prepararActividad, consultarRegistroDiario, mensajeRegistroDiario } from '../../lib/bitacoraAdministrativa'
+  prepararActividad, consultarActividadFecha, fechaActualMexico, mensajeRegistroDiario } from '../../lib/bitacoraAdministrativa'
 import type { ActividadAdministrativa, AreaBitacora, CursorBitacora, FiltroBitacora,
   PaginaBitacora, SolicitudBitacora } from '../../lib/bitacoraAdministrativa'
 import './bitacoraAdministrativa.css'
@@ -30,30 +30,31 @@ function EditorActividades() {
     try { return pendienteBitacora() } catch { return null }
   })
   const [area, setArea] = useState<AreaBitacora>(inicial?.area ?? 'ptar')
+  const [fechaSeleccionada, setFechaSeleccionada] = useState(inicial?.fecha ?? fechaActualMexico())
   const [actividad, setActividad] = useState(inicial?.actividad ?? '')
   const [original, setOriginal] = useState<ActividadAdministrativa | null>(null)
   const [pendiente, setPendiente] = useState(inicial)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null), [mensaje, setMensaje] = useState<string | null>(null)
   const enviando = useRef(false), vivo = useRef(true), texto = useRef<HTMLTextAreaElement>(null)
-  const [hoy, setHoy] = useState<{ area: AreaBitacora; registro: ActividadAdministrativa | null } | null>(null)
+  const [registroFecha, setRegistroFecha] = useState<{ area: AreaBitacora; fecha: string; registro: ActividadAdministrativa | null } | null>(null)
   const [revisionDiaria, setRevisionDiaria] = useState(0)
   const id = useId()
   useEffect(() => {
     const control = new AbortController(), limite = setTimeout(() => control.abort(), 20000)
-    void consultarRegistroDiario(area, control.signal)
-      .then(d => { if (!control.signal.aborted) setHoy({ area, registro: d.registro }) })
+    void consultarActividadFecha(area, fechaSeleccionada, control.signal)
+      .then(registro => { if (!control.signal.aborted) setRegistroFecha({ area, fecha: fechaSeleccionada, registro }) })
       .catch(() => { /* El servidor valida siempre el guardado, también si esta consulta falla. */ })
       .finally(() => clearTimeout(limite))
     return () => { clearTimeout(limite); control.abort() }
-  }, [area, revisionDiaria])
+  }, [area, fechaSeleccionada, revisionDiaria])
   useEffect(() => {
     const actualizar = () => setRevisionDiaria(n => n + 1)
-    const intervalo = window.setInterval(() => { if (document.visibilityState === 'visible') actualizar() }, 60000)
     window.addEventListener(eventoBitacora, actualizar); window.addEventListener('focus', actualizar)
-    return () => { window.clearInterval(intervalo); window.removeEventListener(eventoBitacora, actualizar); window.removeEventListener('focus', actualizar) }
+    return () => { window.removeEventListener(eventoBitacora, actualizar); window.removeEventListener('focus', actualizar) }
   }, [])
-  const registradoHoy = !original && !pendiente && hoy?.area === area && !!hoy.registro
+  const registradoSeleccionado = !original && !pendiente && registroFecha?.area === area
+    && registroFecha.fecha === fechaSeleccionada && !!registroFecha.registro
   useEffect(() => { vivo.current = true; return () => { vivo.current = false } }, [])
   useLayoutEffect(() => { ajustarAltura(texto.current) }, [actividad])
   useLayoutEffect(() => {
@@ -78,14 +79,15 @@ function EditorActividades() {
     }
   }, [])
   async function guardar() {
-    if (enviando.current || registradoHoy) return
+    if (enviando.current || registradoSeleccionado) return
     enviando.current = true; setGuardando(true); setError(null); setMensaje(null)
     try {
-      const solicitud = pendienteBitacora() ?? prepararActividad(area, actividad, original)
+      const solicitud = pendienteBitacora() ?? prepararActividad(area, actividad, original, fechaSeleccionada)
       setPendiente(solicitud)
       const fila = await guardarActividad(solicitud)
       if (!vivo.current) return
-      if (solicitud.revision === null) setHoy({ area: solicitud.area, registro: fila })
+      setFechaSeleccionada(fila.fecha)
+      setRegistroFecha({ area: fila.area, fecha: fila.fecha, registro: fila })
       setPendiente(null); setActividad(''); setOriginal(null)
       setMensaje(`Actividad ${solicitud.revision === null ? 'registrada' : 'corregida'}.`)
     } catch (e) {
@@ -98,7 +100,7 @@ function EditorActividades() {
   }
   function corregir(fila: ActividadAdministrativa) {
     if (guardando || pendiente) return
-    setOriginal(fila); setArea(fila.area); setActividad(fila.actividad); setMensaje(null); setError(null)
+    setOriginal(fila); setArea(fila.area); setFechaSeleccionada(fila.fecha); setActividad(fila.actividad); setMensaje(null); setError(null)
     texto.current?.focus(); texto.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
   }
   return <div className="ba-panel">
@@ -111,18 +113,20 @@ function EditorActividades() {
           <label htmlFor={`${id}-area`}><span className="ba-etiqueta-sr">Área</span><select id={`${id}-area`} value={area} onChange={e => setArea(e.target.value as AreaBitacora)}>
             {Object.entries(areasBitacora).map(([v, n]) => <option key={v} value={v}>{n}</option>)}
           </select></label>
+          <label htmlFor={`${id}-fecha`}><span className="ba-etiqueta-sr">Fecha de actividad</span><input id={`${id}-fecha`} type="date" max={fechaActualMexico()} required
+            disabled={original !== null} value={fechaSeleccionada} onChange={e => setFechaSeleccionada(e.target.value)} /></label>
           <div className="ba-descripcion"><label className="ba-etiqueta-sr" htmlFor={`${id}-actividad`}>Actividad relevante</label><textarea ref={texto} id={`${id}-actividad`}
-          placeholder="Actividad relevante" disabled={registradoHoy} value={actividad} onChange={e => setActividad(e.target.value.toLocaleUpperCase('es-MX'))} rows={1} required maxLength={10000} /></div>
+          placeholder="Actividad relevante" disabled={registradoSeleccionado} value={actividad} onChange={e => setActividad(e.target.value.toLocaleUpperCase('es-MX'))} rows={1} required maxLength={10000} /></div>
         </fieldset>
         <div className="ba-acciones">
           {original && !pendiente && <button type="button" className="boton-secundario" disabled={guardando}
             onClick={() => { setOriginal(null); setActividad(''); setError(null) }}>Cancelar corrección</button>}
-          <button type="submit" className="boton-principal" disabled={guardando || registradoHoy}>
+          <button type="submit" className="boton-principal" disabled={guardando || registradoSeleccionado}>
             {guardando ? 'Confirmando…' : pendiente ? 'Reintentar el mismo guardado' : 'Guardar'}
           </button>
         </div>
         </div>
-        {registradoHoy && <p className="ba-editando" role="status">{mensajeRegistroDiario}</p>}
+        {registradoSeleccionado && <p className="ba-editando" role="status">{mensajeRegistroDiario}</p>}
         {error && <p className="mensaje-error" role="alert">{error}</p>}
         {mensaje && <p className="mensaje-exito" role="status">{mensaje}</p>}
         {pendiente && !guardando && <p className="ba-pendiente" role="status">Guardado sin confirmar. El reintento conserva la misma actividad y evita duplicados.</p>}

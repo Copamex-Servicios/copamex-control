@@ -35,7 +35,7 @@ function ContenidoCalidad({ datos, area, informacion, horaServidor }: { datos: R
     }
   }
   return <section className="calidad-referencia" aria-label={`Calidad de ${area === 'calderas' ? 'Calderas' : 'PTAR'}`}>
-    <header className="calidad-encabezado"><div className="calidad-encabezado-titulo"><div><h2>Calidad</h2><p>Análisis de calidades de agua</p></div></div>
+    <header className="calidad-encabezado"><div className="calidad-encabezado-titulo"><div><h2>Calidad</h2></div></div>
       <div className="calidad-acciones-cabecera"><div ref={setAccionesCabecera} />
         <button className="boton-secundario" type="button"
           disabled={guardando || estadoCarga === 'cargando'} onClick={() => { void actualizarCalidad() }} data-actualizar="true" aria-label="Actualizar Calidad" title="Actualizar Calidad"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button>

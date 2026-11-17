@@ -63,7 +63,7 @@ export async function consultarPaginaMuestras(grupo: TurnoPlanta, pagina: number
   comprobarPagina(pagina); signal.throwIfAborted()
   const offset = pagina * muestrasPorPaginaCalidad
   const r = await supabase.from('muestras_calidad').select(seleccionRegistroCalidad, { count: 'exact' })
-    .eq('turno_id', grupo.turno.id).is('eliminado_en', null)
+    .eq('turno_id', grupo.turno.id).is('eliminado_en', null).is('seguimiento_valor_inicial', null)
     .order('capturado_en', { ascending: true }).order('id', { ascending: true })
     .range(offset, offset + muestrasPorPaginaCalidad - 1).abortSignal(signal)
   signal.throwIfAborted()
@@ -83,7 +83,7 @@ export async function consultarAdicionalesTurnoCalidad(grupo: TurnoPlanta, signa
   const limite = 200
   let total: number | null = null
   const consulta = () => supabase.from('muestras_calidad').select(seleccionRegistroCalidad,{count:'exact'})
-    .eq('turno_id',grupo.turno.id).is('eliminado_en',null).not('seguimiento_id','is',null)
+    .eq('turno_id',grupo.turno.id).is('eliminado_en',null).not('seguimiento_valor_inicial','is',null)
   for (let offset=0; ; offset+=limite) {
     signal.throwIfAborted()
     const r = await consulta().order('capturado_en',{ascending:true}).order('id',{ascending:true})
@@ -94,7 +94,7 @@ export async function consultarAdicionalesTurnoCalidad(grupo: TurnoPlanta, signa
     if (total !== null && total !== r.count) throw new Error('Las lecturas adicionales cambiaron. Actualiza el turno.')
     total=r.count
     const lote=r.data.map(v=>leerRegistroCalidad(v))
-    if (lote.some(m=>!m.lectura.seguimientoId || m.turno.id!==grupo.turno.id
+    if (lote.some(m=>!m.lectura.esAdicionalColorM4 || m.turno.id!==grupo.turno.id
       || m.turno.area!==grupo.turno.area || m.turno.fecha_operativa!==grupo.turno.fecha_operativa)) {
       throw new Error('Una lectura adicional no pertenece al turno consultado.')
     }

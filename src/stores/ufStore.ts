@@ -22,6 +22,7 @@ export interface DatosUF {
   rol: ContextoCuentaUF['rol'] | null
   turnoConsultadoId: string | null
   lecturaActual: RegistroUF | null
+  lecturasIniciales: { alimentacion: number; aceptacion: number } | null
   historial: RegistroUF[]
   estadoCarga: 'sin-cuenta' | 'cargando' | 'listo' | 'error'
   mensaje: string | null
@@ -41,6 +42,7 @@ function crearEstadoInicial(): DatosUF {
     rol: null,
     turnoConsultadoId: null,
     lecturaActual: null,
+    lecturasIniciales: null,
     historial: [],
     estadoCarga: 'sin-cuenta',
     mensaje: null,

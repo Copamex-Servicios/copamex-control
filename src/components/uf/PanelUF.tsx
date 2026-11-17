@@ -1,6 +1,6 @@
 import { RefreshCw } from 'lucide-react'
 import { ResumenHistorial } from '../diseno/ResumenHistorial'
-import { useId } from 'react'
+import { useEffect, useId } from 'react'
 import '../diseno/acordeonHistorial.css'
 import '../operativo/medicionesVisual.css'
 import { useUF } from '../../hooks/useUF'
@@ -12,6 +12,7 @@ import { LecturaUFHistorial } from './LecturaUFHistorial'
 import { useHistorialPaginado } from '../../hooks/useHistorialPaginado'
 import { consultarPaginaHistorialUF } from '../../lib/uf'
 import { PaginacionHistorial } from '../diseno/PaginacionHistorial'
+import { useUFStore } from '../../stores/ufStore'
 
 const nombresTurno: Record<TipoTurno, string> = {
   dia: 'Día', tarde: 'Tarde', noche: 'Noche',
@@ -39,6 +40,16 @@ function ContenidoUF({ datos }: PropsContenidoUF) {
   const filasHistorial = rol === 'calderas' ? paginaHistorial.visibles : anteriores
   const confirmado = mensajeAccion === 'Lectura de UF guardada.'
     || mensajeAccion === 'Corrección de UF confirmada.'
+
+  useEffect(() => {
+    if (!confirmado || !mensajeAccion) return
+    const temporizador = window.setTimeout(() => {
+      if (useUFStore.getState().mensajeAccion === mensajeAccion) {
+        useUFStore.setState({ mensajeAccion: null })
+      }
+    }, 5000)
+    return () => window.clearTimeout(temporizador)
+  }, [confirmado, mensajeAccion])
 
   async function reintentar(): Promise<void> {
     if (guardando || !solicitudPendiente) return
@@ -98,6 +109,7 @@ function ContenidoUF({ datos }: PropsContenidoUF) {
             <p className="ayuda-turno">Confirma la operación del turno antes de guardar una lectura nueva.</p>
           )}
           <FormularioUF key={`${cuentaId}:${turno.id}:captura`} alGuardar={guardarUF}
+            lecturasIniciales={datos.lecturasIniciales ?? undefined}
             deshabilitado={!listo || !puedeCrear || ocupado || actual !== null} />
         </div>
       )}

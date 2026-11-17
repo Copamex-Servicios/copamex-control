@@ -32,10 +32,10 @@ export function ConsultaMuestrasCalidad(props: Props) {
     || !['admin', 'calidad', 'calderas', 'ptar'].includes(perfil.rol)) return null
   const clave = JSON.stringify([perfil.id, perfil.rol, props.areaFija, props.filtrosIniciales, props.actualizacion])
   const puedeExportar = perfil.rol === 'admin' || perfil.rol === 'calidad'
-  return <ConsultaCuenta key={clave} {...props} tamanoPagina={perfil.rol === 'calderas' || perfil.rol === 'ptar' ? 7 : 10} exportable={puedeExportar && props.exportable} exportacionDiaria={puedeExportar && props.exportacionDiaria} />
+  return <ConsultaCuenta key={clave} {...props} tamanoPagina={7} exportable={puedeExportar && props.exportable} exportacionDiaria={puedeExportar && props.exportacionDiaria} />
 }
 
-function ConsultaCuenta({ titulo = 'Calidad de agua', areaFija, filtrosIniciales, tamanoPagina = 10, exportable = false, exportacionDiaria = false, ocultarFiltros = false }: Props & { tamanoPagina?: number }) {
+function ConsultaCuenta({ titulo = 'Calidad de agua', areaFija, filtrosIniciales, tamanoPagina = 7, exportable = false, exportacionDiaria = false, ocultarFiltros = false }: Props & { tamanoPagina?: number }) {
   const inicial = { desde: '', hasta: '', area: areaFija ?? 'todas', turno: 'todos', ...filtrosIniciales } as FiltrosMuestrasCalidad
   if (areaFija) inicial.area = areaFija
   const [edicion, setEdicion] = useState(inicial), [filtros, setFiltros] = useState(inicial)

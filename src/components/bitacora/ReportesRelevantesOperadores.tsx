@@ -28,16 +28,16 @@ export function ReportesRelevantesOperadores({ area, texto, reportes, nombres, h
     ? [{ nombre: disponibles[0], comentario: '' }, { nombre: disponibles[1], comentario: '' }] : undefined)
   const clase = area === 'calderas' ? 'bc-campo bc-ancho' : 'bpt-campo bpt-ancho'
   if (!individuales) return <label className={clase} htmlFor={id}><span>Reporte relevante del turno</span>
-    <textarea id={id} aria-label="Reporte relevante del turno" rows={4} maxLength={4000} required={obligatorio}
+    <textarea id={id} aria-label="Reporte relevante del turno" lang="es-MX" spellCheck={true} rows={4} maxLength={4000} required={obligatorio}
       disabled={!habilitado} value={texto} onChange={e => cambiar(mayusculasNota(e.target.value))} /></label>
 
   return <div className="co-reportes-operadores">
     <h3>Reportes relevantes del turno</h3>
     {individuales.map((r, indice) => <label className={clase} htmlFor={`${id}-${indice}`} key={indice}>
-      <span>{r.nombre}</span><textarea id={`${id}-${indice}`} aria-label={`Reporte relevante de ${r.nombre}`} rows={4}
+      <span>{r.nombre}</span><textarea id={`${id}-${indice}`} aria-label={`Reporte relevante de ${r.nombre}`} lang="es-MX" spellCheck={true} rows={4}
         maxLength={4000} required={obligatorio} disabled={!habilitado} value={r.comentario}
         onChange={e => {
-          const nuevos = individuales.map((anterior, i) => i === indice ? { ...anterior, comentario: mayusculasNota(e.target.value) } : anterior) as ReportesIndividuales
+          const nuevos = individuales.map((anterior, i) => i === indice ? { ...anterior, comentario: e.target.value } : anterior) as ReportesIndividuales
           cambiar(resumenReportesIndividuales(nuevos), nuevos)
         }} />
     </label>)}

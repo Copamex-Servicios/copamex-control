@@ -42,9 +42,12 @@
 .co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-pila-datos .pcr-dato:first-child { border-inline-start:0; }
 .co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-pila-datos dt { padding:7px 4px; font-size:13px; }
 .co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-pila-datos dd { max-width:none; padding:8px 4px; text-align:center; font-size:18px; }
-.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-seccion:first-child { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; padding:0 0 2px; border:0; border-radius:0; background:transparent; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-seccion:first-child { display:block; padding:0 0 2px; border:0; border-radius:0; background:transparent; }
 .co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-seccion:first-child > h5 { padding:0; border:0; background:transparent; font-size:13px; text-transform:uppercase; letter-spacing:.04em; }
-.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-narrativa { flex:1 1 240px; margin:0; padding:0; border-radius:0; background:transparent; font-size:15px; font-weight:400; line-height:1.5; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-reporte-operador { display:grid; gap:6px; min-width:0; padding:10px 0; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-reporte-operador + .pcr-reporte-operador { border-top:1px solid #e8eef7; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-reporte-operador h4 { margin:0; color:var(--co-text); font-size:14px; font-weight:650; line-height:1.4; overflow-wrap:anywhere; }
+.co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-narrativa { display:block; width:100%; margin:0; padding:0; border-radius:0; background:transparent; color:var(--co-text); font-family:inherit; font-size:14px; font-weight:400; line-height:1.5; white-space:pre-wrap; overflow-wrap:anywhere; }
 @container historial-ficha (max-width:620px) {
   .co-layout .planta-reporte-detalle.reporte-ficha-nueva :is(.pcr-datos,.pcr-equipos,.pcr-pilas) { grid-template-columns:minmax(0,1fr); }
   .co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-seccion > h5 { padding:10px 12px; }

@@ -11,6 +11,11 @@ export interface RegistroUF {
   operadorNombre: string
 }
 
+export interface LecturasInicialesUF {
+  alimentacion: number
+  aceptacion: number
+}
+
 // Conservar esta solicitud completa si no llega la confirmación.
 // Un reintento usa el mismo UUID, valores y original; nunca un UUID nuevo.
 export interface SolicitudGuardadoUF {
@@ -257,6 +262,29 @@ export async function consultarLecturaUF(
   } catch (fallo) {
     if (fallo instanceof ErrorUF) throw fallo
     throw new ErrorUF('No se pudo consultar UF. Revisa la conexión e intenta de nuevo.')
+  }
+}
+
+// Toma el cierre de la lectura previa aunque quede fuera de las filas visibles del historial.
+export async function consultarLecturasInicialesUF(
+  turnoId: string, signal: AbortSignal,
+): Promise<LecturasInicialesUF | null> {
+  if (!esUuid(turnoId)) throw new ErrorUF('Selecciona un turno válido para consultar el inicio de UF.')
+  comprobarCancelacion(signal)
+  try {
+    const { data, error } = await supabase.rpc('consultar_inicio_automatico_uf', {
+      p_turno_id: turnoId,
+    }).abortSignal(signal)
+    if (error) lanzarFallo(error, 'No se pudieron consultar las lecturas iniciales de UF.')
+    if (data === null) return null
+    const valores = fila(data)
+    if (!esNumero(valores.alimentacion) || !esNumero(valores.aceptacion)) {
+      throw new ErrorUF('No se pudieron comprobar las lecturas iniciales de UF. Actualiza la consulta.')
+    }
+    return { alimentacion: valores.alimentacion, aceptacion: valores.aceptacion }
+  } catch (fallo) {
+    if (fallo instanceof ErrorUF) throw fallo
+    throw new ErrorUF('No se pudieron consultar las lecturas iniciales de UF. Revisa la conexión e intenta de nuevo.')
   }
 }
 

@@ -14,7 +14,7 @@ export interface PaginaBitacora {
   filas: ActividadAdministrativa[]; mas: boolean; mes: string; ahora: string; version: string | null
 }
 export interface SolicitudBitacora {
-  cuenta: string; solicitud: string; id: string; area: AreaBitacora; actividad: string; revision: number | null
+  cuenta: string; solicitud: string; id: string; area: AreaBitacora; actividad: string; revision: number | null; fecha?: string
 }
 const uuid = (v: unknown): v is string => typeof v === 'string' && /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(v)
 const objeto = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v)
@@ -23,6 +23,16 @@ const instante = (v: unknown): v is string => typeof v === 'string' && /(?:Z|[+-
 const ordenInstante = (v: string) => Date.parse(v) * 1000 + Number(((v.match(/\.(\d+)/)?.[1] ?? '').padEnd(6, '0').slice(3, 6)))
 export const mesValido = (v: string) => /^(?!0000)\d{4}-(0[1-9]|1[0-2])$/.test(v)
 const areaValida = (v: unknown): v is AreaBitacora => typeof v === 'string' && Object.hasOwn(areasBitacora, v)
+function fechaValida(v: unknown): v is string {
+  if (typeof v !== 'string' || !/^(?!0000)\d{4}-\d\d-\d\d$/.test(v)) return false
+  const fecha = new Date(`${v}T00:00:00.000Z`)
+  return Number.isFinite(fecha.getTime()) && fecha.toISOString().slice(0, 10) === v
+}
+export function fechaActualMexico(ahora = new Date()) {
+  const partes = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Mexico_City', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(ahora)
+  const valor = (tipo: string) => partes.find(p => p.type === tipo)!.value
+  return `${valor('year')}-${valor('month')}-${valor('day')}`
+}
 export const mensajeRegistroDiario = 'Ya existe una actividad para esta fecha y área. Usa Corregir en el historial.'
 export const eventoBitacora = 'copamex:bitacora-administrativa'
 const cache = cacheConsultas<PaginaBitacora>('bitacora-administrativa')
@@ -65,7 +75,7 @@ function leerActividad(v: unknown, rol: string): ActividadAdministrativa {
   if (!objeto(v) || !uuid(v.id) || !areaValida(v.area) || (rol !== 'admin' && v.area === 'obra_civil')
     || typeof v.actividad !== 'string' || !v.actividad.trim() || v.actividad.length > 10000
     || !instante(v.creado_en) || !instante(v.actualizado_en)
-    || typeof v.fecha !== 'string' || !/^\d{4}-\d\d-\d\d$/.test(v.fecha)
+    || !fechaValida(v.fecha)
     || !Number.isInteger(v.revision) || (v.revision as number) < 0) throw new Error('La actividad recibida no es válida o no está autorizada.')
   return { id: v.id, area: v.area, actividad: v.actividad, fecha: v.fecha, creado_en: v.creado_en,
     actualizado_en: v.actualizado_en, revision: v.revision as number }
@@ -120,6 +130,20 @@ export async function consultarRegistroDiario(area: AreaBitacora, signal: AbortS
   const fecha = valor('year') + '-' + valor('month') + '-' + valor('day')
   return { fecha, registro: pagina.filas.find(f => f.fecha === fecha) ?? null }
 }
+export async function consultarActividadFecha(area: AreaBitacora, fecha: string, signal: AbortSignal) {
+  const contexto = exigirBitacora(true)
+  if (!areaValida(area) || !fechaValida(fecha)) throw new Error('Selecciona una fecha y un área válidas.')
+  signal.throwIfAborted()
+  const r = await supabase.from('bitacora_administrativa')
+    .select('id,area,actividad,fecha,creado_en,actualizado_en,revision')
+    .eq('area', area).eq('fecha', fecha).order('creado_en', { ascending: false })
+    .order('id', { ascending: false }).limit(1).abortSignal(signal)
+  if (exigirBitacora(true).clave !== contexto.clave) throw new Error('La cuenta cambió durante la consulta.')
+  signal.throwIfAborted()
+  if (r.error) throw new Error(mensajeError(r.error))
+  if (!Array.isArray(r.data) || r.data.length > 1) throw new Error('No se pudo comprobar si esa fecha ya tiene una actividad.')
+  return r.data.length ? leerActividad(r.data[0], 'admin') : null
+}
 export function pendienteBitacora(): SolicitudBitacora | null {
   const { cuenta } = exigirBitacora(true)
   if (pendientes.has(cuenta)) return pendientes.get(cuenta)!
@@ -128,17 +152,20 @@ export function pendienteBitacora(): SolicitudBitacora | null {
   try { const texto = sessionStorage.getItem(clavePendiente(cuenta)); if (!texto) return null; v = JSON.parse(texto) } catch { return null }
   if (!objeto(v) || v.cuenta !== cuenta || !uuid(v.solicitud) || !uuid(v.id)
     || !areaValida(v.area) || typeof v.actividad !== 'string' || !v.actividad.trim() || v.actividad.length > 10000
-    || !(v.revision === null || (Number.isInteger(v.revision) && (v.revision as number) >= 0))) throw new Error('No se pudo recuperar el guardado pendiente.')
+    || !(v.revision === null || (Number.isInteger(v.revision) && (v.revision as number) >= 0))
+    || (v.fecha !== undefined && !fechaValida(v.fecha))) throw new Error('No se pudo recuperar el guardado pendiente.')
   const solicitud = v as unknown as SolicitudBitacora
   pendientes.set(cuenta, solicitud)
   return solicitud
 }
-export function prepararActividad(area: string, actividad: string, original: ActividadAdministrativa | null): SolicitudBitacora {
+export function prepararActividad(area: string, actividad: string, original: ActividadAdministrativa | null,
+  fecha = original?.fecha ?? fechaActualMexico()): SolicitudBitacora {
   const { cuenta } = exigirBitacora(true)
   if (pendienteBitacora()) throw new Error('Confirma primero el guardado pendiente.')
   const valores = validarActividad(area, actividad)
+  if (!fechaValida(fecha) || fecha > fechaActualMexico()) throw new Error('Selecciona una fecha válida que no sea futura.')
   const s = Object.freeze({ cuenta, solicitud: crypto.randomUUID(), id: original?.id ?? crypto.randomUUID(),
-    ...valores, revision: original?.revision ?? null })
+    ...valores, fecha: original?.fecha ?? fecha, revision: original?.revision ?? null })
   // Persistir la misma solicitud antes de enviarla; recargar no crea otro identificador.
   try { persistir(cuenta, s) } catch { throw new Error('Permite el almacenamiento de la pestaña para guardar sin duplicar solicitudes.') }
   pendientes.set(cuenta, s)
@@ -152,7 +179,7 @@ export async function guardarActividad(s: SolicitudBitacora): Promise<ActividadA
   const control = new AbortController(), limite = setTimeout(() => control.abort(), 20000)
   try {
     const r = await supabase.rpc('guardar_bitacora_administrativa', {
-      p_solicitud: s.solicitud, p_id: s.id, p_area: s.area, p_actividad: s.actividad, p_revision: s.revision,
+      p_solicitud: s.solicitud, p_id: s.id, p_area: s.area, p_actividad: s.actividad, p_revision: s.revision, p_fecha: s.fecha ?? null,
     }).abortSignal(control.signal)
     if (exigirBitacora(true).clave !== contexto.clave) throw new Error('La cuenta cambió durante el guardado.')
     if (r.error) {

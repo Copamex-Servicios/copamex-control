@@ -2,9 +2,9 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useSeguimientoCalidad } from '../../hooks/useSeguimientoCalidad'
 import { ejecutarSeguimiento, pendienteSeguimiento } from '../../lib/seguimientoCalidad'
+import { validarValorNumericoCalidad } from '../../lib/calidad'
 import type { SolicitudSeguimiento } from '../../lib/seguimientoCalidad'
 import type { TurnoOperativo } from '../../lib/tiposTurno'
-import { claveResultadoCalidad, validarCamposCalidad } from '../../lib/calidad'
 import { mayusculasNota } from '../../lib/notasOperativas'
 import './seguimientoColorM4.css'
 
@@ -55,9 +55,11 @@ export function SeguimientoColorM4({ cuenta, administracion = false, turno, habi
           if (!seguimiento) throw new Error('Actualiza el seguimiento antes de finalizar.')
           solicitud = { id:seguimiento.id,operacion }
         } else {
-          if (!seguimiento || !turno || !habilitado || !muestraHabitual) throw new Error('Se requiere tu turno abierto y su muestra habitual de Calidad.')
-          const numero = validarCamposCalidad({ notas:'',valores:{ [claveResultadoCalidad(seguimiento.punto_id,seguimiento.parametro_id)]:valor } }).resultados[0].valor
-          solicitud = { id:crypto.randomUUID(),operacion,turno:turno.id,seguimiento:seguimiento.id,valor:numero }
+          if (!turno || !habilitado || !muestraHabitual) throw new Error('Se requiere tu turno abierto y su muestra habitual de Calidad.')
+          let numero: number
+          try { numero = validarValorNumericoCalidad(valor) }
+          catch { throw new Error('Escribe un valor numérico válido para Color M4.') }
+          solicitud = { id:crypto.randomUUID(),operacion,turno:turno.id,seguimiento:seguimiento?.id ?? null,valor:numero }
         }
       }
       ocupado.current = true; setGuardando(true); setPendiente(solicitud); setMensaje(null); setExito(false)
@@ -69,15 +71,16 @@ export function SeguimientoColorM4({ cuenta, administracion = false, turno, habi
       setMensaje(solicitud.operacion === 'lectura' ? 'Lectura adicional de color M4 guardada.'
         : solicitud.operacion === 'activar' ? 'Activación y aviso confirmados. Revisa el estado actual.' : 'Seguimiento y aviso finalizados.')
       setValor(''); setAbierto(false); actualizar()
+      if (solicitud.operacion === 'finalizar') setInstruccion('')
       if (solicitud.operacion === 'lectura') alGuardar?.()
     } catch (e) { setExito(false); setMensaje(e instanceof Error ? e.message : 'No se confirmó la operación. Reintenta.') }
     finally { setPendiente(pendienteSeguimiento(cuenta)); ocupado.current = false; setGuardando(false) }
   }
   const bloqueado = guardando || !!pendiente
   const puedeFinalizar = seguimiento?.creado_por === cuenta
-  const botonTomar = !administracion && (seguimiento || pendiente) && <button type="button" className="boton-primario co-tomar-color-m4"
+  const botonTomar = !administracion && (turno || pendiente) && <button type="button" className="boton-primario co-tomar-color-m4"
     aria-haspopup="dialog" aria-controls={idDialogo}
-    disabled={guardando || (!pendiente && (!habilitado || !muestraHabitual || !!error))}
+    disabled={guardando || (!pendiente && (!habilitado || !muestraHabitual))}
     title={!muestraHabitual ? 'Registra primero la muestra habitual del turno' : !habilitado ? 'Se requiere tu turno abierto y disponible' : 'Registrar una lectura adicional de color M4'}
     onClick={() => { setAbierto(true); setMensaje(null) }}>Tomar color M4</button>
   if (!administracion) return <>
@@ -94,19 +97,20 @@ export function SeguimientoColorM4({ cuenta, administracion = false, turno, habi
         <button type="button" className="boton-primario" disabled={guardando}
           onClick={() => { void ejecutar(pendiente.operacion) }}>Reintentar la misma lectura</button>
         <button type="button" className="boton-secundario" disabled={guardando} onClick={() => setAbierto(false)}>Cerrar</button>
-      </div> : seguimiento ? <form onSubmit={e => { e.preventDefault(); void ejecutar('lectura') }}>
+      </div> : <form onSubmit={e => { e.preventDefault(); void ejecutar('lectura') }}>
+        {seguimiento?.instruccion && <p className="notas-turno">Aviso: {seguimiento.instruccion}</p>}
         <label>Color M4<input type="text" inputMode="decimal" autoComplete="off" required value={valor}
           disabled={guardando || !habilitado} onChange={e => setValor(e.target.value)} /></label>
         <div className="acciones-turno">
-          <button type="submit" className="boton-primario" disabled={guardando || !habilitado || !muestraHabitual || !!error}>{guardando ? 'Guardando…' : 'Guardar'}</button>
+          <button type="submit" className="boton-primario" disabled={guardando || !habilitado || !muestraHabitual}>{guardando ? 'Guardando…' : 'Guardar'}</button>
           <button type="button" className="boton-secundario" disabled={guardando} onClick={() => setAbierto(false)}>Cancelar</button>
         </div>
-      </form> : <><p>El seguimiento ya no está activo.</p><button type="button" className="boton-secundario" onClick={() => setAbierto(false)}>Cerrar</button></>}
+      </form>}
     </dialog>
   </>
   return <>
-    <section className="co-seguimiento-m4 co-seguimiento-admin" aria-label="Seguimiento de color M4" aria-busy={guardando}>
-    <div className="co-seguimiento-cabecera"><h2>Seguimiento de color M4</h2><span className={seguimiento ? 'co-seguimiento-activo' : ''}>{seguimiento ? 'Activo' : cargando ? 'Consultando…' : 'Inactivo'}</span></div>
+    <section className="co-seguimiento-m4 co-seguimiento-admin" aria-label="Aviso" aria-busy={guardando}>
+    <div className="co-seguimiento-cabecera"><h2>Aviso</h2><span className={seguimiento ? 'co-seguimiento-activo' : ''}>{seguimiento ? 'Activo' : cargando ? 'Consultando…' : 'Inactivo'}</span></div>
     {error && <div><p className="mensaje-error" role="alert">{error}</p><button type="button" className="boton-secundario" disabled={guardando} onClick={actualizar}>Reintentar consulta</button></div>}
     {seguimiento && <p className="notas-turno">{seguimiento.instruccion}</p>}
     {pendiente && <div className="operacion-pendiente"><strong>Operación pendiente de confirmación</strong>
@@ -114,11 +118,11 @@ export function SeguimientoColorM4({ cuenta, administracion = false, turno, habi
       <button type="button" className="boton-primario" disabled={guardando} onClick={() => { void ejecutar(pendiente.operacion) }}>Reintentar la misma solicitud</button></div>}
     {mensaje && <p className={exito ? 'mensaje-exito' : 'mensaje-error'} role={exito ? 'status' : 'alert'}>{mensaje}</p>}
     {seguimiento ? <>
-      <button type="button" className="boton-secundario" disabled={bloqueado || !puedeFinalizar} onClick={() => { void ejecutar('finalizar') }}>Finalizar seguimiento</button>
+      <button type="button" className="boton-secundario admin-finalizar-aviso" disabled={bloqueado || !puedeFinalizar} onClick={() => { void ejecutar('finalizar') }}>Finalizar</button>
       {!puedeFinalizar && <small>Solo la cuenta creadora puede finalizar el aviso vinculado.</small>}
     </> : <form onSubmit={e => { e.preventDefault(); void ejecutar('activar') }}>
-      <input className="co-seguimiento-instruccion" aria-label="Instrucciones para los operadores" type="text" maxLength={4000} required
-        placeholder="Ej. Tomar color M4 cada dos horas hasta nuevo aviso"
+      <input className="co-seguimiento-instruccion" aria-label="Aviso para los operadores" type="text" maxLength={4000} required
+        placeholder="Escribe el aviso para los operadores"
         value={instruccion} disabled={bloqueado || cargando || !!error} onChange={e => setInstruccion(mayusculasNota(e.target.value))} />
       <button type="submit" className="boton-primario" disabled={bloqueado || cargando || !!error}>Activar</button>
     </form>}

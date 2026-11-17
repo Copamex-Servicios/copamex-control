@@ -8,7 +8,7 @@ export interface SeguimientoCalidad {
 }
 export interface SolicitudSeguimiento {
   id: string; operacion: 'activar' | 'finalizar' | 'lectura'; instruccion?: string
-  turno?: string; seguimiento?: string; valor?: number
+  turno?: string; seguimiento?: string | null; valor?: number
 }
 export class ErrorSeguimiento extends Error {
   readonly incierto: boolean
@@ -52,7 +52,7 @@ export function pendienteSeguimiento(cuenta: string): SolicitudSeguimiento | nul
     const s = JSON.parse(sessionStorage.getItem(clave(cuenta)) ?? 'null') as SolicitudSeguimiento | null
     if (!s || !uuid(s.id) || !['activar','finalizar','lectura'].includes(s.operacion)) return null
     if (s.operacion === 'activar' && (typeof s.instruccion !== 'string' || !s.instruccion.trim() || s.instruccion.length > 4000)) return null
-    if (s.operacion === 'lectura' && (!uuid(s.turno) || !uuid(s.seguimiento) || typeof s.valor !== 'number' || !Number.isFinite(s.valor))) return null
+    if (s.operacion === 'lectura' && (!uuid(s.turno) || (s.seguimiento != null && !uuid(s.seguimiento)) || typeof s.valor !== 'number' || !Number.isFinite(s.valor))) return null
     memoria.set(cuenta,s); return s
   } catch { return null }
 }

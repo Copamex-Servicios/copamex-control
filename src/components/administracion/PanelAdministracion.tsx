@@ -6,9 +6,9 @@ import { finalizarAviso } from '../../lib/finalizarAviso'
 import { esAutorAviso } from '../../lib/permisosAvisos'
 import './finalizarAviso.css'
 import { GestionRegistrosAdministracion } from './GestionRegistrosAdministracion'
-import { useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { useAdministracion } from '../../hooks/useAdministracion'
-import { configuracionAdmin, fechaMexicoAdmin, seccionesAdmin } from '../../lib/administracion'
+import { configuracionAdmin, fechaMexicoAdmin, instanteMexicoAdmin, seccionesAdmin } from '../../lib/administracion'
 import type { ConfigAdmin, DatosAdmin, FilaAdmin, TablaAdmin } from '../../lib/administracion'
 import { FormularioAdmin } from './FormularioAdmin'
 import { DashboardAdministracion } from './DashboardAdministracion'
@@ -25,6 +25,24 @@ function etiqueta(c: ConfigAdmin, fila: FilaAdmin, campo: string, datos: DatosAd
   if (f.tipo === 'opcion') return f.opciones?.find(([v]) => v === valor)?.[1] ?? String(valor)
   return String(valor)
 }
+function fechaOperativaCalidad(ahora: number): string {
+  const local = fechaMexicoAdmin(new Date(ahora).toISOString())
+  const fecha = local.slice(0, 10)
+  if (local.slice(11, 16) >= '07:00') return fecha
+  const anterior = new Date(`${fecha}T00:00:00Z`)
+  anterior.setUTCDate(anterior.getUTCDate() - 1)
+  return anterior.toISOString().slice(0, 10)
+}
+function siguienteCambioOperativo(ahora: number): number {
+  const local = fechaMexicoAdmin(new Date(ahora).toISOString())
+  let fecha = local.slice(0, 10)
+  if (local.slice(11, 16) >= '07:00') {
+    const siguiente = new Date(`${fecha}T00:00:00Z`)
+    siguiente.setUTCDate(siguiente.getUTCDate() + 1)
+    fecha = siguiente.toISOString().slice(0, 10)
+  }
+  return Date.parse(instanteMexicoAdmin(`${fecha}T07:00`))
+}
 export function PanelAdministracion({ soloGestion = false }: { soloGestion?: boolean }) {
   const [vista, setVista] = useState<'dashboard' | 'catalogos' | 'capturas'>('dashboard')
   const [catalogosAbiertos, setCatalogosAbiertos] = useState(false)
@@ -34,7 +52,7 @@ export function PanelAdministracion({ soloGestion = false }: { soloGestion?: boo
   return <div className="admin-panel co-admin-referencia">
     <nav className="acciones-turno co-admin-tabs" aria-label="Tipo de administración">
       <button type="button" className={vista === 'dashboard' ? 'boton-principal' : 'boton-secundario'} aria-pressed={vista === 'dashboard'} onClick={() => setVista('dashboard')}>Dashboard</button>
-      <button type="button" className={vista === 'catalogos' ? 'boton-principal' : 'boton-secundario'} aria-pressed={vista === 'catalogos'} onClick={() => { setCatalogosAbiertos(true); setVista('catalogos') }}>Catálogos y avisos</button>
+      <button type="button" className={vista === 'catalogos' ? 'boton-principal' : 'boton-secundario'} aria-pressed={vista === 'catalogos'} onClick={() => { setCatalogosAbiertos(true); setVista('catalogos') }}>Catálogos</button>
       <button type="button" className={vista === 'capturas' ? 'boton-principal' : 'boton-secundario'} aria-pressed={vista === 'capturas'} onClick={() => { setCapturasAbiertas(true); setVista('capturas') }}>Capturas</button>
       <div ref={setAccionesDashboard} className="co-admin-acciones-dashboard" hidden={vista !== 'dashboard'} />
     </nav>
@@ -49,6 +67,13 @@ function CatalogosAdministracion({ soloGestion = false }: { soloGestion?: boolea
   const { cuenta, datos, cargando, guardando, pendiente, error, mensaje, guardar, reintentar, actualizar } = useAdministracion()
   const [finalizando, setFinalizando] = useState<string | null>(null)
   const [horaConsulta, setHoraConsulta] = useState(() => Date.now())
+  useEffect(() => {
+    if (!soloGestion) return
+    const ahora = Date.now()
+    const espera = Math.max(0, siguienteCambioOperativo(ahora) - ahora) + 50
+    const temporizador = window.setTimeout(() => setHoraConsulta(Date.now()), espera)
+    return () => window.clearTimeout(temporizador)
+  }, [soloGestion, horaConsulta])
   const [resultadoCierre, setResultadoCierre] = useState<{ error: boolean; texto: string } | null>(null)
   const [avisoConfirmar, setAvisoConfirmar] = useState<FilaAdmin | null>(null)
   const [avisosCerrados, setAvisosCerrados] = useState<Record<string, FilaAdmin>>({})
@@ -78,15 +103,22 @@ function CatalogosAdministracion({ soloGestion = false }: { soloGestion?: boolea
   const [pagina, setPagina] = useState(1)
   const [editor, setEditor] = useState<{ tabla: TablaAdmin; original: FilaAdmin | null; clave: string } | null>(null)
   const c = configuracionAdmin(tabla), fuente = datos?.[tabla]
-  const nuevoConIcono = ['operadores', 'avisos', 'puntos_muestreo'].includes(tabla)
-  const filtrarEstado = !soloGestion && ['operadores', 'avisos', 'puntos_muestreo'].includes(tabla)
+  const nuevoConIcono = soloGestion || ['operadores', 'avisos', 'puntos_muestreo'].includes(tabla)
+  const filtrarEstado = soloGestion || ['operadores', 'avisos', 'puntos_muestreo'].includes(tabla)
+  const columnasTabla = soloGestion && tabla === 'programa_produccion' ? c.campos.filter(f => f.clave !== 'activo') : c.campos
   function registroActivo(tablaRegistro: TablaAdmin, fila: FilaAdmin) {
-    return tablaRegistro === 'avisos'
-      ? estadoAvisoGestion(avisosCerrados[fila.id] ?? fila, horaConsulta) === 'Activo'
-      : fila.activo === true
+    if (tablaRegistro === 'avisos') return estadoAvisoGestion(avisosCerrados[fila.id] ?? fila, horaConsulta) === 'Activo'
+    if (soloGestion && tablaRegistro === 'programa_produccion') {
+      return fila.activo === true && typeof fila.fecha === 'string' && fila.fecha >= fechaOperativaCalidad(horaConsulta)
+    }
+    if (tablaRegistro === 'eventos_calendario') {
+      const fechaActual = fechaMexicoAdmin(new Date(horaConsulta).toISOString()).slice(0, 10)
+      return typeof fila.fecha === 'string' && fila.fecha >= fechaActual
+    }
+    return fila.activo === true
   }
   const texto = busqueda.trim().toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-  const filas = datos && fuente ? fuente.filas.map(r => tabla === 'avisos' ? avisosCerrados[r.id] ?? r : r).filter(r => (!filtrarEstado || estadoCatalogo === 'todos' || registroActivo(tabla, r) === (estadoCatalogo === 'activos')) && c.campos.some(f => etiqueta(c, r, f.clave, datos).toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(texto))) : []
+  const filas = datos && fuente ? fuente.filas.map(r => tabla === 'avisos' ? avisosCerrados[r.id] ?? r : r).filter(r => (!filtrarEstado || estadoCatalogo === 'todos' || registroActivo(tabla, r) === (estadoCatalogo === 'activos')) && columnasTabla.some(f => etiqueta(c, r, f.clave, datos).toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(texto))) : []
   const paginas = Math.max(1, Math.ceil(filas.length / 20)), actual = Math.min(pagina, paginas)
   const bloqueado = cambiandoOperador || guardando || !!pendiente || finalizando !== null
   function abrir(original: FilaAdmin | null) {
@@ -106,7 +138,7 @@ function CatalogosAdministracion({ soloGestion = false }: { soloGestion?: boolea
     {resultadoCierre && <p className={resultadoCierre.error ? "mensaje-error" : "mensaje-exito"} role={resultadoCierre.error ? "alert" : "status"}>{resultadoCierre.texto}</p>}
     {mensaje && <p className="mensaje-exito" role="status">{mensaje}</p>}
     {pendiente && <div className="admin-pendiente" role="status"><strong>{guardando ? 'Confirmando guardado…' : 'Guardado pendiente de confirmación'}</strong><p>{configuracionAdmin(pendiente.tabla).nombre}: se conserva la misma solicitud para evitar duplicados. Comprueba el resultado antes de guardar otro registro.</p><button type="button" className="boton-principal" disabled={guardando} onClick={() => { void reintentar().then(fila => { if (fila) setEditor(null) }) }}>Comprobar / reintentar</button></div>}
-    <div className="admin-distribucion"><nav className="admin-menu" aria-label="Secciones de administración">{seccionesAdmin.filter(s => s.tabla !== 'catalogo_papeles' && (soloGestion ? ['avisos','programa_produccion','eventos_calendario'].includes(s.tabla) : !['programa_produccion','eventos_calendario','maquinas','parametros_calidad'].includes(s.tabla))).map(s => { const filasSeccion = datos && !datos[s.tabla].error ? datos[s.tabla].filas : null; const totalActivos = filasSeccion ? filasSeccion.filter(fila => registroActivo(s.tabla, fila)).length : null; const totalPestana = soloGestion ? filasSeccion?.length ?? null : totalActivos; return <button type="button" key={s.tabla} aria-current={s.tabla === tabla ? 'page' : undefined} onClick={() => { setTabla(s.tabla); setEstadoCatalogo('activos'); setBusqueda(''); setPagina(1) }}><span>{s.nombre}</span><span className={soloGestion ? 'co-gestion-total' : 'co-admin-total-activos'} data-vacio={totalPestana === 0} aria-label={soloGestion ? 'Registros' : 'Registros activos'}>{totalPestana ?? '\u2014'}</span></button> })}{<button type="button" className="co-gestion-actualizar" disabled={cargando || guardando} onClick={() => { setHoraConsulta(Date.now()); actualizar() }} data-actualizar="true" aria-label={cargando ? 'Actualizando…' : 'Actualizar'} title="Actualizar"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button>}</nav>
+    <div className="admin-distribucion"><nav className="admin-menu" aria-label="Secciones de administración">{seccionesAdmin.filter(s => s.tabla !== 'catalogo_papeles' && (soloGestion ? ['avisos','programa_produccion','eventos_calendario'].includes(s.tabla) : !['avisos','programa_produccion','eventos_calendario','maquinas','parametros_calidad'].includes(s.tabla))).map(s => { const filasSeccion = datos && !datos[s.tabla].error ? datos[s.tabla].filas : null; const totalActivos = filasSeccion ? filasSeccion.filter(fila => registroActivo(s.tabla, fila)).length : null; const totalPestana = totalActivos; return <button type="button" key={s.tabla} aria-current={s.tabla === tabla ? 'page' : undefined} onClick={() => { setTabla(s.tabla); setEstadoCatalogo('activos'); setBusqueda(''); setPagina(1) }}><span>{s.nombre}</span><span className={soloGestion ? 'co-gestion-total' : 'co-admin-total-activos'} data-vacio={totalPestana === 0} aria-label="Registros activos">{totalPestana ?? '\u2014'}</span></button> })}{<button type="button" className="co-gestion-actualizar" disabled={cargando || guardando} onClick={() => { setHoraConsulta(Date.now()); actualizar() }} data-actualizar="true" aria-label={cargando ? 'Actualizando…' : 'Actualizar'} title="Actualizar"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button>}</nav>
       <section className="panel-informacion admin-contenido" aria-labelledby="titulo-catalogo"><div className={soloGestion ? 'co-gestion-barra' : 'planta-encabezado'}><div><h2 id="titulo-catalogo">{c.nombre}</h2>{!soloGestion && <p className="co-admin-contador" aria-live="polite">{filas.length}{fuente?.limitada ? '+' : ''} {tabla === 'operadores' ? 'operadores' : tabla === 'avisos' ? 'avisos' : tabla === 'puntos_muestreo' ? 'puntos' : 'registros'}</p>}</div>
         {soloGestion && <label className="co-gestion-buscador"><span className="co-sr-only">Buscar en {c.nombre}</span><input type="search" value={busqueda} placeholder="Buscar por nombre, código, mensaje o fecha" onChange={e => { setBusqueda(e.target.value); setPagina(1) }} /></label>}
         <button type="button" className={nuevoConIcono ? 'boton-principal co-admin-nuevo' : 'boton-principal'} aria-label={nuevoConIcono ? 'Nuevo ' + c.singular : undefined} title={nuevoConIcono ? 'Nuevo ' + c.singular : undefined} onClick={() => abrir(null)} disabled={bloqueado || !!editor || !datos || fuente?.error}>{nuevoConIcono ? <Plus size={22} aria-hidden="true" /> : <>Nuevo {c.singular}</>}</button></div>
@@ -117,7 +149,7 @@ function CatalogosAdministracion({ soloGestion = false }: { soloGestion?: boolea
         {!soloGestion && <div className="co-admin-filtros"><label className="admin-busqueda"><span className="co-admin-sr">Buscar en {c.nombre}</span><input type="search" value={busqueda} placeholder={tabla === 'operadores' ? 'Buscar operador por nombre o número de empleado' : tabla === 'avisos' ? 'Buscar aviso por mensaje o fecha' : tabla === 'puntos_muestreo' ? 'Buscar punto por nombre o área' : 'Buscar por nombre, código o fecha'} onChange={e => { setBusqueda(e.target.value); setPagina(1) }} /></label>
         {filtrarEstado && <label className="co-operadores-filtro">Estado <select value={estadoCatalogo} onChange={e => { setEstadoCatalogo(e.target.value); setPagina(1) }}><option value="activos">Activos</option><option value="inactivos">{tabla === 'avisos' ? 'No activos' : 'Inactivos'}</option><option value="todos">Todos</option></select></label>}</div>}
         <p className="ayuda-turno" aria-live="polite">{filas.length} {soloGestion ? 'registros encontrados' : 'registros coinciden con la búsqueda.'}</p>
-        {tabla === 'avisos' ? <TablaAvisosGestion cuenta={cuenta} filas={datos ? filas.slice((actual - 1) * 20, actual * 20) : []} hora={horaConsulta} bloqueado={bloqueado || !!editor} finalizando={finalizando} editar={abrir} finalizar={fila => { if (estadoAvisoGestion(fila, Date.now()) === 'Activo') { setAvisoConfirmar(fila); dialogoFinalizar.current?.showModal() } }} /> : <div className="planta-tabla-scroll" tabIndex={0} role="region" aria-label="Catálogo administrativo, tabla desplazable"><table className="planta-tabla admin-tabla"><caption>{c.nombre}. Las horas de avisos se muestran en México.</caption><thead><tr>{c.campos.map(f => <th scope="col" key={f.clave}>{!soloGestion && f.clave === 'activo' ? 'Estado' : f.nombre}</th>)}<th scope="col">{soloGestion ? 'Acción' : 'Acciones'}</th></tr></thead><tbody>{datos && filas.slice((actual - 1) * 20, actual * 20).map(r => <tr key={r.id}>{c.campos.map(f => <td key={f.clave}>{!soloGestion && f.clave === 'activo' ? <span className={`co-admin-estado ${r.activo === true ? 'co-admin-activo' : 'co-admin-inactivo'}`}><span aria-hidden="true" />{r.activo === true ? 'Activo' : 'Inactivo'}</span> : <span className={f.tipo === 'largo' ? 'planta-resumen-captura' : ''}>{etiqueta(c, r, f.clave, datos)}</span>}</td>)}<td><div className="admin-acciones-aviso"><button type="button" className="boton-secundario" onClick={() => abrir(r)} disabled={bloqueado || !!editor}>Editar</button>{tabla === 'operadores' && <button type="button" className="boton-secundario" disabled={bloqueado || !!editor} onClick={() => { void cambiarEstadoOperador(r) }}>{r.activo === true ? 'Desactivar' : 'Reactivar'}</button>}</div></td></tr>)}</tbody></table></div>}
+        {tabla === 'avisos' ? <TablaAvisosGestion cuenta={cuenta} filas={datos ? filas.slice((actual - 1) * 20, actual * 20) : []} hora={horaConsulta} bloqueado={bloqueado || !!editor} finalizando={finalizando} editar={abrir} finalizar={fila => { if (estadoAvisoGestion(fila, Date.now()) === 'Activo') { setAvisoConfirmar(fila); dialogoFinalizar.current?.showModal() } }} /> : <div className="planta-tabla-scroll" tabIndex={0} role="region" aria-label="Catálogo administrativo, tabla desplazable"><table className="planta-tabla admin-tabla"><caption>{c.nombre}. Las horas de avisos se muestran en México.</caption><thead><tr>{columnasTabla.map(f => <th scope="col" key={f.clave}>{!soloGestion && f.clave === 'activo' ? 'Estado' : f.nombre}</th>)}<th scope="col">{soloGestion ? 'Acción' : 'Acciones'}</th></tr></thead><tbody>{datos && filas.slice((actual - 1) * 20, actual * 20).map(r => <tr key={r.id}>{columnasTabla.map(f => <td key={f.clave}>{!soloGestion && f.clave === 'activo' ? <span className={`co-admin-estado ${r.activo === true ? 'co-admin-activo' : 'co-admin-inactivo'}`}><span aria-hidden="true" />{r.activo === true ? 'Activo' : 'Inactivo'}</span> : <span className={f.tipo === 'largo' ? 'planta-resumen-captura' : ''}>{etiqueta(c, r, f.clave, datos)}</span>}</td>)}<td><div className="admin-acciones-aviso"><button type="button" className="boton-secundario" onClick={() => abrir(r)} disabled={bloqueado || !!editor}>Editar</button>{tabla === 'operadores' && <button type="button" className="boton-secundario" disabled={bloqueado || !!editor} onClick={() => { void cambiarEstadoOperador(r) }}>{r.activo === true ? 'Desactivar' : 'Reactivar'}</button>}</div></td></tr>)}</tbody></table></div>}
         {!filas.length && <p className="planta-vacio">{cargando && !datos ? 'Consultando…' : fuente?.error ? 'La consulta no está disponible.' : 'No hay registros que coincidan. Puedes agregar uno con el botón Nuevo.'}</p>}
         <div className="planta-paginacion"><button type="button" className="boton-secundario" disabled={actual <= 1} onClick={() => setPagina(actual - 1)}>Anterior</button><span>Página {actual} de {paginas}</span><button type="button" className="boton-secundario" disabled={actual >= paginas} onClick={() => setPagina(actual + 1)}>Siguiente</button></div>
       </section></div>

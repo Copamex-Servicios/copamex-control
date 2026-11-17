@@ -33,12 +33,12 @@ export function LecturaPozosGuardada({
       <CabeceraRegistroGuardado titulo="Pozos" tituloId={`${id}-titulo`} turno={turno} operador={operadorNombre}>
         <div><dt>Estado del turno</dt><dd>{turno.finalizado_en === null ? 'Abierto' : 'Cerrado'}</dd></div>
         <div>
-          <dt>Captura (México)</dt>
+          <dt>Captura</dt>
           <dd><time dateTime={lectura.capturado_en}>{formatoHora.format(new Date(lectura.capturado_en))}</time></dd>
         </div>
         {turno.finalizado_en !== null && (
           <div>
-            <dt>Cierre del turno (México)</dt>
+            <dt>Cierre del turno</dt>
             <dd><time dateTime={turno.finalizado_en}>{formatoHora.format(new Date(turno.finalizado_en))}</time></dd>
           </div>
         )}
