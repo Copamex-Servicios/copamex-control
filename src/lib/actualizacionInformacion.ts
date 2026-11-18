@@ -1,7 +1,9 @@
 const evento = 'copamex:informacion-actualizada'
 const canal = 'copamex:informacion-dia'
-// Un minuto entre consultas automáticas para pantallas que permanecen abiertas 24/7.
+// Cinco minutos para avisos del día, producción y eventos.
 export const intervaloInformacion = 300000
+// Tres minutos para el aviso general que se comparte con operadores.
+export const intervaloAviso = 180000
 
 // Solo comunica que hay cambios: se consultan los datos con la sesión y RLS vigentes.
 export function notificarInformacionActualizada(): void {

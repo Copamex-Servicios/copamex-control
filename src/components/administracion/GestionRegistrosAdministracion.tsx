@@ -5,9 +5,8 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import type { FiltrosPlanta } from '../../lib/planta'
 import { consultarPeriodoTecnicoCompleto } from '../../lib/consultarConsolidadoTecnico'
-import { fechaMexicoAdmin } from '../../lib/administracion'
 import { exigirAdminRevision } from '../../lib/revisionCapturas'
-import { consultarTecnicoAdmin, consultarHistorialTecnico, guardarCorreccionTecnica, leerDetalleTecnico, pendienteTecnica, prepararCorreccionTecnica } from '../../lib/revisionTecnica'
+import { consultarTecnicoAdmin, guardarCorreccionTecnica, pendienteTecnica, prepararCorreccionTecnica } from '../../lib/revisionTecnica'
 import type { DetalleTecnicoAdmin, FilaTecnicaAdmin } from '../../lib/revisionTecnica'
 import { ConsolidadoReportesTecnicos } from './ConsolidadoReportesTecnicos'
 import { DetalleReporteCalderasPlanta } from '../planta/DetalleReporteCalderasPlanta'
@@ -16,7 +15,6 @@ import { FormularioBitacoraCalderas } from '../bitacora/FormularioBitacoraCalder
 import { FormularioBitacoraPTAR } from '../bitacora/FormularioBitacoraPTAR'
 import './gestionRegistros.css'
 
-const hora = (v: string) => fechaMexicoAdmin(v).replace('T', ' ')
 const PanelPozos = lazy(() => import('../pozos/PanelPozos').then(m => ({ default: m.PanelPozos })))
 const PanelUF = lazy(() => import('../uf/PanelUF').then(m => ({ default: m.PanelUF })))
 const seccionesCapturas = [
@@ -53,30 +51,6 @@ function PresentarTecnico({ detalle }: { detalle: DetalleTecnicoAdmin }) {
   return detalle.area === 'calderas' ? <div className="bc-panel"><DetalleReporteCalderasPlanta reporte={detalle.reporte} /></div>
     : <div className="bpt-panel"><DetalleReportePTARPlanta reporte={detalle.reporte} /></div>
 }
-function HistorialTecnico({ cuenta, detalle }: { cuenta: string; detalle: DetalleTecnicoAdmin }) {
-  const [pagina, setPagina] = useState(0)
-  const [vista, setVista] = useState<{ pagina: number; datos: Awaited<ReturnType<typeof consultarHistorialTecnico>> | null; error: string | null } | null>(null)
-  useEffect(() => {
-    let vivo = true; const control = new AbortController(), limite = window.setTimeout(() => control.abort(), 20000)
-    void consultarHistorialTecnico(cuenta, detalle, pagina, control.signal).then(datos => { if (vivo) setVista({ pagina, datos, error: null }) })
-      .catch(e => { if (vivo) setVista({ pagina, datos: null, error: e instanceof Error ? e.message : 'No se pudo consultar el historial.' }) })
-      .finally(() => window.clearTimeout(limite))
-    return () => { vivo = false; control.abort(); window.clearTimeout(limite) }
-  }, [cuenta, detalle, pagina])
-  const actual = vista?.pagina === pagina ? vista : null
-  return <section className="revision-historial"><h3>Historial de modificaciones</h3>
-    {!actual ? <p role="status">Consultando…</p> : actual.error ? <p role="alert" className="mensaje-error">{actual.error}</p> : <>
-      {!actual.datos?.filas.length && <p>Sin correcciones registradas.</p>}
-      {actual.datos?.filas.map(r => <details className="revision-evento" key={r.id}>
-        <summary>Corrección · {hora(r.creado_en)} · {r.responsable_nombre}</summary><p className="notas-turno"><strong>Motivo:</strong> {r.motivo}</p>
-        <details><summary>Antes</summary><PresentarTecnico detalle={leerDetalleTecnico(r.antes, detalle.fila)} /></details>
-        <details><summary>Después</summary><PresentarTecnico detalle={leerDetalleTecnico(r.despues, detalle.fila)} /></details>
-        <details><summary>Detalles técnicos</summary><pre>{JSON.stringify(r, null, 2)}</pre></details>
-      </details>)}
-    </>}
-    <div className="planta-paginacion"><button type="button" className="boton-secundario" disabled={!pagina || !actual} onClick={() => setPagina(n => n - 1)}>Anterior</button><span>Página {pagina + 1}</span><button type="button" className="boton-secundario" disabled={!actual?.datos?.mas} onClick={() => setPagina(n => n + 1)}>Siguiente</button></div>
-  </section>
-}
 function ReportesTecnicosAdmin() {
   const { estado, perfil, sesion } = useAuth()
   const cuenta = estado === 'autenticado' && perfil?.activo && perfil.rol === 'admin' && perfil.id === sesion?.user.id ? perfil.id : null
@@ -85,6 +59,7 @@ function ReportesTecnicosAdmin() {
   const [intentoPeriodo, setIntentoPeriodo] = useState(0)
   const [revision, setRevision] = useState(0)
   const [fila, setFila] = useState<FilaTecnicaAdmin | null>(() => cuenta ? pendienteTecnica(cuenta)?.detalle.fila ?? null : null)
+  const [iniciarEdicion, setIniciarEdicion] = useState(false)
   const [vista, setVista] = useState<{ clave: string; detalle: DetalleTecnicoAdmin | null; error: string | null } | null>(null)
   useEffect(() => {
     if (!cuenta) return
@@ -120,11 +95,11 @@ function ReportesTecnicosAdmin() {
     {!periodoActual && !errorPeriodoActual && <p role="status">Preparando el historial técnico desde el primer reporte hasta hoy…</p>}
     {fila && <section className="panel-informacion">
       {!detalle ? actual?.error ? <><p role="alert" className="mensaje-error">{actual.error}</p><button type="button" className="boton-secundario" onClick={() => setRevision(n => n + 1)}>Reintentar detalle</button></> : <p role="status">Consultando reporte técnico…</p> :
-        <EditorTecnico key={`${cuenta}:${fila.id}`} cuenta={cuenta} detalle={detalle} cerrar={() => { setFila(null); setVista(null); setRevision(n => n + 1) }} guardado={d => { setVista({ clave, detalle: d, error: null }) }} />}
-      {!detalle && <button type="button" className="boton-secundario" onClick={() => setFila(null)}>Cerrar detalle</button>}
+        <EditorTecnico key={`${cuenta}:${fila.id}`} cuenta={cuenta} detalle={detalle} iniciarEdicion={iniciarEdicion} cerrar={() => { setFila(null); setIniciarEdicion(false); setVista(null); setRevision(n => n + 1) }} guardado={d => { setVista({ clave, detalle: d, error: null }) }} />}
+      {!detalle && <button type="button" className="boton-secundario" onClick={() => { setFila(null); setIniciarEdicion(false) }}>Cerrar detalle</button>}
     </section>}
     {filtros && <div hidden={!!fila}>
-      <ConsolidadoReportesTecnicos key={`${cuenta}:${JSON.stringify(filtros)}:${revision}`} cuenta={cuenta} filtros={filtros} corregir={setFila} />
+      <ConsolidadoReportesTecnicos key={`${cuenta}:${JSON.stringify(filtros)}:${revision}`} cuenta={cuenta} filtros={filtros} corregir={(seleccionada, editar) => { setFila(seleccionada); setIniciarEdicion(!!editar) }} />
     </div>}
   </div>
 }
@@ -145,23 +120,22 @@ export function EditorTecnico({ cuenta, detalle, cerrar, guardado, iniciarEdicio
     } catch (e) { try { exigirAdminRevision(cuenta); setError(e instanceof Error ? e.message : 'No se confirmó la corrección.') } catch { /* La cuenta anterior no recibe datos de otra sesión. */ } }
     finally { activo.current = false; setGuardando(false) }
   }
-  const historial = <HistorialTecnico cuenta={cuenta} detalle={detalle} />
   return <div className={`gestion-editor-tecnico${iniciarEdicion ? ' co-pendiente-editor' : ''}`} aria-busy={guardando}>
     <div className="planta-encabezado"><h3>Reporte técnico · {detalle.area === 'calderas' ? 'Calderas' : 'PTAR'} · Revisión {detalle.reporte.revision}</h3><button type="button" className="boton-secundario" disabled={bloqueado} onClick={cerrar}>Cerrar detalle</button></div>
-    {error && <p role="alert" className="mensaje-error">{error}</p>}{exito && <p role="status" className="mensaje-exito">Corrección confirmada. Motivo e historial registrados.</p>}
+    {error && <p role="alert" className="mensaje-error">{error}</p>}{exito && <p role="status" className="mensaje-exito">Corrección confirmada.</p>}
     {pendiente && <div className="admin-pendiente"><strong>Corrección pendiente de confirmación</strong><p>Se conserva la solicitud original y su motivo.</p><button type="button" className="boton-principal" disabled={guardando} onClick={() => { void guardar() }}>Comprobar / reintentar</button></div>}
-    {!editando ? <><PresentarTecnico detalle={detalle} /><button type="button" className="boton-principal" disabled={bloqueado} onClick={() => { setBorrador(detalle.reporte.borrador); setMotivo(''); setEditando(true); setExito(false) }}>Corregir reporte técnico</button>{historial}</> :
+    {!editando ? <><PresentarTecnico detalle={detalle} /><button type="button" className="boton-principal" disabled={bloqueado} onClick={() => { setBorrador(detalle.reporte.borrador); setMotivo(''); setEditando(true); setExito(false) }}>Corregir reporte técnico</button></> :
       <form noValidate onSubmit={e => { e.preventDefault(); void guardar() }}>
         {detalle.area === 'calderas' && 'equipos' in borrador ? <div className="bc-panel"><FormularioBitacoraCalderas completarAdministracion={iniciarEdicion ? {
           guardando, confirmado: exito, incierto: !!pendiente, guardar: () => { void guardar() }, cerrar,
           contenidoFinal: <label className="gestion-motivo">Motivo obligatorio<textarea required maxLength={4000} rows={3} value={motivo} disabled={bloqueado} onChange={e => setMotivo(e.target.value)} /></label>,
         } : undefined} captura={{ reporte: detalle.reporte, borrador, editable: !bloqueado, unidadPresion: detalle.reporte.unidadCondensado,
-          cambiarBorrador: cambio => setBorrador(b => 'equipos' in b ? cambio(b) : b) }} observaciones={historial} /></div>
+          cambiarBorrador: cambio => setBorrador(b => 'equipos' in b ? cambio(b) : b) }} observaciones={null} ocultarHistorial /></div>
           : detalle.area === 'ptar' && 'bombas' in borrador ? <div className="bpt-panel"><FormularioBitacoraPTAR completarAdministracion={iniciarEdicion ? {
             guardando, confirmado: exito, incierto: !!pendiente, guardar: () => { void guardar() }, cerrar,
             contenidoFinal: <label className="gestion-motivo">Motivo obligatorio<textarea required maxLength={4000} rows={3} value={motivo} disabled={bloqueado} onChange={e => setMotivo(e.target.value)} /></label>,
           } : undefined} captura={{ reporte: detalle.reporte, borrador, editable: !bloqueado,
-            cambiarBorrador: cambio => setBorrador(b => 'bombas' in b ? cambio(b) : b) }} observaciones={historial} /></div> : null}
+            cambiarBorrador: cambio => setBorrador(b => 'bombas' in b ? cambio(b) : b) }} turnoTipo={detalle.fila.turno} observaciones={null} ocultarHistorial /></div> : null}
         {!iniciarEdicion && <><label className="gestion-motivo">Motivo obligatorio<textarea required maxLength={4000} rows={3} value={motivo} disabled={bloqueado} onChange={e => setMotivo(e.target.value)} /></label>
         <div className="acciones-turno"><button type="submit" className="boton-principal" disabled={bloqueado}>{guardando ? 'Guardando…' : 'Guardar corrección'}</button><button type="button" className="boton-secundario" disabled={bloqueado} onClick={() => setEditando(false)}>Cancelar</button></div></>}
       </form>}

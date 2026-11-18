@@ -25,7 +25,7 @@ function Apartado({ indice, activo, prefijo, children }: { indice: number; activ
 }
 type CamposFormulario = Pick<ReturnType<typeof useReporteCalderas>, 'borrador' | 'cambiarBorrador' | 'editable' | 'reporte' | 'unidadPresion'>
 type NavegacionCompletarAdmin = { guardando: boolean; confirmado: boolean; incierto: boolean; guardar: () => void; cerrar: () => void; contenidoFinal?: ReactNode }
-export function FormularioBitacoraCalderas({ captura, observaciones, nombresOperadores, completarAdministracion }: { captura: ReturnType<typeof useReporteCalderas> | CamposFormulario; observaciones: ReactNode; nombresOperadores?: readonly string[]; completarAdministracion?: NavegacionCompletarAdmin }) {
+export function FormularioBitacoraCalderas({ captura, observaciones, nombresOperadores, completarAdministracion, ocultarHistorial = false }: { captura: ReturnType<typeof useReporteCalderas> | CamposFormulario; observaciones: ReactNode; nombresOperadores?: readonly string[]; completarAdministracion?: NavegacionCompletarAdmin; ocultarHistorial?: boolean }) {
   const prefijo = useId()
   const { raiz: raizValidacion, faltas: faltasValidacion, revisar: revisarValidacion, alCambiar: actualizarValidacion } = useValidacionReporte()
   const [activo, setActivo] = useState(0)
@@ -46,7 +46,7 @@ export function FormularioBitacoraCalderas({ captura, observaciones, nombresOper
     return () => window.cancelAnimationFrame(frame)
   }, [activo])
   const { borrador, cambiarBorrador: setBorrador, editable: habilitado } = captura
-  const pestanasVisibles = completarAdministracion ? pestanas.slice(0, -1) : pestanas
+  const pestanasVisibles = completarAdministracion || ocultarHistorial ? pestanas.slice(0, -1) : pestanas
   const operacion = 'guardar' in captura ? captura : null
   const ayudaGuardado = operacion?.guardando ? 'Esperando confirmación del servidor…' : captura.reporte ? null
     : operacion?.estado === 'cargando' ? 'Consultando el reporte técnico del turno…'

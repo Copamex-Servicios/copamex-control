@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { consultarSeguimiento } from '../lib/seguimientoCalidad'
 import type { SeguimientoCalidad } from '../lib/seguimientoCalidad'
-import { escucharCambiosInformacion, intervaloInformacion } from '../lib/actualizacionInformacion'
+import { escucharCambiosInformacion, intervaloAviso } from '../lib/actualizacionInformacion'
 
 export function useSeguimientoCalidad(cuenta: string) {
   const [revision, setRevision] = useState(0)
@@ -18,7 +18,7 @@ export function useSeguimientoCalidad(cuenta: string) {
   },[cuenta,revision])
   useEffect(() => {
     const refrescar = () => { if (document.visibilityState === 'visible') actualizar() }
-    const intervalo = window.setInterval(refrescar,intervaloInformacion)
+    const intervalo = window.setInterval(refrescar,intervaloAviso)
     const limpiar = escucharCambiosInformacion(refrescar)
     document.addEventListener('visibilitychange',refrescar)
     window.addEventListener('focus',refrescar)

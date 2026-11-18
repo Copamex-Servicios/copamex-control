@@ -41,6 +41,5 @@ export function ReportesRelevantesOperadores({ area, texto, reportes, nombres, h
           cambiar(resumenReportesIndividuales(nuevos), nuevos)
         }} />
     </label>)}
-    <p className={area === 'calderas' ? 'bc-ayuda' : 'bpt-ayuda'}>Cada operador escribe lo que ocurrió y las actividades que realizó. Máximo 4,000 caracteres entre ambos reportes.</p>
   </div>
 }

@@ -6,9 +6,10 @@ export interface SeguimientoCalidad {
   id: string; tipo: string; area: 'calderas' | 'ptar'; punto_id: string; parametro_id: string
   instruccion: string; creado_por: string
 }
+export type TipoLecturaColor = 'color_m4' | 'color_m2' | 'color_aimsu'
 export interface SolicitudSeguimiento {
   id: string; operacion: 'activar' | 'finalizar' | 'lectura'; instruccion?: string
-  turno?: string; seguimiento?: string | null; valor?: number
+  turno?: string; seguimiento?: string | null; valor?: number; tipo?: TipoLecturaColor
 }
 export class ErrorSeguimiento extends Error {
   readonly incierto: boolean
@@ -47,12 +48,17 @@ const memoria = new Map<string, SolicitudSeguimiento>()
 const clave = (cuenta: string) => 'copamex:seguimiento-pendiente:' + cuenta
 export function pendienteSeguimiento(cuenta: string): SolicitudSeguimiento | null {
   const actual = memoria.get(cuenta)
-  if (actual) return actual
+  if (actual) {
+    if (actual.operacion === 'lectura' && !actual.tipo) actual.tipo = 'color_m4'
+    return actual
+  }
   try {
     const s = JSON.parse(sessionStorage.getItem(clave(cuenta)) ?? 'null') as SolicitudSeguimiento | null
     if (!s || !uuid(s.id) || !['activar','finalizar','lectura'].includes(s.operacion)) return null
     if (s.operacion === 'activar' && (typeof s.instruccion !== 'string' || !s.instruccion.trim() || s.instruccion.length > 4000)) return null
-    if (s.operacion === 'lectura' && (!uuid(s.turno) || (s.seguimiento != null && !uuid(s.seguimiento)) || typeof s.valor !== 'number' || !Number.isFinite(s.valor))) return null
+    if (s.operacion === 'lectura' && (!uuid(s.turno) || (s.seguimiento != null && !uuid(s.seguimiento)) || typeof s.valor !== 'number' || !Number.isFinite(s.valor)
+      || (s.tipo !== undefined && !['color_m4','color_m2','color_aimsu'].includes(s.tipo)))) return null
+    if (s.operacion === 'lectura' && !s.tipo) s.tipo = 'color_m4'
     memoria.set(cuenta,s); return s
   } catch { return null }
 }
@@ -68,13 +74,17 @@ export async function ejecutarSeguimiento(cuenta: string, nueva: SolicitudSeguim
     ? await supabase.rpc('activar_seguimiento_calidad',{ p_id:s.id,p_tipo:'color_m4',p_instruccion:s.instruccion }).abortSignal(signal)
     : s.operacion === 'finalizar'
       ? await supabase.rpc('finalizar_seguimiento_calidad',{ p_id:s.id }).abortSignal(signal)
-      : await supabase.rpc('guardar_lectura_seguimiento_calidad',{ p_id:s.id,p_turno:s.turno,p_seguimiento:s.seguimiento,p_valor:s.valor }).abortSignal(signal)
+      : await supabase.rpc('guardar_lectura_adicional_calidad',{ p_id:s.id,p_turno:s.turno,p_tipo:s.tipo ?? 'color_m4',p_valor:s.valor,p_seguimiento:s.seguimiento ?? null }).abortSignal(signal)
   exigir(cuenta,s.operacion)
   if (r.error) {
     const conocido = /^(?:[0-9]{2}[0-9A-Z]{3}|P[0-9]{4}|XX[0-9]{3}|PGRST\d{3})$/.test(r.error.code ?? '')
-    if (conocido) conservar(cuenta,null)
+    // Un PGRST202 significa que aún no existe la RPC (migración pendiente);
+    // conserva la misma solicitud para que pueda reintentarse después de instalarla.
+    if (['42501','22023','23505'].includes(r.error.code ?? '')) conservar(cuenta,null)
     throw new ErrorSeguimiento(conocido
-      ? ['42501','22023','23505'].includes(r.error.code) ? r.error.message : 'El servidor rechazó la operación. Actualiza y reintenta.'
+      ? r.error.code === 'PGRST202' && s.operacion === 'lectura'
+        ? 'Las lecturas adicionales requieren aplicar la migración 20261118000300 en Supabase.'
+        : ['42501','22023','23505'].includes(r.error.code) ? r.error.message : 'El servidor rechazó la operación. Actualiza y reintenta.'
       : 'No se confirmó la operación. Reintenta la misma solicitud.',!conocido)
   }
   if (r.data !== s.id) throw new ErrorSeguimiento('La respuesta no confirma la solicitud. Reintenta.',true)

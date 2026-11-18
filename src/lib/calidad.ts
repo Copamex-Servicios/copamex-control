@@ -97,7 +97,7 @@ function leerLecturaCalidad(v: unknown, incierto: boolean): LecturaCalidad {
     throw new ErrorCalidad('La muestra contiene resultados repetidos. Actualiza.', incierto)
   }
   return { id, turno_id, hora_muestra, notas, capturado_en, recibido_en, creado_por, eliminado_en, eliminado_por, resultados,
-    ...(seguimientoId ? { seguimientoId: seguimientoId as string } : {}), esAdicionalColorM4: valorAdicional !== null }
+    ...(seguimientoId ? { seguimientoId: seguimientoId as string } : {}), esAdicional: valorAdicional !== null }
 }
 export function leerRegistroCalidad(v: unknown, incierto = false): RegistroCalidad {
   const m = objeto(v, incierto), t = objeto(m.turno, incierto), o = objeto(t.operador, incierto)

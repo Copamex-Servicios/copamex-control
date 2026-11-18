@@ -15,7 +15,7 @@ import { PaginacionHistorial } from '../diseno/PaginacionHistorial'
 import { CrearReporteTecnicoHistoricoDialogo } from './CrearReporteTecnicoHistoricoDialogo'
 import './consolidadoTecnico.css'
 
-interface Props { cuenta: string; filtros: FiltrosPlanta; corregir: (fila: FilaTecnicaAdmin) => void }
+interface Props { cuenta: string; filtros: FiltrosPlanta; corregir: (fila: FilaTecnicaAdmin, iniciarEdicion?: boolean) => void }
 const fecha = (s: string) => s.split('-').reverse().join('/')
 const turnos = ['dia', 'tarde', 'noche'] as const satisfies readonly TipoTurno[]
 const turnosEtiqueta: Record<TipoTurno, string> = { dia: 'Día', tarde: 'Tarde', noche: 'Noche' }
@@ -264,7 +264,7 @@ export function ContenidoDia({ cuenta, dia, filtros, corregir, actualizar }: Omi
           {fila ? <div className="ct-acciones"><button type="button" className="boton-secundario ct-icono-accion" aria-label={abierto ? `Ocultar reporte del turno ${nombreTurnoTecnico[turno]}` : `Ver reporte del turno ${nombreTurnoTecnico[turno]}`} title={abierto ? 'Ocultar reporte' : 'Ver reporte'} aria-expanded={abierto} aria-controls={detalleId} onClick={() => { void ver(fila) }}>
             {abierto ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 10.6a2 2 0 002.8 2.8"/><path d="M9.9 5.2A11.2 11.2 0 0121 12a11.7 11.7 0 01-3.1 4.2M6.2 6.2A11.4 11.4 0 003 12s3 7 9 7a9.3 9.3 0 003.2-.6"/></svg>
               : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2.5 12s3.3-7 9.5-7 9.5 7 9.5 7-3.3 7-9.5 7-9.5-7-9.5-7z"/><circle cx="12" cy="12" r="2.7"/></svg>}
-          </button><button type="button" className="boton-secundario ct-icono-accion" aria-label={`Corrección administrativa del turno ${nombreTurnoTecnico[turno]}`} title="Corrección administrativa" disabled={exportando} onClick={() => corregir(fila)}>
+          </button><button type="button" className="boton-secundario ct-icono-accion" aria-label={`Corrección administrativa del turno ${nombreTurnoTecnico[turno]}`} title="Corrección administrativa" disabled={exportando} onClick={() => corregir(fila, true)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L8 18l-4 1 1-4z"/></svg>
           </button></div> : puedeAgregar ? <div className="ct-acciones"><button type="button" className="boton-secundario ct-icono-accion ct-alta-historica-abrir"
             aria-label={`Agregar reporte de ${area === 'calderas' ? 'Calderas' : 'PTAR'} del turno ${turnosEtiqueta[turno]} del ${fecha(dia.fecha)}`}

@@ -60,6 +60,7 @@ export function leerReportePTAR(snapshot: unknown, turnoId: string): ReporteTecn
   borrador.estadoAgitador = opcion(r.estado_agitador_9300, ['Servicio', 'Reserva', 'Mantenimiento'])
   borrador.destinoDescarga = opcion(r.destino_descarga_daf, destinosDescargaPTAR)
   borrador.horasDescarga = { tanque11: numero(r.horas_descarga_tanque_11), tanques56: numero(r.horas_descarga_tanques_5_6) }
+  borrador.horasBombaP6 = numero(r.horas_bomba_p6)
   for (const n of bombasBitacoraPTAR) {
     const modo = opcion(r[`modo_bomba_${n}`], ['A', 'M'])
     borrador.bombas[n] = modo === 'A' ? 'Automático (A)' : modo === 'M' ? 'Manual (M)' : ''
@@ -97,6 +98,7 @@ export function prepararDatosPTAR(b: BorradorBitacoraPTAR, original?: BorradorBi
     estadoAgitador: elegir(b.estadoAgitador, ['Servicio', 'Reserva', 'Mantenimiento'], 'Estado del agitador 9300'),
     destinoDescarga: elegir(b.destinoDescarga, destinosDescargaPTAR, 'Descarga del DAF Chino'),
     horasDescarga: { tanque11: horas(b.horasDescarga.tanque11, 'tanque 11'), tanques56: horas(b.horasDescarga.tanques56, 'tanques 5 y 6') },
+    horasBombaP6: horas(b.horasBombaP6, 'de operación de la bomba P6'),
     bombas: Object.fromEntries(bombasBitacoraPTAR.map(n => [n, elegir(b.bombas[n], ['Automático (A)', 'Manual (M)'], `Modo de la bomba ${n}`)])),
     prensas: Object.fromEntries(prensasBitacoraPTAR.map(n => [n, elegir(b.prensas[n], ['Servicio', 'Reserva', 'Mantenimiento'], `Estado de la prensa ${n}`)])),
     comentarioPrensas: normalizarNota(b.comentarioPrensas),

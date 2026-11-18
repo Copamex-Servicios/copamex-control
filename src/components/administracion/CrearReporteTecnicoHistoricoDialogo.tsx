@@ -5,7 +5,7 @@ import type { AreaOperativa, TipoTurno } from '../../lib/tiposTurno'
 import { borradorBitacoraCalderas } from '../../lib/tiposBitacoraCalderas'
 import type { BorradorBitacoraCalderas } from '../../lib/tiposBitacoraCalderas'
 import { prepararDatosCalderas } from '../../lib/bitacoraTecnicaCalderas'
-import { borradorBitacoraPTAR } from '../../lib/tiposBitacoraPTAR'
+import { borradorBitacoraPTAR, calcularHorasTanques56PTAR } from '../../lib/tiposBitacoraPTAR'
 import type { BorradorBitacoraPTAR } from '../../lib/tiposBitacoraPTAR'
 import { prepararDatosPTAR } from '../../lib/bitacoraTecnicaPTAR'
 import { FormularioBitacoraCalderas } from '../bitacora/FormularioBitacoraCalderas'
@@ -230,7 +230,14 @@ export function CrearReporteTecnicoHistoricoDialogo({ cuenta, fecha, area, turno
         </header>
         <div className="ct-alta-historica-cuerpo">
           <div className="ct-alta-historica-identidad">
-            <label>Turno<select value={turno} disabled={bloqueado} onChange={e => setTurno(e.target.value as TipoTurno)}>
+            <label>Turno<select value={turno} disabled={bloqueado} onChange={e => {
+              const nuevoTurno = e.target.value as TipoTurno
+              setTurno(nuevoTurno)
+              setBorrador(actual => 'bombas' in actual ? { ...actual, horasDescarga: {
+                ...actual.horasDescarga,
+                tanques56: calcularHorasTanques56PTAR(nuevoTurno, actual.horasDescarga.tanque11),
+              } } : actual)
+            }}>
               {opcionesTurno.map(opcion => <option key={opcion} value={opcion}>{etiquetaTurno[opcion]}</option>)}
             </select></label>
             <label className="ct-alta-historica-operador">Número de empleado del operador
@@ -284,7 +291,7 @@ export function CrearReporteTecnicoHistoricoDialogo({ cuenta, fecha, area, turno
                   }
                   return <div className="bpt-panel"><FormularioBitacoraPTAR
                     completarAdministracion={{ guardando, confirmado, incierto, guardar: () => { void guardar() }, cerrar: () => salir(), contenidoFinal: null }}
-                    captura={capturaPTAR} observaciones={null} nombresOperadores={nombres} /></div>
+                    captura={capturaPTAR} turnoTipo={turno} observaciones={null} nombresOperadores={nombres} /></div>
                 })() : null}
           </>}
           {error && <p role="alert" className="mensaje-error ct-alta-historica-error">{error}</p>}

@@ -90,7 +90,7 @@ export function CompletarPendiente({ cuenta, turno, cerrar }: { cuenta: string; 
     {'equipos' in borrador ? <div className="bc-panel"><FormularioBitacoraCalderas completarAdministracion={{ guardando, confirmado, incierto, guardar: () => { void guardar() }, cerrar }} captura={{ borrador,reporte:null,editable,unidadPresion:'kg/cm²',
       cambiarBorrador: cambiar => { if(editable) setBorrador(b => 'equipos' in b ? cambiar(b) : b) } }} observaciones={null} nombresOperadores={turno.operador_acompanante ? [turno.operador, turno.operador_acompanante] : undefined} /></div>
       : <div className="bpt-panel"><FormularioBitacoraPTAR completarAdministracion={{ guardando, confirmado, incierto, guardar: () => { void guardar() }, cerrar }} captura={{ borrador,reporte:null,editable,
-        cambiarBorrador: cambiar => { if(editable) setBorrador(b => 'bombas' in b ? cambiar(b) : b) } }} observaciones={null} nombresOperadores={turno.operador_acompanante ? [turno.operador, turno.operador_acompanante] : undefined} /></div>}
+        cambiarBorrador: cambiar => { if(editable) setBorrador(b => 'bombas' in b ? cambiar(b) : b) } }} turnoTipo={turno.turno} observaciones={null} nombresOperadores={turno.operador_acompanante ? [turno.operador, turno.operador_acompanante] : undefined} /></div>}
     {mensaje && !confirmado && <p role="alert">{mensaje}</p>}
     <ConfirmacionGuardadoTecnico abierto={guardando || confirmado} guardando={guardando}
       alAceptar={cerrar} />

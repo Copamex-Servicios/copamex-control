@@ -41,3 +41,6 @@
 .co-color-m4-dialogo label { display:grid; gap:8px; margin-bottom:20px; }
 .co-color-m4-dialogo input { box-sizing:border-box; width:100%; padding:12px; border:1px solid #b9cae3; border-radius:8px; color:inherit; background:#fff; font:inherit; }
 .co-color-m4-dialogo .acciones-turno { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:10px; }
+.co-layout .co-colores-adicionales { display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:8px; }
+.co-layout .co-colores-adicionales .co-tomar-color-m4 { margin:0; white-space:nowrap; }
+@media(max-width:600px) { .co-layout .co-colores-adicionales { justify-content:flex-start; } }

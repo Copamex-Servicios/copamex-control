@@ -94,7 +94,7 @@ export async function consultarAdicionalesTurnoCalidad(grupo: TurnoPlanta, signa
     if (total !== null && total !== r.count) throw new Error('Las lecturas adicionales cambiaron. Actualiza el turno.')
     total=r.count
     const lote=r.data.map(v=>leerRegistroCalidad(v))
-    if (lote.some(m=>!m.lectura.esAdicionalColorM4 || m.turno.id!==grupo.turno.id
+    if (lote.some(m=>!m.lectura.esAdicional || m.turno.id!==grupo.turno.id
       || m.turno.area!==grupo.turno.area || m.turno.fecha_operativa!==grupo.turno.fecha_operativa)) {
       throw new Error('Una lectura adicional no pertenece al turno consultado.')
     }

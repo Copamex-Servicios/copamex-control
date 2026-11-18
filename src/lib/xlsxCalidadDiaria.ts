@@ -75,7 +75,7 @@ export function crearXlsxCalidadDiaria(m: MatrizCalidadDiaria, logo?: Uint8Array
       banda('COMENTARIOS · TURNO '+nombresTurnoCalidad[t.tipo].toUpperCase(),2)
       const notas=t.filas.filter(f=>f.notas)
       if(!notas.length)banda(t.filas.length?'Sin comentarios registrados.':'Sin muestras',0)
-      for(const f of notas)banda(f.hora+' · '+f.operador+' · '+f.notas,0)
+      for(const f of notas)banda(f.hora+' · '+f.notas,0)
       banda('OPERADORES · TURNO '+nombresTurnoCalidad[t.tipo].toUpperCase(),2)
       if(!t.filas.length)banda('Sin muestras',0)
       for(const operador of operadoresCalidad(t))banda(operador,0)

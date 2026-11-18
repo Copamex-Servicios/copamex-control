@@ -41,7 +41,7 @@ export function crearPdfCalidadDiaria(m: MatrizCalidadDiaria, fuente: string, lo
     const body:RowInput[]=[]
     for(const t of m.turnos){
       if(!t.filas.length)body.push([{content:nombresTurnoCalidad[t.tipo]+': Sin muestras',colSpan:n}])
-      for(const f of t.filas)body.push([f.hora,...(b.columnas.length?f.valores.slice(b.inicio,b.inicio+b.columnas.length).map(v=>v===null?'':formatearNumeroCalidad(v)):[''])])
+      for(const f of t.filas)body.push([f.hora,...(b.columnas.length?f.valores.slice(b.inicio,b.inicio+b.columnas.length).map(v=>v===null?'':typeof v==='number'?formatearNumeroCalidad(v):v):[''])])
     }
     autoTable(doc,{...opciones,startY:y,head,body,columnStyles:{0:{cellWidth:37}}})
     y=(doc as jsPDF & {lastAutoTable:{finalY:number}}).lastAutoTable.finalY+5
@@ -55,7 +55,7 @@ export function crearPdfCalidadDiaria(m: MatrizCalidadDiaria, fuente: string, lo
     const comentadas=t.filas.filter(f=>f.notas)
     const turno=nombresTurnoCalidad[t.tipo]+': '
     if(!comentadas.length)texto(turno+(t.filas.length?'Sin comentarios registrados.':'Sin muestras'))
-    for(const f of comentadas)texto(turno+f.hora+' · '+f.operador+' · '+f.notas)
+    for(const f of comentadas)texto(turno+f.hora+' · '+f.notas)
   }
   if(y>175){doc.addPage();y=32}
   autoTable(doc,{...opciones,startY:y,head:[['COMENTARIOS POR TURNO']],body:notas})

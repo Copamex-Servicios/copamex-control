@@ -30,6 +30,7 @@ export function DetalleReportePTARPlanta({ reporte }: { reporte: ReporteTecnicoP
           <Dato nombre="Descarga del DAF Chino" valor={b.destinoDescarga} vacio="Sin registrar" />
           <Dato nombre="Horas en tanque 11" valor={b.horasDescarga.tanque11} unidad="h" vacio="Sin registrar" />
           <Dato nombre="Horas en tanques 5 y 6" valor={b.horasDescarga.tanques56} unidad="h" vacio="Sin registrar" />
+          <Dato nombre="Horas de operación de la bomba P6" valor={b.horasBombaP6} unidad="h" vacio="—" />
           {bombasBitacoraPTAR.map(n => <div className="pcr-dato" key={n}>
             <dt>Bomba {n}</dt><dd><Estado valor={b.bombas[n]} /></dd>
           </div>)}

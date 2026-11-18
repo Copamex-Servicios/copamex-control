@@ -5,8 +5,9 @@ import { mayusculasNota } from '../../lib/notasOperativas'
 import { CabeceraReporteTecnico } from './CabeceraReporteTecnico'
 import { Fragment, useEffect, useId, useRef, useState } from 'react'
 import type { KeyboardEvent, ReactNode } from 'react'
-import { bombasBitacoraPTAR, destinosDescargaPTAR, medicionesBitacoraPTAR, prensasBitacoraPTAR } from '../../lib/tiposBitacoraPTAR'
+import { bombasBitacoraPTAR, calcularHorasTanques56PTAR, destinosDescargaPTAR, duracionTurnoPTAR, medicionesBitacoraPTAR, prensasBitacoraPTAR } from '../../lib/tiposBitacoraPTAR'
 import type { EstadoAgitadorPTAR, EstadoPrensaPTAR, ModoBombaPTAR } from '../../lib/tiposBitacoraPTAR'
+import type { TipoTurno } from '../../lib/tiposTurno'
 import type { useReportePTAR } from '../../hooks/useReportePTAR'
 
 const pestanas = [
@@ -19,7 +20,7 @@ const pestanas = [
 ]
 type CamposFormulario = Pick<ReturnType<typeof useReportePTAR>, 'borrador' | 'cambiarBorrador' | 'editable' | 'reporte'>
 type NavegacionCompletarAdmin = { guardando: boolean; confirmado: boolean; incierto: boolean; guardar: () => void; cerrar: () => void; contenidoFinal?: ReactNode }
-export function FormularioBitacoraPTAR({ captura, observaciones, nombresOperadores, completarAdministracion }: { captura: ReturnType<typeof useReportePTAR> | CamposFormulario; observaciones: ReactNode; nombresOperadores?: readonly string[]; completarAdministracion?: NavegacionCompletarAdmin }) {
+export function FormularioBitacoraPTAR({ captura, observaciones, nombresOperadores, turnoTipo, completarAdministracion, ocultarHistorial = false }: { captura: ReturnType<typeof useReportePTAR> | CamposFormulario; observaciones: ReactNode; nombresOperadores?: readonly string[]; turnoTipo?: TipoTurno; completarAdministracion?: NavegacionCompletarAdmin; ocultarHistorial?: boolean }) {
   const prefijo = useId()
   const { raiz: raizValidacion, faltas: faltasValidacion, revisar: revisarValidacion, alCambiar: actualizarValidacion } = useValidacionReporte()
   const [activo, setActivo] = useState(0)
@@ -40,7 +41,7 @@ export function FormularioBitacoraPTAR({ captura, observaciones, nombresOperador
     return () => window.cancelAnimationFrame(frame)
   }, [activo])
   const { borrador, cambiarBorrador: setBorrador, editable: habilitado } = captura
-  const pestanasVisibles = completarAdministracion ? pestanas.slice(0, -1) : pestanas
+  const pestanasVisibles = completarAdministracion || ocultarHistorial ? pestanas.slice(0, -1) : pestanas
   const operacion = 'guardar' in captura ? captura : null
   const ayudaGuardado = operacion?.guardando ? 'Esperando confirmación del servidor…' : captura.reporte ? null
     : operacion?.estado === 'cargando' ? 'Consultando el reporte técnico del turno…'
@@ -93,17 +94,16 @@ export function FormularioBitacoraPTAR({ captura, observaciones, nombresOperador
               </label>)}</div>
             </fieldset>
             <div className="bpt-mediciones bpt-horas-descarga">
-              <p className="bpt-ayuda bpt-ancho">Escribe 0 si no se utilizó.</p>
               <label className="bpt-campo" htmlFor={`${prefijo}-horas-tanque-11`}>
                 <span>Horas en tanque 11</span>
-                <span className="bpt-control bpt-con-unidad"><input id={`${prefijo}-horas-tanque-11`} type="number" min="0" step="any" inputMode="decimal" required disabled={!habilitado}
-                  value={borrador.horasDescarga.tanque11} onChange={e => setBorrador(b => ({ ...b, horasDescarga: { ...b.horasDescarga, tanque11: e.target.value } }))} />
+                <span className="bpt-control bpt-con-unidad"><input id={`${prefijo}-horas-tanque-11`} type="number" min="0" max={turnoTipo ? duracionTurnoPTAR(turnoTipo) : undefined} step="any" inputMode="decimal" required disabled={!habilitado}
+                  value={borrador.horasDescarga.tanque11} onChange={e => setBorrador(b => ({ ...b, horasDescarga: { tanque11: e.target.value, tanques56: turnoTipo ? calcularHorasTanques56PTAR(turnoTipo, e.target.value) : b.horasDescarga.tanques56 } }))} />
                   <span className="bpt-unidad" aria-hidden="true">h</span></span>
               </label>
               <label className="bpt-campo" htmlFor={`${prefijo}-horas-tanques-5-6`}>
                 <span>Horas en tanques 5 y 6</span>
-                <span className="bpt-control bpt-con-unidad"><input id={`${prefijo}-horas-tanques-5-6`} type="number" min="0" step="any" inputMode="decimal" required disabled={!habilitado}
-                  value={borrador.horasDescarga.tanques56} onChange={e => setBorrador(b => ({ ...b, horasDescarga: { ...b.horasDescarga, tanques56: e.target.value } }))} />
+                <span className="bpt-control bpt-con-unidad"><input id={`${prefijo}-horas-tanques-5-6`} aria-label="Horas calculadas en tanques 5 y 6" type="number" min="0" step="any" readOnly required disabled={!habilitado}
+                  value={borrador.horasDescarga.tanques56} />
                   <span className="bpt-unidad" aria-hidden="true">h</span></span>
               </label>
             </div>
@@ -117,7 +117,14 @@ export function FormularioBitacoraPTAR({ captura, observaciones, nombresOperador
               onChange={e => setBorrador(b => ({ ...b, bombas: { ...b.bombas, [bomba]: e.target.value as ModoBombaPTAR } }))}>
               <option value="">Selecciona</option><option>Automático (A)</option><option>Manual (M)</option>
             </select>
-          </label>)}</div>
+          </label>)}
+            <label className="bpt-campo" htmlFor={`${prefijo}-horas-bomba-p6`}>
+              <span>Horas de operación de la bomba P6</span>
+              <span className="bpt-control bpt-con-unidad"><input id={`${prefijo}-horas-bomba-p6`} type="number" min="0" step="any" inputMode="decimal" required disabled={!habilitado}
+                value={borrador.horasBombaP6} onChange={e => setBorrador(b => ({ ...b, horasBombaP6: e.target.value }))} />
+                <span className="bpt-unidad" aria-hidden="true">h</span></span>
+            </label>
+          </div>
         </>}
         {indice === 4 && <div className="bpt-mediciones bpt-prensas">
           {prensasBitacoraPTAR.map(prensa => <div className="bpt-prensa" key={prensa}>

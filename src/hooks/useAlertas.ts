@@ -21,7 +21,7 @@ export function useAlertas(filtros: FiltrosAlertas) {
       finally{leyendo=false;if(vivo && repetir){repetir=false;void cargar()}}
     }
     const actualizar=()=>{void cargar()};actualizarRef.current=actualizar;actualizar()
-    const intervalo=window.setInterval(()=>{if(document.visibilityState==='visible')actualizar()},30000)
+    const intervalo=window.setInterval(()=>{if(document.visibilityState==='visible')actualizar()},180000)
     window.addEventListener('focus',actualizar);window.addEventListener('online',actualizar)
     return ()=>{vivo=false;controller.abort();window.clearInterval(intervalo);window.removeEventListener('focus',actualizar);window.removeEventListener('online',actualizar);actualizarRef.current=()=>{}}
   },[cuenta,clave,filtros.area,filtros.estado])

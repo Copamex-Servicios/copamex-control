@@ -3,10 +3,16 @@ import { createPortal } from 'react-dom'
 import { useSeguimientoCalidad } from '../../hooks/useSeguimientoCalidad'
 import { ejecutarSeguimiento, pendienteSeguimiento } from '../../lib/seguimientoCalidad'
 import { validarValorNumericoCalidad } from '../../lib/calidad'
-import type { SolicitudSeguimiento } from '../../lib/seguimientoCalidad'
+import type { SolicitudSeguimiento, TipoLecturaColor } from '../../lib/seguimientoCalidad'
 import type { TurnoOperativo } from '../../lib/tiposTurno'
 import { mayusculasNota } from '../../lib/notasOperativas'
 import './seguimientoColorM4.css'
+
+const lecturasColor: readonly { tipo: TipoLecturaColor; etiqueta: string }[] = [
+  { tipo: 'color_m4', etiqueta: 'Color M4' },
+  { tipo: 'color_m2', etiqueta: 'Color M2' },
+  { tipo: 'color_aimsu', etiqueta: 'Color AIMSU' },
+]
 
 interface Props {
   cuenta: string; administracion?: boolean; turno?: TurnoOperativo | null
@@ -17,6 +23,7 @@ export function SeguimientoColorM4({ cuenta, administracion = false, turno, habi
   const { seguimiento, error, cargando, actualizar } = useSeguimientoCalidad(cuenta)
   const [instruccion, setInstruccion] = useState('')
   const [valor, setValor] = useState('')
+  const [tipoLectura, setTipoLectura] = useState<TipoLecturaColor>(() => pendienteSeguimiento(cuenta)?.tipo ?? 'color_m4')
   const [abierto, setAbierto] = useState(() => !!pendienteSeguimiento(cuenta))
   const [guardando, setGuardando] = useState(false)
   const [mensaje, setMensaje] = useState<string | null>(null)
@@ -29,7 +36,7 @@ export function SeguimientoColorM4({ cuenta, administracion = false, turno, habi
   useEffect(() => () => peticion.current?.abort(),[])
   useEffect(() => {
     if (!exito || !mensaje) return
-    const temporizador = window.setTimeout(() => setMensaje(null),10000)
+    const temporizador = window.setTimeout(() => setMensaje(null),5000)
     return () => window.clearTimeout(temporizador)
   },[exito,mensaje])
   useEffect(() => {
@@ -58,48 +65,53 @@ export function SeguimientoColorM4({ cuenta, administracion = false, turno, habi
           if (!turno || !habilitado || !muestraHabitual) throw new Error('Se requiere tu turno abierto y su muestra habitual de Calidad.')
           let numero: number
           try { numero = validarValorNumericoCalidad(valor) }
-          catch { throw new Error('Escribe un valor numérico válido para Color M4.') }
-          solicitud = { id:crypto.randomUUID(),operacion,turno:turno.id,seguimiento:seguimiento?.id ?? null,valor:numero }
+          catch { throw new Error(`Escribe un valor numérico válido para ${lecturasColor.find(l => l.tipo === tipoLectura)?.etiqueta ?? 'el color'}.`) }
+          solicitud = { id:crypto.randomUUID(),operacion,tipo:tipoLectura,turno:turno.id,
+            seguimiento:tipoLectura === 'color_m4' ? seguimiento?.id ?? null : null,valor:numero }
         }
       }
-      ocupado.current = true; setGuardando(true); setPendiente(solicitud); setMensaje(null); setExito(false)
+      const solicitudConfirmada = solicitud
+      if (!solicitudConfirmada) throw new Error('No se pudo preparar la lectura de color. Reintenta.')
+      ocupado.current = true; setGuardando(true); setPendiente(solicitudConfirmada); setMensaje(null); setExito(false)
       const control = new AbortController(); peticion.current = control
       const limite = window.setTimeout(() => control.abort(),25000)
-      try { await ejecutarSeguimiento(cuenta,solicitud,control.signal) }
+      try { await ejecutarSeguimiento(cuenta,solicitudConfirmada,control.signal) }
       finally { window.clearTimeout(limite); peticion.current = null }
       setExito(true)
-      setMensaje(solicitud.operacion === 'lectura' ? 'Lectura adicional de color M4 guardada.'
-        : solicitud.operacion === 'activar' ? 'Activación y aviso confirmados. Revisa el estado actual.' : 'Seguimiento y aviso finalizados.')
+      setMensaje(solicitudConfirmada.operacion === 'lectura' ? `Lectura adicional de ${lecturasColor.find(l => l.tipo === (solicitudConfirmada.tipo ?? 'color_m4'))?.etiqueta ?? 'color'} guardada.`
+        : solicitudConfirmada.operacion === 'activar' ? 'Activación y aviso confirmados. Revisa el estado actual.' : 'Seguimiento y aviso finalizados.')
       setValor(''); setAbierto(false); actualizar()
-      if (solicitud.operacion === 'finalizar') setInstruccion('')
-      if (solicitud.operacion === 'lectura') alGuardar?.()
+      if (solicitudConfirmada.operacion === 'finalizar') setInstruccion('')
+      if (solicitudConfirmada.operacion === 'lectura') alGuardar?.()
     } catch (e) { setExito(false); setMensaje(e instanceof Error ? e.message : 'No se confirmó la operación. Reintenta.') }
     finally { setPendiente(pendienteSeguimiento(cuenta)); ocupado.current = false; setGuardando(false) }
   }
   const bloqueado = guardando || !!pendiente
   const puedeFinalizar = seguimiento?.creado_por === cuenta
-  const botonTomar = !administracion && (turno || pendiente) && <button type="button" className="boton-primario co-tomar-color-m4"
-    aria-haspopup="dialog" aria-controls={idDialogo}
-    disabled={guardando || (!pendiente && (!habilitado || !muestraHabitual))}
-    title={!muestraHabitual ? 'Registra primero la muestra habitual del turno' : !habilitado ? 'Se requiere tu turno abierto y disponible' : 'Registrar una lectura adicional de color M4'}
-    onClick={() => { setAbierto(true); setMensaje(null) }}>Tomar color M4</button>
+  const botonesColor = !administracion && (turno || pendiente) && <div className="co-colores-adicionales">
+    {lecturasColor.map(lectura => <button key={lectura.tipo} type="button" className="boton-primario co-tomar-color-m4"
+      aria-haspopup="dialog" aria-controls={idDialogo}
+      disabled={guardando || (pendiente ? (pendiente.tipo ?? 'color_m4') !== lectura.tipo : (!habilitado || !muestraHabitual))}
+      title={pendiente ? 'Confirma la lectura pendiente' : !muestraHabitual ? 'Registra primero la muestra habitual del turno' : !habilitado ? 'Se requiere tu turno abierto y disponible' : `Registrar una lectura adicional de ${lectura.etiqueta}`}
+      onClick={() => { setTipoLectura(pendiente?.tipo ?? lectura.tipo); setAbierto(true); setMensaje(null) }}>{lectura.etiqueta}</button>)}
+  </div>
   if (!administracion) return <>
-    {contenedorAcciones ? createPortal(botonTomar,contenedorAcciones) : botonTomar}
+    {contenedorAcciones ? createPortal(botonesColor,contenedorAcciones) : botonesColor}
     {!abierto && mensaje && <p className={exito ? 'mensaje-exito' : 'mensaje-error'} role={exito ? 'status' : 'alert'}>{mensaje}</p>}
     {!abierto && error && <p role="alert">{error} <button type="button" className="boton-secundario" onClick={actualizar}>Reintentar consulta</button></p>}
     <dialog id={idDialogo} ref={dialogo} className="co-color-m4-dialogo" aria-labelledby={idDialogo+'-titulo'}
       aria-busy={guardando} onCancel={e => { e.preventDefault(); if (!guardando) setAbierto(false) }}>
-      <h2 id={idDialogo+'-titulo'}>Tomar color M4</h2>
+      <h2 id={idDialogo+'-titulo'}>Registrar {lecturasColor.find(l => l.tipo === (pendiente?.tipo ?? tipoLectura))?.etiqueta ?? 'color'}</h2>
       {mensaje && <p className={exito ? 'mensaje-exito' : 'mensaje-error'} role={exito ? 'status' : 'alert'}>{mensaje}</p>}
       {error && <p role="alert">{error}</p>}
       {pendiente ? <div className="operacion-pendiente">
-        <p>Color pendiente de confirmar: <strong>{pendiente.valor}</strong></p>
+        <p>{lecturasColor.find(l => l.tipo === (pendiente.tipo ?? 'color_m4'))?.etiqueta ?? 'Color'} pendiente de confirmar: <strong>{pendiente.valor}</strong></p>
         <button type="button" className="boton-primario" disabled={guardando}
           onClick={() => { void ejecutar(pendiente.operacion) }}>Reintentar la misma lectura</button>
         <button type="button" className="boton-secundario" disabled={guardando} onClick={() => setAbierto(false)}>Cerrar</button>
       </div> : <form onSubmit={e => { e.preventDefault(); void ejecutar('lectura') }}>
-        {seguimiento?.instruccion && <p className="notas-turno">Aviso: {seguimiento.instruccion}</p>}
-        <label>Color M4<input type="text" inputMode="decimal" autoComplete="off" required value={valor}
+        {tipoLectura === 'color_m4' && seguimiento?.instruccion && <p className="notas-turno">Aviso: {seguimiento.instruccion}</p>}
+        <label>{lecturasColor.find(l => l.tipo === tipoLectura)?.etiqueta ?? 'Color'}<input type="text" inputMode="decimal" autoComplete="off" required value={valor}
           disabled={guardando || !habilitado} onChange={e => setValor(e.target.value)} /></label>
         <div className="acciones-turno">
           <button type="submit" className="boton-primario" disabled={guardando || !habilitado || !muestraHabitual}>{guardando ? 'Guardando…' : 'Guardar'}</button>

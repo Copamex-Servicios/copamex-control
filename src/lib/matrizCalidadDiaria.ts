@@ -5,7 +5,7 @@ import { formatearNumeroCalidad } from './formatoCalidad'
 
 export const tituloCalidadFisico = 'PARÁMETROS DE IMPACTO DE CALIDAD DE AGUA'
 export const nombresTurnoCalidad = { dia: 'Día', tarde: 'Tarde', noche: 'Noche' } as const
-const horaRegistro = new Intl.DateTimeFormat('es-MX', {timeZone:'America/Mexico_City',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'})
+const horaRegistro = new Intl.DateTimeFormat('es-MX', {timeZone:'America/Mexico_City',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})
 const normalizar = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9]/g, '')
 // Solo ordena puntos reales. No agrega mediciones ni límites de la fotografía.
 const ordenPuntos = [['AIMSU'], ['POZO'], ['PILAM2','PILADEM2'], ['PILACALDERAS'], ['PILAM4','PILADEM4'], ['PEMEX'], ['RETORNO','RETORNOTQE','RETORNOATQEALMACEN','RETORNOATANQUEALMACEN']]
@@ -30,12 +30,37 @@ export function matrizCalidadDiaria(dia: DiaCompletoCalidad) {
   }
   const ordenadas = [...columnas.values()].sort((a,b) => rangoPunto(a.punto)-rangoPunto(b.punto) || a.punto.localeCompare(b.punto,'es')
     || rangoParametro(a.parametro)-rangoParametro(b.parametro) || a.parametro.localeCompare(b.parametro,'es') || a.clave.localeCompare(b.clave))
-  return { fecha:completo.solicitud.fechaOperativa, area:completo.solicitud.area, total:completo.totalMuestras, columnas:ordenadas,
-    turnos:completo.turnos.map(t => ({ tipo:t.tipo, filas:t.muestras.map(m => {
-      const valores = new Map(m.lectura.resultados.map(r => [claveColumna(r),r.valor]))
-      return { id:m.lectura.id, turnoId:m.turno.id, hora:horaRegistro.format(new Date(m.lectura.capturado_en)), operador:m.operadorNombre, notas:m.lectura.notas,
-        valores:ordenadas.map(c => valores.get(c.clave) ?? null) }
-    }) })) }
+  const indices = new Map<string,number>(ordenadas.map((columna,indice) => [columna.clave,indice] as const))
+  const turnos = completo.turnos.map(t => {
+    const porHora = new Map<string,{id:string;turnoId:string;hora:string;operadores:Set<string>;comentarios:Set<string>;valores:number[][]}>()
+    for (const muestra of t.muestras) {
+      const hora = horaRegistro.format(new Date(muestra.lectura.capturado_en))
+      let fila = porHora.get(hora)
+      if (!fila) {
+        fila = {id:`${muestra.turno.id}:${hora}`,turnoId:muestra.turno.id,hora,operadores:new Set(),comentarios:new Set(),valores:ordenadas.map(() => [])}
+        porHora.set(hora,fila)
+      }
+      fila.operadores.add(muestra.operadorNombre)
+      const nota = muestra.lectura.notas?.trim()
+      if (nota) fila.comentarios.add(`${muestra.operadorNombre}: ${nota}`)
+      for (const resultado of muestra.lectura.resultados) {
+        const indice = indices.get(claveColumna(resultado))
+        if (indice === undefined) throw new Error('No se pudo ubicar un resultado en la hoja de Calidad.')
+        fila.valores[indice].push(resultado.valor)
+      }
+    }
+    return {
+      tipo:t.tipo,
+      operadores:[...new Set(t.muestras.map(m => m.operadorNombre))],
+      filas:[...porHora.values()].map(f => ({
+        id:f.id,turnoId:f.turnoId,hora:f.hora,operador:[...f.operadores].join(' · '),
+        notas:f.comentarios.size ? [...f.comentarios].join('\n') : null,
+        valores:f.valores.map(v => v.length === 0 ? null : v.length === 1 ? v[0] : v.map(formatearNumeroCalidad).join(' / ')),
+      })),
+    }
+  })
+  return {fecha:completo.solicitud.fechaOperativa,area:completo.solicitud.area,total:completo.totalMuestras,columnas:ordenadas,turnos}
+
 }
 export type MatrizCalidadDiaria = ReturnType<typeof matrizCalidadDiaria>
 export function fragmentosTextoCalidad(texto: string): string[] {
@@ -49,7 +74,7 @@ export function fragmentosTextoCalidad(texto: string): string[] {
   return partes
 }
 export function operadoresCalidad(turno: MatrizCalidadDiaria['turnos'][number]): string[] {
-  return [...new Set(turno.filas.map(f=>f.operador))].flatMap(fragmentosTextoCalidad)
+  return turno.operadores.flatMap(fragmentosTextoCalidad)
 }
 export function bloquesColumnasCalidad(m: MatrizCalidadDiaria) {
   // Cada bloque conserva los mismos horarios: continúa columnas, no duplica capturas.

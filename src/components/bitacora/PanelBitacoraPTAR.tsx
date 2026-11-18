@@ -21,7 +21,7 @@ export function PanelBitacoraPTAR() {
           ? 'La captura técnica estará disponible al confirmar la consulta de Bitácora.' : null}
       </p>}
       <FormularioBitacoraPTAR key={`${datos.cuentaId}:${datos.turno?.id ?? 'sin-turno'}`} captura={captura}
-        observaciones={observaciones} />
+        turnoTipo={datos.turno?.turno} observaciones={observaciones} />
     </>}
   </section>
 }

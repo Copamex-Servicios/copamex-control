@@ -1,7 +1,7 @@
 import type { RegistroCalidad } from './tiposCalidad'
 
 export function hojasRegistroCalidad(muestras: readonly RegistroCalidad[], ultimaHabitual: RegistroCalidad | null, adicionales: readonly RegistroCalidad[]) {
-  const habituales = muestras.filter(m => !m.lectura.esAdicionalColorM4)
+  const habituales = muestras.filter(m => !m.lectura.esAdicional)
   if (ultimaHabitual && !habituales.some(m=>m.lectura.id===ultimaHabitual.lectura.id)) habituales.push(ultimaHabitual)
   habituales.sort((a,b)=>Date.parse(a.lectura.capturado_en)-Date.parse(b.lectura.capturado_en) || a.lectura.id.localeCompare(b.lectura.id))
   const ultima = habituales.at(-1)?.lectura.id
@@ -13,11 +13,11 @@ export function hojasRegistroCalidad(muestras: readonly RegistroCalidad[], ultim
 /** Composición visual: los resultados originales nunca se sustituyen ni se modifican. */
 export function resultadosHojaCalidad(registro: RegistroCalidad, adicionales: readonly RegistroCalidad[] = []) {
   if (adicionales.some(m => m.lectura.turno_id !== registro.lectura.turno_id || m.turno.id !== registro.turno.id
-    || !m.lectura.esAdicionalColorM4)) throw new Error('Las lecturas adicionales deben pertenecer al mismo turno.')
+    || !m.lectura.esAdicional)) throw new Error('Las lecturas adicionales deben pertenecer al mismo turno.')
   const filas = [registro, ...[...adicionales].sort((a,b) =>
     Date.parse(a.lectura.capturado_en)-Date.parse(b.lectura.capturado_en) || a.lectura.id.localeCompare(b.lectura.id))]
     .flatMap(m => m.lectura.resultados.map(resultado => ({
-      resultado, adicional:!!m.lectura.esAdicionalColorM4, capturadoEn:m.lectura.capturado_en,
+      resultado, adicional:!!m.lectura.esAdicional, capturadoEn:m.lectura.capturado_en,
     })))
   if (new Set(filas.map(f => f.resultado.id)).size !== filas.length) throw new Error('Hay resultados repetidos en la hoja de Calidad.')
   return filas

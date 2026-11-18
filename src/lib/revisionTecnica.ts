@@ -97,6 +97,7 @@ function datosPTAR(b: BorradorBitacoraPTAR): Record<string, unknown> {
     prensas: Object.fromEntries(prensasBitacoraPTAR.map(k => [k, texto(b.prensas[k])])),
     estadoAgitador: texto(b.estadoAgitador), destinoDescarga: texto(b.destinoDescarga),
     horasDescarga: { tanque11: numero(b.horasDescarga.tanque11), tanques56: numero(b.horasDescarga.tanques56) },
+    horasBombaP6: numero(b.horasBombaP6),
     comentarioPrensas: normalizarNota(b.comentarioPrensas),
   }
 }

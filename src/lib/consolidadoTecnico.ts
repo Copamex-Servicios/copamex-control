@@ -162,6 +162,7 @@ export function datosTecnico(detalle: DetalleTecnicoAdmin): DatoTecnico[] {
     agregar('DAF Chino y bombas', 'Descarga del DAF Chino', p.destinoDescarga, '', 'estado')
     agregar('DAF Chino y bombas', 'Horas en tanque 11', p.horasDescarga.tanque11, 'h')
     agregar('DAF Chino y bombas', 'Horas en tanques 5 y 6', p.horasDescarga.tanques56, 'h')
+    agregar('DAF Chino y bombas', 'Horas de operación de la bomba P6', p.horasBombaP6, 'h')
     for (const n of bombasBitacoraPTAR) agregar('DAF Chino y bombas', `Bomba ${n}`, p.bombas[n], '', 'estado')
     for (const n of prensasBitacoraPTAR) agregar('Prensas de fin de turno', `Prensa ${n}`, p.prensas[n], '', 'estado')
     for (const n of prensasBitacoraPTAR) if (p.velocidadesPrensas?.[n]) agregar('Prensas de fin de turno', 'Velocidad de prensa ' + n, p.velocidadesPrensas[n], 'm/min')

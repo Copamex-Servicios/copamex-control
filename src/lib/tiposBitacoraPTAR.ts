@@ -1,3 +1,5 @@
+import type { TipoTurno } from './tiposTurno'
+
 // Borrador visual del reporte técnico: no es una captura persistida ni una cola offline.
 export const medicionesBitacoraPTAR = [
   { campo: 'flujo_clarificador', nombre: 'Flujo de entrada al clarificador primario', unidad: 'L/s', seccion: 0 },
@@ -23,12 +25,22 @@ export type EstadoAgitadorPTAR = '' | 'Servicio' | 'Reserva' | 'Mantenimiento'
 export const destinosDescargaPTAR = ['Tanque 11', 'Tanques 5 y 6'] as const
 export type DestinoDescargaPTAR = '' | typeof destinosDescargaPTAR[number]
 export interface HorasDescargaPTAR { tanque11: string; tanques56: string }
+export function duracionTurnoPTAR(turno: TipoTurno): number {
+  return turno === 'dia' ? 8 : turno === 'tarde' ? 6 : 10
+}
+export function calcularHorasTanques56PTAR(turno: TipoTurno, horasTanque11: string): string {
+  if (!horasTanque11.trim()) return ''
+  const horas = Number(horasTanque11)
+  if (!Number.isFinite(horas) || horas < 0 || horas > duracionTurnoPTAR(turno)) return ''
+  return String(duracionTurnoPTAR(turno) - horas)
+}
 export interface BorradorBitacoraPTAR {
   reporteRelevante: string
   reportesOperadores?: import('./reportesIndividuales').ReportesIndividuales
   estadoAgitador: EstadoAgitadorPTAR
   destinoDescarga: DestinoDescargaPTAR
   horasDescarga: HorasDescargaPTAR
+  horasBombaP6: string
   mediciones: Record<CampoBitacoraPTAR, string>
   bombas: Record<typeof bombasBitacoraPTAR[number], ModoBombaPTAR>
   prensas: Record<typeof prensasBitacoraPTAR[number], EstadoPrensaPTAR>
@@ -43,6 +55,7 @@ export function borradorBitacoraPTAR(): BorradorBitacoraPTAR {
     prensas: { Essity: '', Nalco: '' },
     velocidadesPrensas: { Essity: '', Nalco: '' },
     estadoAgitador: '', destinoDescarga: '', horasDescarga: { tanque11: '', tanques56: '' },
+    horasBombaP6: '',
     comentarioPrensas: '',
   }
 }

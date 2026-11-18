@@ -2,9 +2,10 @@ import { RefreshCw } from 'lucide-react'
 import { ConsultaMuestrasCalidad } from './ConsultaMuestrasCalidad'
 import type { useInformacionDia } from '../../hooks/useInformacionDia'
 import './calidadReferencia.css'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import '../diseno/acordeonHistorial.css'
 import { useCalidad } from '../../hooks/useCalidad'
+import { useCalidadStore } from '../../stores/calidadStore'
 import type { AreaOperativa } from '../../lib/tiposTurno'
 import type { CamposCalidad } from '../../lib/tiposCalidad'
 import { FormularioCalidad } from './FormularioCalidad'
@@ -22,6 +23,16 @@ function ContenidoCalidad({ datos, area, informacion, horaServidor }: { datos: R
   const listo = estadoCarga === 'listo', ocupado = guardando || !!solicitudPendiente
   const propio = rol === area && turno?.iniciado_por === cuentaId
   const confirmado = mensajeAccion === 'Lectura de Calidad guardada.' || mensajeAccion === 'Corrección de Calidad confirmada.'
+  useEffect(() => {
+    if (!confirmado || !mensajeAccion) return
+    const mensajeConfirmado = mensajeAccion
+    const temporizador = window.setTimeout(() => {
+      const actuales = useCalidadStore.getState()
+      if (actuales.cuentaId !== cuentaId || actuales.mensajeAccion !== mensajeConfirmado) return
+      actuales.establecerEstado({ ...actuales, mensajeAccion: null })
+    }, 5000)
+    return () => window.clearTimeout(temporizador)
+  }, [confirmado, cuentaId, mensajeAccion])
   async function guardar(campos: CamposCalidad) {
     const resultado = await guardarCalidad(campos)
     if (resultado) setNumeroCaptura(n => n + 1)
