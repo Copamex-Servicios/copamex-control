@@ -1,14 +1,20 @@
 import { GrupoMediciones } from '../operativo/GrupoMediciones'
-import { useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { mayusculasNota } from '../../lib/notasOperativas'
 import type { FormEvent, ReactNode } from 'react'
 import { calcularConsumosPozos, ErrorPozos, validarCamposPozos } from '../../lib/pozos'
 import type { CamposPozos, ValoresPozos } from '../../lib/tiposPozos'
 
+interface LecturasIniciales {
+  pozo1: number
+  pozo2: number
+  origen?: 'turno-anterior' | 'base-historica'
+}
+
 interface PropsFormularioPozos {
   alGuardar: (campos: CamposPozos) => Promise<boolean>
   valoresIniciales?: ValoresPozos
-  lecturasIniciales?: { pozo1: number; pozo2: number }
+  lecturasIniciales?: LecturasIniciales
   modo?: 'capturar' | 'corregir'
   deshabilitado?: boolean
   alCancelar?: () => void
@@ -31,7 +37,7 @@ function textoDecimal(numero: number): string {
   return negativo ? `-${decimal}` : decimal
 }
 
-function crearCampos(valores?: ValoresPozos, lecturasIniciales?: { pozo1: number; pozo2: number }): CamposPozos {
+function crearCampos(valores?: ValoresPozos, lecturasIniciales?: LecturasIniciales): CamposPozos {
   return {
     pozo1Inicial: lecturasIniciales ? textoDecimal(lecturasIniciales.pozo1) : valores ? textoDecimal(valores.pozo1_ini) : '',
     pozo1Final: valores ? textoDecimal(valores.pozo1_fin) : '',
@@ -64,8 +70,23 @@ export function FormularioPozos({
   const [enviando, setEnviando] = useState(false)
   const [confirmado, setConfirmado] = useState(false)
   const envioActivo = useRef(false)
+  const lecturasInicialesAplicadas = useRef(Boolean(lecturasIniciales))
   const bloqueado = deshabilitado || enviando || confirmado
   const correccion = modo === 'corregir'
+
+  useEffect(() => {
+    if (!lecturasIniciales || lecturasInicialesAplicadas.current || modo !== 'capturar') return
+    setCampos((actuales) => {
+      if (actuales.pozo1Inicial || actuales.pozo2Inicial || actuales.pozo1Final
+        || actuales.pozo2Final || actuales.notas) return actuales
+      lecturasInicialesAplicadas.current = true
+      return {
+        ...actuales,
+        pozo1Inicial: textoDecimal(lecturasIniciales.pozo1),
+        pozo2Inicial: textoDecimal(lecturasIniciales.pozo2),
+      }
+    })
+  }, [lecturasIniciales, modo])
 
   function cambiar(campo: keyof CamposPozos, valor: string): void {
     if (bloqueado || envioActivo.current) return
@@ -135,8 +156,10 @@ export function FormularioPozos({
           ))}
         </div>
         {modo === 'capturar' && <p className="ayuda-turno">
-          {lecturasIniciales
-            ? 'Las lecturas iniciales se copiaron automáticamente de las lecturas finales del turno anterior.'
+          {lecturasIniciales?.origen === 'base-historica'
+            ? 'Las lecturas iniciales se tomaron de la base histórica de los medidores.'
+            : lecturasIniciales
+              ? 'Las lecturas iniciales se copiaron automáticamente de las lecturas finales del turno anterior.'
             : 'No hay una lectura anterior registrada; captura las lecturas iniciales de ambos pozos.'}
         </p>}
         <div className="campo-turno campo-turno-ancho">

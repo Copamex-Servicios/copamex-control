@@ -153,7 +153,7 @@ export function FormularioUF({
         </div>
         {modo === 'capturar' && <p className="ayuda-turno">
           {lecturasIniciales
-            ? 'Las lecturas iniciales se copiaron automáticamente de las lecturas finales del turno anterior.'
+            ? 'Las lecturas iniciales se llenaron automáticamente con la base histórica o el cierre del turno anterior.'
             : 'No hay una lectura anterior registrada; captura las lecturas iniciales de ambos medidores.'}
         </p>}
       </fieldset>

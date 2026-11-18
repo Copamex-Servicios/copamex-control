@@ -3,6 +3,9 @@ import { useConcesionPozos } from '../../hooks/useConcesionPozos'
 import './monitorConcesionPozos.css'
 
 const numero = (valor: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 3 }).format(valor)
+const fecha = (valor: string) => new Intl.DateTimeFormat('es-MX', {
+  timeZone: 'America/Mexico_City', day: '2-digit', month: '2-digit', year: 'numeric',
+}).format(new Date(`${valor}T12:00:00`))
 
 export function MonitorConcesionPozos({ revision, supervision = false }: { revision: number; supervision?: boolean }) {
   const { resumen, cargando, error, anio, actualizadoEn } = useConcesionPozos(revision)
@@ -17,7 +20,12 @@ export function MonitorConcesionPozos({ revision, supervision = false }: { revis
     </div>
     {resumen && <><progress max={CONCESION_ANUAL_POZOS} value={Math.min(resumen.acumulado, CONCESION_ANUAL_POZOS)}
       aria-label="Consumo de la concesión anual" aria-valuetext={`${porcentaje}% consumido`} />
-      <div className="monitor-concesion-pie"><span>{porcentaje}% consumido</span><span>{resumen.lecturas} {resumen.lecturas === 1 ? 'lectura registrada' : 'lecturas registradas'}</span></div>
+      <div className="monitor-concesion-pie"><span>{porcentaje}% consumido</span><span>{resumen.consumoHistorico > 0
+        ? `${resumen.lecturas} ${resumen.lecturas === 1 ? 'lectura desde el corte' : 'lecturas desde el corte'}`
+        : `${resumen.lecturas} ${resumen.lecturas === 1 ? 'lectura registrada' : 'lecturas registradas'}`}</span></div>
+      {resumen.consumoHistorico > 0 && <p className="monitor-concesion-actualizado">
+        Base histórica: {numero(resumen.consumoHistorico)} m³ al {resumen.fechaCorte ? fecha(resumen.fechaCorte) : 'corte registrado'}.
+      </p>}
       {resumen.excedente > 0 && <p className="monitor-concesion-exceso" role="status">Concesión superada en {numero(resumen.excedente)} m³.</p>}</>}
     {cargando && <p role="status">Consultando consumo anual…</p>}
     {error && <p className="monitor-concesion-error" role="alert">{error}</p>}

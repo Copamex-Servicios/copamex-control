@@ -6,6 +6,7 @@ import {
   consultarHistorialPozos, consultarLecturaPozos, ErrorPozos,
   guardarLecturaPozos, validarCamposPozos,
 } from '../lib/pozos'
+import { consultarBaseHistoricaPozos } from '../lib/concesionPozos'
 import type { CamposPozos, LecturaPozos } from '../lib/tiposPozos'
 
 let revisionConsulta = 0
@@ -44,6 +45,10 @@ function turnoActual(contexto: ContextoCuentaPozos) {
 
 function idTurnoActual(contexto: ContextoCuentaPozos): string | null {
   return turnoActual(contexto)?.id ?? null
+}
+
+function anioMexico(): number {
+  return Number(new Intl.DateTimeFormat('en', { timeZone: 'America/Mexico_City', year: 'numeric' }).format(new Date()))
 }
 
 function cancelarConsulta(): void {
@@ -94,6 +99,8 @@ export async function actualizarDatosPozos(): Promise<void> {
   const anteriores = usePozosStore.getState()
   if (anteriores.guardando) return
   const turnoId = idTurnoActual(contexto)
+  const turno = turnoActual(contexto)
+  const anioBase = turno ? Number(turno.fecha_operativa.slice(0, 4)) : anioMexico()
   cancelarConsulta()
   const revision = revisionConsulta
   const control = new AbortController()
@@ -104,20 +111,21 @@ export async function actualizarDatosPozos(): Promise<void> {
     estadoCarga: 'cargando', mensaje: null,
   })
   try {
-    const [lecturaActual, historial] = await conLimite(() => Promise.all([
+    const [lecturaActual, historial, baseHistorica] = await conLimite(() => Promise.all([
       turnoId ? consultarLecturaPozos(turnoId, control.signal) : Promise.resolve(null),
       consultarHistorialPozos(control.signal),
+      consultarBaseHistoricaPozos(anioBase, control.signal),
     ]), control, 15000)
     if (revision !== revisionConsulta || !sigueLaCuenta(contexto)
       || idTurnoActual(contexto) !== turnoId) return
     const actuales = usePozosStore.getState()
-    actuales.establecerEstado({ ...actuales, lecturaActual, historial, estadoCarga: 'listo', mensaje: null })
+    actuales.establecerEstado({ ...actuales, lecturaActual, historial, baseHistorica, estadoCarga: 'listo', mensaje: null })
   } catch (fallo) {
     if (revision !== revisionConsulta || !sigueLaCuenta(contexto)
       || idTurnoActual(contexto) !== turnoId) return
     const actuales = usePozosStore.getState()
     actuales.establecerEstado({
-      ...actuales, lecturaActual: null, historial: [], estadoCarga: 'error',
+      ...actuales, lecturaActual: null, historial: [], baseHistorica: null, estadoCarga: 'error',
       mensaje: fallo instanceof ErrorPozos ? fallo.message : 'No se pudo consultar Pozos. Reintenta.',
     })
   } finally {
@@ -296,6 +304,7 @@ export function usePozos() {
     turno,
     lecturaActual: mismaVista ? datos.lecturaActual : null,
     historial: mismaVista ? datos.historial : [],
+    baseHistorica: mismaVista ? datos.baseHistorica : null,
     estadoCarga: mismaVista ? datos.estadoCarga : contexto ? 'cargando' as const : 'sin-cuenta' as const,
     mensaje: mismaVista ? datos.mensaje : null,
     guardando: mismaCuenta ? datos.guardando : false,

@@ -28,7 +28,7 @@ function ContenidoPozos({ datos }: PropsContenidoPozos) {
   const grupoHistorial = useId()
   const [revisionConcesion, setRevisionConcesion] = useState(0)
   const {
-    cuentaId, rol, turno, lecturaActual, historial, estadoCarga, mensaje,
+    cuentaId, rol, turno, lecturaActual, historial, baseHistorica, estadoCarga, mensaje,
     guardando, solicitudPendiente, mensajeAccion, puedeCrear,
     guardarPozos, reintentarGuardadoPozos, actualizarPozos,
   } = datos
@@ -36,7 +36,13 @@ function ContenidoPozos({ datos }: PropsContenidoPozos) {
   const ocupado = guardando || solicitudPendiente !== null
   const actual = lecturaActual ?? historial.find((registro) => registro.lectura.turno_id === turno?.id) ?? null
   const turnoPropio = rol === 'calderas' && turno !== null && turno.iniciado_por === cuentaId
-  const anteriores = actual ? historial.filter((registro) => registro.lectura.id !== actual.lectura.id) : historial
+  const todasLasAnteriores = actual ? historial.filter((registro) => registro.lectura.id !== actual.lectura.id) : historial
+  const baseAplica = Boolean(turno && baseHistorica
+    && turno.fecha_operativa.slice(0, 4) === String(baseHistorica.anio)
+    && turno.fecha_operativa >= baseHistorica.fechaCorte)
+  const anteriores = baseAplica && baseHistorica
+    ? todasLasAnteriores.filter((registro) => registro.turno.fecha_operativa >= baseHistorica.fechaCorte)
+    : todasLasAnteriores
   const lecturaTurnoAnterior = turno ? anteriores
     .filter(registro => registro.turno.area === 'calderas' && Date.parse(registro.turno.iniciado_en) < Date.parse(turno.iniciado_en))
     .reduce<typeof anteriores[number] | null>((ultima, registro) => !ultima
@@ -44,6 +50,11 @@ function ContenidoPozos({ datos }: PropsContenidoPozos) {
   const lecturasIniciales = lecturaTurnoAnterior ? {
     pozo1: lecturaTurnoAnterior.lectura.pozo1_fin,
     pozo2: lecturaTurnoAnterior.lectura.pozo2_fin,
+    origen: 'turno-anterior' as const,
+  } : baseAplica && baseHistorica ? {
+    pozo1: baseHistorica.pozo1,
+    pozo2: baseHistorica.pozo2,
+    origen: 'base-historica' as const,
   } : undefined
   const paginaHistorial = useHistorialPaginado(anteriores, `${cuentaId}:${actual?.lectura.id ?? ''}`, rol === 'calderas' && historial.length >= 14,
     actual?.lectura.turno_id ?? null, consultarPaginaHistorialPozos, 7)

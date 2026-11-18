@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { RegistroPozos, SolicitudGuardadoPozos } from '../lib/pozos'
+import type { BaseHistoricaPozos } from '../lib/concesionPozos'
 import type { LecturaPozos, ValoresPozos } from '../lib/tiposPozos'
 
 export interface ContextoCuentaPozos {
@@ -23,6 +24,7 @@ export interface DatosPozos {
   turnoConsultadoId: string | null
   lecturaActual: RegistroPozos | null
   historial: RegistroPozos[]
+  baseHistorica: BaseHistoricaPozos | null
   estadoCarga: 'sin-cuenta' | 'cargando' | 'listo' | 'error'
   mensaje: string | null
   guardando: boolean
@@ -42,6 +44,7 @@ function crearEstadoInicial(): DatosPozos {
     turnoConsultadoId: null,
     lecturaActual: null,
     historial: [],
+    baseHistorica: null,
     estadoCarga: 'sin-cuenta',
     mensaje: null,
     guardando: false,
