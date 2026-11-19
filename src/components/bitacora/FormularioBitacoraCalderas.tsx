@@ -146,9 +146,9 @@ export function FormularioBitacoraCalderas({ captura, observaciones, nombresOper
           onChange={e => setBorrador(b => ({ ...b, comentariosCompresores: mayusculasNota(e.target.value) }))} /></label>
     </div></Apartado>
     <Apartado indice={4} activo={activo} prefijo={prefijo}><fieldset className="bc-pilas" disabled={!habilitado}><legend className="bc-sr">Niveles, bombas y presiones</legend>
-      {pilasCalderas.map(pila => <div className="bc-pila" key={pila.id}><h3>{pila.nombre}</h3>
+      {pilasCalderas.map(pila => <div className={pila.capturaBombaYPresion ? "bc-pila" : "bc-pila bc-pila-solo-nivel"} key={pila.id}><h3>{pila.nombre}</h3>
         {([{ campo: 'nivel', titulo: 'Nivel', unidad: '%', tipo: 'number' }, { campo: 'bomba', titulo: 'Bomba', unidad: '#', tipo: 'text' },
-          { campo: 'presion', titulo: 'Presión', unidad: pila.unidadPresion, tipo: 'number' }] as const).map(c =>
+          { campo: 'presion', titulo: 'Presión', unidad: pila.unidadPresion, tipo: 'number' }] as const).filter(c => c.campo === 'nivel' || pila.capturaBombaYPresion).map(c =>
           <label className="bc-campo" key={c.campo} htmlFor={`${prefijo}-${pila.id}-${c.campo}`}><span>{c.titulo}</span>
             {c.campo === 'bomba' ? <select aria-label={`${pila.nombre} · Bomba`} id={`${prefijo}-${pila.id}-bomba`} value={borrador.pilas[pila.id].bomba}
               onChange={e => setBorrador(b => ({ ...b, pilas: { ...b.pilas, [pila.id]: { ...b.pilas[pila.id], bomba: e.target.value } } }))}>

@@ -1,0 +1,64 @@
+.co-layout .panel-mediciones .formulario-pozos .pozos-captura-pie {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 18px;
+  width: 100%;
+}
+
+.co-layout .panel-mediciones .formulario-pozos .pozos-captura-pie .campo-turno {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+}
+
+.co-layout .panel-mediciones .formulario-pozos .pozos-captura-pie label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.co-layout .panel-mediciones .formulario-pozos .pozos-captura-pie textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  height: 46px;
+  padding: 10px 14px;
+  border: 1px solid #b9cae3;
+  border-radius: 9px;
+  background: #fff;
+  font: inherit;
+  resize: vertical;
+}
+
+.co-layout .panel-mediciones .formulario-pozos .pozos-captura-pie .acciones-turno {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 0;
+}
+
+.co-layout .panel-mediciones .formulario-pozos .pozos-captura-pie button {
+  min-height: 46px;
+  min-width: 130px;
+  margin: 0;
+  padding: 10px 20px;
+  border-radius: 9px;
+  font: inherit;
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .co-layout .panel-mediciones .formulario-pozos .pozos-captura-pie {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .co-layout .panel-mediciones .formulario-pozos .pozos-captura-pie .acciones-turno {
+    justify-content: flex-end;
+  }
+}

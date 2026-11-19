@@ -10,7 +10,7 @@ const rutasPorRol: Record<RolUsuario, readonly string[]> = {
   calidad: ['/', '/calidad', '/gestion'],
   calderas: ['/', '/planta', '/calderas'],
   ptar: ['/', '/planta', '/ptar'],
-  admin: ['/', '/planta', '/calderas', '/ptar', '/administracion'],
+  admin: ['/', '/planta', '/calderas', '/ptar', '/administracion', '/pozo-uf'],
 }
 
 function obtenerDestino(datos: unknown, rol?: RolUsuario): string {

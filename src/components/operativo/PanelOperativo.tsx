@@ -9,8 +9,6 @@ import { EncabezadoOperativo } from './EncabezadoOperativo'
 import { useInformacionDia } from '../../hooks/useInformacionDia'
 import { useTurno } from '../../hooks/useTurno'
 import { useBitacora } from '../../hooks/useBitacora'
-import { usePozos } from '../../hooks/usePozos'
-import { useUF } from '../../hooks/useUF'
 import { useCalidad } from '../../hooks/useCalidad'
 import { usePTAR } from '../../hooks/usePTAR'
 import { useRelojServidor } from '../../hooks/useRelojServidor'
@@ -19,8 +17,6 @@ import type { RolUsuario } from '../../lib/tiposAuth'
 
 const PanelBitacoraPTAR = lazy(() => import('../bitacora/PanelBitacoraPTAR').then(m => ({ default: m.PanelBitacoraPTAR })))
 const PanelBitacoraCalderas = lazy(() => import('../bitacora/PanelBitacoraCalderas').then(m => ({ default: m.PanelBitacoraCalderas })))
-const PanelPozos = lazy(() => import('../pozos/PanelPozos').then(m => ({ default: m.PanelPozos })))
-const PanelUF = lazy(() => import('../uf/PanelUF').then(m => ({ default: m.PanelUF })))
 const PanelCalidad = lazy(() => import('../calidad/PanelCalidad').then(m => ({ default: m.PanelCalidad })))
 const PanelPTAR = lazy(() => import('../ptar/PanelPTAR').then(m => ({ default: m.PanelPTAR })))
 
@@ -32,12 +28,10 @@ function ModuloVisitado({ activo, children }: { activo: boolean; children: React
   return <Suspense fallback={<p role="status">Cargando módulo…</p>}>{children}</Suspense>
 }
 
-export type ModuloOperativo = 'bitacora' | 'pozos' | 'uf' | 'calidad' | 'ptar'
+export type ModuloOperativo = 'bitacora' | 'calidad' | 'ptar'
 interface Apartado { id: ModuloOperativo; nombre: string; simbolo: string }
 const apartados: Apartado[] = [
   { id: 'bitacora', nombre: 'Bitácora', simbolo: '▤' },
-  { id: 'pozos', nombre: 'Pozos', simbolo: '◉' },
-  { id: 'uf', nombre: 'Ultrafiltración', simbolo: '≋' },
   { id: 'calidad', nombre: 'Calidad de agua', simbolo: '◇' },
   { id: 'ptar', nombre: 'PTAR', simbolo: '▥' },
 ]
@@ -64,9 +58,9 @@ export function PanelOperativo({ area, rol, seleccionExterna, alSeleccionar, sol
   const seleccion = seleccionExterna ?? seleccionInterna
   const setSeleccion = alSeleccionar ?? setSeleccionInterna
   const turno = useTurno()
-  const bitacora = useBitacora(area), pozos = usePozos(), uf = useUF(), calidad = useCalidad(area), ptar = usePTAR()
+  const bitacora = useBitacora(area), calidad = useCalidad(area), ptar = usePTAR()
   const reloj = useRelojServidor()
-  const opciones = apartados.filter(a => area === 'calderas' ? a.id !== 'ptar' : a.id !== 'pozos' && a.id !== 'uf')
+  const opciones = apartados.filter(a => area !== 'calderas' || a.id !== 'ptar')
     .filter(a => rol !== 'ptar' || (a.id !== 'ptar' && a.id !== 'calidad'))
   const actual = opciones.find(a => a.id === seleccion) ?? opciones[0]
   const destinoModulo = useRef<HTMLDivElement>(null)
@@ -83,7 +77,7 @@ export function PanelOperativo({ area, rol, seleccionExterna, alSeleccionar, sol
     window.scrollTo({ top, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
   }, [actual.id, rol])
   const turnoId = turno.area === area && turno.turno?.finalizado_en === null ? turno.turno.id : null
-  const datosModulos = { bitacora, pozos, uf, calidad, ptar }
+  const datosModulos = { bitacora, calidad, ptar }
   const estadoCaptura = datosModulos[actual.id].estadoCarga
   const turnoPropio = !!turnoId && turno.turno?.iniciado_por === turno.cuentaId
   const desplazamientoRealizado = useRef<string | null>(null)
@@ -170,8 +164,6 @@ export function PanelOperativo({ area, rol, seleccionExterna, alSeleccionar, sol
           hidden={actual.id !== a.id} tabIndex={0} className="contenido-modulo">
           <ModuloVisitado activo={actual.id === a.id}>
           {a.id === 'bitacora' && (area === 'calderas' ? <PanelBitacoraCalderas /> : <PanelBitacoraPTAR />)}
-          {a.id === 'pozos' && <PanelPozos />}
-          {a.id === 'uf' && <PanelUF />}
           {a.id === 'calidad' && <PanelCalidad area={area} horaServidor={reloj.hora} />}
           {a.id === 'ptar' && <PanelPTAR />}
           </ModuloVisitado>

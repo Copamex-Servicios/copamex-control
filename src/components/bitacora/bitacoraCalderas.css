@@ -30,6 +30,7 @@
 @media(max-width:600px) { .co-layout .bc-panel .bc-servicios { grid-template-columns:minmax(0,1fr); } }
 .co-layout .bc-panel :is(.bc-equipo,.bc-pila) h3 { margin:0; font-size:14px; font-weight:650; color:var(--co-text); }
 .co-layout .bc-panel .bc-pila { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; min-width:0; padding:12px 0; border-bottom:1px solid #e7eef6; }
+.co-layout .bc-panel .bc-pila.bc-pila-solo-nivel { grid-template-columns:minmax(0,1fr); }
 .co-layout .bc-panel .bc-pila h3 { grid-column:1 / -1; }
 .co-layout .bc-panel .bc-mediciones { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px 18px; min-width:0; }
 .co-layout .bc-panel .bc-campo { display:flex; flex-direction:column; gap:7px; min-width:0; color:#334d70; font-size:13px; font-weight:600; }

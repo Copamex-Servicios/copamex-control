@@ -21,7 +21,7 @@ export interface DatosDashboard {
   actividadParcial: boolean
 }
 export const modulosArea: Record<'calderas' | 'ptar', readonly ModuloDashboard[]> = {
-  calderas: ['reporte_calderas', 'pozos', 'uf', 'calidad'], ptar: ['reporte_ptar'],
+  calderas: ['reporte_calderas', 'calidad'], ptar: ['reporte_ptar'],
 }
 export const nombresModuloDashboard = { ...nombresModulo, reporte_calderas: 'Reporte técnico', reporte_ptar: 'Reporte técnico' }
 const tablas = { reporte_calderas: 'bitacora_calderas', reporte_ptar: 'bitacora_ptar', pozos: 'lecturas_pozos', uf: 'lecturas_uf', calidad: 'muestras_calidad', ptar: 'lecturas_ptar' } as const

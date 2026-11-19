@@ -1,0 +1,91 @@
+.co-layout .co-admin-referencia .gestion-mediciones-admin .co-operativo-referencia { display:grid; gap:12px; }
+.co-layout .co-admin-referencia .gestion-mediciones-filtros { display:grid; grid-template-columns:repeat(2,minmax(0,12rem)) auto; gap:12px; align-items:end; justify-content:start; margin:12px 0; }
+.co-layout .co-admin-referencia .gestion-mediciones-filtros label { display:grid; gap:6px; min-width:0; }
+.co-layout .co-admin-referencia .pozo-uf-ayuda { margin:4px 0 12px; color:var(--texto-secundario,#526987); }
+.co-layout .co-admin-referencia .pozo-uf-registro-existente { margin-top:12px; padding:14px 16px; border:1px solid var(--borde,#d6e2f3); border-radius:12px; background:var(--fondo-suave,#f4f8fd); }
+.co-layout .co-admin-referencia .pozo-uf-registro-existente p { margin:6px 0 0; }
+.co-layout .co-admin-referencia .pozo-uf-historial h2 { margin-top:0; }
+.co-layout .co-admin-referencia .pozo-uf-historial .tabla-scroll { overflow-x:auto; }
+.co-layout .co-admin-referencia .pozo-uf-historial table { width:100%; border-collapse:collapse; min-width:760px; }
+.co-layout .co-admin-referencia .pozo-uf-historial th,
+.co-layout .co-admin-referencia .pozo-uf-historial td { padding:10px 12px; border-bottom:1px solid var(--borde,#d6e2f3); text-align:left; vertical-align:middle; }
+.co-layout .co-admin-referencia .pozo-uf-historial thead { background:var(--fondo-suave,#edf3fb); }
+.co-layout .co-admin-referencia .pozo-uf-paginacion { display:flex; justify-content:flex-end; align-items:center; gap:10px; margin-top:14px; }
+.co-layout .co-admin-referencia .gestion-mediciones-admin .pozo-uf-monitor .monitor-concesion { margin:0; }
+
+/* En Administración, Pozos usa todo el ancho y conserva las dos tarjetas alineadas. */
+.co-layout .gestion-mediciones-admin .panel-mediciones .formulario-pozos {
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  width:100%;
+  max-width:none;
+  min-width:0;
+  margin:0;
+}
+.co-layout .gestion-mediciones-admin .panel-mediciones .formulario-pozos > .campos-turno {
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  width:100%;
+  max-width:none;
+  min-width:0;
+  margin:0;
+  padding:0;
+  border:0;
+}
+.co-layout .gestion-mediciones-admin .panel-mediciones .formulario-pozos > .campos-turno > legend {
+  position:absolute;
+  width:1px;
+  height:1px;
+  overflow:hidden;
+  clip-path:inset(50%);
+}
+.co-layout .gestion-mediciones-admin .panel-mediciones .formulario-pozos .mediciones-grupos {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  width:100%;
+  gap:12px;
+  align-items:start;
+}
+.co-layout .gestion-mediciones-admin .panel-mediciones .formulario-pozos .mediciones-grupo {
+  min-width:0;
+  overflow:hidden;
+  border:1px solid var(--co-border);
+  border-radius:8px;
+}
+.co-layout .gestion-mediciones-admin .panel-mediciones .formulario-pozos .mediciones-grupo > h4 {
+  margin:0;
+  padding:10px 12px;
+  background:#eef4fc;
+  color:var(--co-text);
+  font-size:16px;
+}
+.co-layout .gestion-mediciones-admin .panel-mediciones .formulario-pozos .mediciones-grupo-contenido {
+  display:grid;
+  gap:12px;
+  min-width:0;
+  padding:12px;
+}
+.co-layout .gestion-mediciones-admin .panel-mediciones .formulario-pozos .mediciones-entradas {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+.co-layout .gestion-mediciones-admin .panel-mediciones .formulario-pozos .mediciones-resultado { grid-column:1 / -1; }
+.co-layout .gestion-mediciones-admin .panel-mediciones .formulario-pozos .campo-turno { min-width:0; padding:0; border:0; }
+.co-layout .gestion-mediciones-admin .panel-mediciones .formulario-pozos :is(input,textarea,output) { box-sizing:border-box; width:100%; min-width:0; }
+.co-layout .gestion-mediciones-admin .panel-mediciones .formulario-pozos output { display:block; height:auto; white-space:normal; overflow-wrap:anywhere; }
+.co-layout .gestion-mediciones-admin .panel-mediciones .formulario-pozos > .acciones-turno { justify-content:flex-end; gap:12px; margin:0; }
+
+@media(max-width:600px) {
+  .co-layout .co-admin-referencia .gestion-mediciones-filtros { grid-template-columns:repeat(2,minmax(0,1fr)); justify-content:stretch; }
+  .co-layout .co-admin-referencia .gestion-mediciones-filtros button { grid-column:1 / -1; }
+  .co-layout .co-admin-referencia .pozo-uf-paginacion { flex-wrap:wrap; }
+}
+@media(max-width:760px) {
+  .co-layout .gestion-mediciones-admin .panel-mediciones .formulario-pozos .mediciones-grupos { grid-template-columns:minmax(0,1fr); }
+}
+@media(max-width:480px) {
+  .co-layout .gestion-mediciones-admin .panel-mediciones .formulario-pozos .mediciones-entradas { grid-template-columns:minmax(0,1fr); }
+}

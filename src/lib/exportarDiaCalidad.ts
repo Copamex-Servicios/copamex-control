@@ -35,15 +35,15 @@ export async function prepararArchivoDiaCalidad(s:SolicitudDiaCompletoCalidad,ti
   const dia=await consultarDiaCompletoCalidad(solicitud,signal)
   comprobar()
   const matriz=matrizCalidadDiaria(dia), nombre=`COPAMEX_Calidad_${solicitud.area}_${solicitud.fechaOperativa}.${tipo==='pdf'?'pdf':'xlsx'}`
-  const imagen=await logoCalidad()
-  comprobar()
   let blob:Blob
   if(tipo==='pdf'){
+    const imagen=await logoCalidad()
+    comprobar()
     const [{crearPdfCalidadDiaria},font]=await Promise.all([import('./pdfCalidadDiaria'),fuenteCalidad()])
     comprobar();blob=crearPdfCalidadDiaria(matriz,font,imagen).output('blob')
   }else{
     const {crearXlsxCalidadDiaria}=await import('./xlsxCalidadDiaria');comprobar()
-    const bytes=crearXlsxCalidadDiaria(matriz,imagen), buffer=new ArrayBuffer(bytes.byteLength);new Uint8Array(buffer).set(bytes)
+    const bytes=crearXlsxCalidadDiaria(matriz), buffer=new ArrayBuffer(bytes.byteLength);new Uint8Array(buffer).set(bytes)
     blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})
   }
   comprobar();return {blob,nombre}

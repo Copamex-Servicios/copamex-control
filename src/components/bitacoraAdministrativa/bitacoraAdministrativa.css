@@ -34,6 +34,8 @@
 .co-layout .ba-lista { list-style:none; margin:0; padding:0; }
 .co-layout .ba-lista li { display:grid; grid-template-columns:120px 140px minmax(0,1fr); align-items:start; gap:16px; padding:16px 0; border-top:1px solid var(--co-border); }
 .co-layout .ba-lista-admin li { grid-template-columns:125px 190px minmax(0,1fr) 64px; align-items:center; gap:16px; min-height:76px; padding:14px 0; }
+.co-layout .ba-lista-admin .ba-icono-accion { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; padding:10px; }
+.co-layout .ba-lista-admin .ba-icono-accion svg { width:20px; height:20px; flex:0 0 20px; }
 .co-layout .ba-fecha { display:grid; gap:8px; font-size:14px; }
 .co-layout .ba-fecha { font-weight:600; }
 .co-layout .ba-area { color:var(--co-text); font-size:15px; font-weight:600; }
@@ -49,7 +51,7 @@
  .co-layout .ba-herramientas-admin .ba-filtros label { flex:1 1 100%; grid-column:1 / -1; }
  .co-layout .ba-lista-cabecera { grid-template-columns:minmax(0,.8fr) minmax(0,.8fr) minmax(0,2fr); gap:8px; font-size:12px; }
  .co-layout .ba-lista-admin li { grid-template-columns:minmax(0,.8fr) minmax(0,.8fr) minmax(0,2fr); align-items:start; gap:8px; min-height:0; padding:14px 0; }
- .co-layout .ba-lista-admin li > button { grid-column:3; justify-self:start; min-height:36px; padding:4px 0; border:0; color:var(--co-primary); background:transparent; }
+ .co-layout .ba-lista-admin li > button { grid-column:3; justify-self:start; }
  .co-layout .ba-filtros label { flex:1 1 100%; }
  .co-layout .ba-lista li > button { justify-self:start; }
 }

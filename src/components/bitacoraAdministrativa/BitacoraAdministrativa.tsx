@@ -210,7 +210,13 @@ function ConsultaActividades({ admin = false, mensual = false, corregir, bloquea
         <time className="ba-fecha" dateTime={fila.fecha}>{fecha(fila.fecha)}</time>
         <span className="ba-area">{areasBitacora[fila.area]}</span>
         <p>{fila.actividad}</p>
-        {admin && corregir && <button type="button" className="boton-secundario" disabled={bloqueado} onClick={() => corregir(fila)}>Corregir</button>}
+        {admin && corregir && <button type="button" className="boton-secundario ba-icono-accion"
+          aria-label={`Corregir actividad del ${fecha(fila.fecha)}`} title="Corregir actividad"
+          disabled={bloqueado} onClick={() => corregir(fila)}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L8 18l-4 1 1-4z"/>
+          </svg>
+        </button>}
       </li>)}</ol></>}
     {!filtro.recientes && (pagina > 0 || actual?.datos?.mas) && <nav className="ba-paginacion" aria-label="Páginas de actividades">
       <button className="boton-secundario" type="button" disabled={pagina === 0 || !actual?.datos} onClick={() => setPagina(n => n - 1)}>Anterior</button>

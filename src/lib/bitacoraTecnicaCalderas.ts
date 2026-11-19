@@ -98,7 +98,7 @@ export function leerReporteCalderas(snapshot: unknown, turnoId: string): Reporte
 }
 
 // Enviar decimales como texto evita redondearlos en JavaScript. PostgreSQL normaliza NULL y cero.
-export function prepararDatosCalderas(b: BorradorBitacoraCalderas, _original?: BorradorBitacoraCalderas) {
+export function prepararDatosCalderas(b: BorradorBitacoraCalderas, original?: BorradorBitacoraCalderas) {
   const reportesOperadores = prepararReportesIndividuales(b.reportesOperadores)
   if (!b.reporteRelevante.trim() || mayusculasNota(b.reporteRelevante).trim().length > 4000) throw new ErrorReporteCalderas('Escribe el reporte relevante del turno (hasta 4,000 caracteres).')
   if (normalizarNota(b.comentariosPilas).length > 4000) throw new ErrorReporteCalderas('Los comentarios de Pilas de suministro admiten hasta 4,000 caracteres.')
@@ -125,9 +125,16 @@ export function prepararDatosCalderas(b: BorradorBitacoraCalderas, _original?: B
     versionFormato: 2 as const,
     servicioAgua: Object.fromEntries(equiposAguaCalderas.map(e => [e.id, b.servicioAgua[e.id] ? true : null])),
     mediciones: Object.fromEntries(Object.entries(b.mediciones).map(([k, v]) => [k, medir(v, k)])), equipos,
-    pilas: Object.fromEntries(pilasCalderas.map(p => [p.id, { nivel: medir(b.pilas[p.id].nivel, `${p.nombre}: nivel`),
-      bomba: b.pilas[p.id].bomba.trim() || (() => { throw new ErrorReporteCalderas(`Completa el campo: ${p.nombre}: bomba.`) })(),
-      presion: medir(b.pilas[p.id].presion, `${p.nombre}: presión`) }])),
+    pilas: Object.fromEntries(pilasCalderas.map(p => {
+      const pila = b.pilas[p.id]
+      const nivel = medir(pila.nivel, `${p.nombre}: nivel`)
+      if (!p.capturaBombaYPresion) {
+        const anterior = (original ?? b).pilas[p.id]
+        return [p.id, { nivel, bomba: anterior.bomba.trim() || null, presion: anterior.presion.trim() || null }]
+      }
+      if (!pila.bomba.trim()) throw new ErrorReporteCalderas(`Completa el campo: ${p.nombre}: bomba.`)
+      return [p.id, { nivel, bomba: pila.bomba.trim(), presion: medir(pila.presion, `${p.nombre}: presión`) }]
+    })),
     compresores: Object.fromEntries(Object.entries(b.compresores).map(([k, v]) => [k, estado(v, ['Servicio', 'Preparado', 'Mantenimiento'], `Estado del Compresor ${k}`)])),
     estadoUF: estado(b.estadoUF, ['Servicio', 'Alarmada (F/S)', 'Lavado'], 'Estado de la UF'), comentariosUF: normalizarNota(b.comentariosUF),
   }

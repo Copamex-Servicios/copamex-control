@@ -11,10 +11,10 @@ export type EstadoCalderas = '' | 'Servicio' | 'Reserva' | 'Mantenimiento'
 export type EstadoUFBitacora = '' | 'Servicio' | 'Alarmada (F/S)' | 'Lavado'
 export type EstadoCompresor = '' | 'Servicio' | 'Preparado' | 'Mantenimiento'
 export const pilasCalderas = [
-  { id: 'pila_1_3', nombre: 'Pila 1 y 3', unidadPresion: 'bar', bombas: ['740', '741'] },
-  { id: 'pila_2', nombre: 'Pila 2', unidadPresion: 'kg/cm²', bombas: ['185', '186', '187'] },
-  { id: 'pila_calderas', nombre: 'Pila Calderas', unidadPresion: 'kg/cm²', bombas: ['406', '405'] },
-  { id: 'pila_4', nombre: 'Pila 4', unidadPresion: 'kg/cm²', bombas: ['1034', '1035'] },
+  { id: 'pila_1_3', capturaBombaYPresion: false, nombre: 'Pila 1 y 3', unidadPresion: 'bar', bombas: ['740', '741'] },
+  { id: 'pila_2', capturaBombaYPresion: false, nombre: 'Pila 2', unidadPresion: 'kg/cm²', bombas: ['185', '186', '187'] },
+  { id: 'pila_calderas', capturaBombaYPresion: true, nombre: 'Pila Calderas', unidadPresion: 'kg/cm²', bombas: ['406', '405'] },
+  { id: 'pila_4', capturaBombaYPresion: false, nombre: 'Pila 4', unidadPresion: 'kg/cm²', bombas: ['1034', '1035'] },
 ] as const
 export type PilaCalderas = typeof pilasCalderas[number]['id']
 export const equiposAguaCalderas = [

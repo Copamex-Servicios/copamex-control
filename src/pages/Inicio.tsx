@@ -14,13 +14,14 @@ import type { RolUsuario } from '../lib/tiposAuth'
 const PaginaLimitesCalidad = lazy(() => import('../components/calidad/PaginaLimitesCalidad').then(modulo => ({ default: modulo.PaginaLimitesCalidad })))
 const ConsultaCalidad = lazy(() => import('../components/calidad/ConsultaCalidad').then(modulo => ({ default: modulo.ConsultaCalidad })))
 const PanelReportes = lazy(() => import('../components/reportes/PanelReportes').then(modulo => ({ default: modulo.PanelReportes })))
+const CapturasPozoUF = lazy(() => import('../components/administracion/CapturasPozoUF').then(m => ({ default: m.CapturasPozoUF })))
 const PanelAdministracion = lazy(() => import('../components/administracion/PanelAdministracion').then(modulo => ({ default: modulo.PanelAdministracion })))
 const PanelPlanta = lazy(() => import('../components/planta/PanelPlanta').then(modulo => ({ default: modulo.PanelPlanta })))
 const PanelOperativo = lazy(() => import('../components/operativo/PanelOperativo').then(modulo => ({ default: modulo.PanelOperativo })))
 const PanelBitacoraAdministrativa = lazy(() => import('../components/bitacoraAdministrativa/BitacoraAdministrativa').then(m => ({ default: m.PanelBitacoraAdministrativa })))
 const NovedadesAdministracion = lazy(() => import('../components/bitacoraAdministrativa/BitacoraAdministrativa').then(m => ({ default: m.NovedadesAdministracion })))
 
-type VistaInicio = 'inicio' | 'calderas' | 'ptar' | 'planta' | 'administracion' | 'reportes' | 'calidad' | 'gestion' | 'limites' | 'novedades' | 'bitacora_admin'
+type VistaInicio = 'inicio' | 'calderas' | 'ptar' | 'planta' | 'administracion' | 'reportes' | 'calidad' | 'gestion' | 'limites' | 'novedades' | 'bitacora_admin' | 'pozo_uf'
 
 interface PropsInicio {
   vista?: VistaInicio
@@ -46,7 +47,7 @@ const paginas: Record<Exclude<VistaInicio, 'inicio'>, Pagina> = {
   gestion: { titulo: 'Avisos y producción', ruta: '/gestion', descripcion: 'Avisos, producción y calendario.', roles: ['calidad'] },
   calderas: {
     titulo: 'Calderas', ruta: '/calderas',
-    descripcion: 'Turnos, Bitácora, Pozos, Ultrafiltración y Calidad.',
+    descripcion: 'Turnos, Bitácora y Calidad de agua.',
     roles: ['calderas', 'admin'],
   },
   ptar: {
@@ -61,6 +62,7 @@ const paginas: Record<Exclude<VistaInicio, 'inicio'>, Pagina> = {
   },
   limites: { titulo: 'Calidad de agua', ruta: '/calidad/limites', descripcion: 'Administra los límites de calidad del sistema.', roles: ['admin'] },
   reportes: { titulo: 'Reportes', ruta: '/reportes', descripcion: 'Consumos, balances, Calidad, PTAR y trazabilidad para juntas y revisión.', roles: ['admin'] },
+  pozo_uf: { titulo: 'Pozo y UF', ruta: '/pozo-uf', descripcion: 'Captura y consulta de lecturas de Pozos y Ultrafiltración.', roles: ['admin'] },
   administracion: {
     titulo: 'Administración', ruta: '/administracion',
     descripcion: 'Operadores, avisos, producción, calendario y catálogos.',
@@ -126,8 +128,8 @@ function ContenidoInicio({ vista = 'inicio' }: PropsInicio = {}) {
   const accesos = Object.values(paginas).filter((opcion) => opcion.roles.includes(perfil.rol)
     && (perfil.rol !== 'admin' || !['/calderas', '/ptar', '/planta', '/reportes'].includes(opcion.ruta)))
   const visuales: AccesoVisual[] = accesos.map(opcion => ({ titulo: opcion.titulo, ruta: opcion.ruta,
-    icono: opcion.ruta === '/bitacora-administrativa' ? 'bitacora' : opcion.ruta === '/calidad' || opcion.ruta === '/calidad/limites' ? 'calidad' : opcion.ruta === '/calderas' ? 'calderas' : opcion.ruta === '/ptar' ? 'ptar' : opcion.ruta === '/planta' ? 'planta' : opcion.ruta === '/reportes' ? 'reportes' : 'administracion',
-    descripcion: opcion.ruta === '/bitacora-administrativa' ? opcion.descripcion : opcion.ruta === '/calidad/limites' ? 'Administra los límites de calidad del sistema.' : opcion.ruta === '/calidad' ? 'Resultados de agua registrados por los operadores.' : opcion.ruta === '/gestion' ? 'Avisos, calendario y programa de producción.' : opcion.ruta === '/calderas' ? 'Turnos, bitácora, pozos, UF y calidad del área.' : opcion.ruta === '/ptar' ? 'Turnos, bitácora, proceso PTAR y calidad del área.' : opcion.ruta === '/planta' ? 'Consulta de Calderas y PTAR en un solo lugar.' : opcion.ruta === '/reportes' ? 'Indicadores, gráficas y exportación a Excel.' : 'Operadores, capturas, avisos y configuración.',
+    icono: opcion.ruta === '/pozo-uf' ? 'pozos' : opcion.ruta === '/bitacora-administrativa' ? 'bitacora' : opcion.ruta === '/calidad' || opcion.ruta === '/calidad/limites' ? 'calidad' : opcion.ruta === '/calderas' ? 'calderas' : opcion.ruta === '/ptar' ? 'ptar' : opcion.ruta === '/planta' ? 'planta' : opcion.ruta === '/reportes' ? 'reportes' : 'administracion',
+    descripcion: opcion.ruta === '/pozo-uf' || opcion.ruta === '/bitacora-administrativa' ? opcion.descripcion : opcion.ruta === '/calidad/limites' ? 'Administra los límites de calidad del sistema.' : opcion.ruta === '/calidad' ? 'Resultados de agua registrados por los operadores.' : opcion.ruta === '/gestion' ? 'Avisos, calendario y programa de producción.' : opcion.ruta === '/calderas' ? 'Turnos, bitácora y calidad del área.' : opcion.ruta === '/ptar' ? 'Turnos, bitácora, proceso PTAR y calidad del área.' : opcion.ruta === '/planta' ? 'Consulta de Calderas y PTAR en un solo lugar.' : opcion.ruta === '/reportes' ? 'Indicadores, gráficas y exportación a Excel.' : 'Operadores, capturas, avisos y configuración.',
   }))
   if (vista === 'calidad' || vista === 'gestion' || vista === 'limites') return <AppLayout accesos={visuales} nombre={perfil.nombre} rol={nombresRol[perfil.rol]} titulo={pagina?.titulo ?? 'Calidad'} cerrando={cerrando} alSalir={() => { void salir() }}>
     {error && <p className="mensaje-error" role="alert">{error}</p>}
@@ -138,7 +140,7 @@ function ContenidoInicio({ vista = 'inicio' }: PropsInicio = {}) {
     const menuCalderas = vista === 'calderas' || perfil.rol === 'calderas' && (vista === 'inicio' || vista === 'planta' || vista === 'novedades')
     const seleccion = vista === 'calderas' ? moduloCalderas : moduloPTAR
     const opciones: { id: ModuloOperativo; nombre: string; icono: AccesoVisual['icono'] }[] = menuCalderas
-      ? [{ id: 'bitacora', nombre: 'Bitácora', icono: 'bitacora' }, { id: 'pozos', nombre: 'Pozos', icono: 'pozos' }, { id: 'uf', nombre: 'Ultrafiltración', icono: 'uf' }, { id: 'calidad', nombre: 'Calidad de agua', icono: 'calidad' }]
+      ? [{ id: 'bitacora', nombre: 'Bitácora', icono: 'bitacora' }, { id: 'calidad', nombre: 'Calidad de agua', icono: 'calidad' }]
       : [{ id: 'bitacora', nombre: 'Bitácora', icono: 'bitacora' }, { id: 'ptar', nombre: 'Proceso PTAR', icono: 'ptar' }, { id: 'calidad', nombre: 'Calidad de agua', icono: 'calidad' }]
     const opcionesVisibles = opciones.filter(opcion => perfil.rol !== 'ptar' || (opcion.id !== 'ptar' && opcion.id !== 'calidad'))
     return <AppLayout accesos={visuales} nombre={perfil.nombre} rol={nombresRol[perfil.rol]} titulo={pagina?.titulo ?? 'Inicio'} cerrando={cerrando} alSalir={() => { void salir() }} alAbrirBitacora={() => abrirBitacoraArea(perfil.rol === 'calderas' ? '/calderas' : '/ptar')} submenu={operativo || menuCalderas ? {
@@ -156,6 +158,7 @@ function ContenidoInicio({ vista = 'inicio' }: PropsInicio = {}) {
       {error && <p className="mensaje-error" role="alert">{error}</p>}
       <VistaConservada activa={vista === 'inicio'}><InicioDashboard accesos={visuales} nombre={perfil.nombre} rol={nombresRol[perfil.rol]} admin={perfil.rol === 'admin'} alAbrirArea={abrirBitacoraArea} /></VistaConservada>
       {vista === 'novedades' && <NovedadesAdministracion key={perfil.id} />}
+      {perfil.rol === 'admin' && <VistaConservada activa={vista === 'pozo_uf'}><div className="co-consulta co-admin-referencia"><CapturasPozoUF /></div></VistaConservada>}
       {perfil.rol === 'admin' && <VistaConservada activa={vista === 'bitacora_admin'}><div className="co-consulta co-administracion"><PanelBitacoraAdministrativa key={perfil.id} /></div></VistaConservada>}
       {(['calderas', 'ptar'] as const).filter(area => paginas[area].roles.includes(perfil.rol)).map(area => <VistaConservada key={area} activa={vista === area}>
         <div className="co-calderas"><PanelOperativo key={perfil.id + ':' + area} area={area} rol={perfil.rol}

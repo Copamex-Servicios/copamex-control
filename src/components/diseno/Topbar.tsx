@@ -37,7 +37,7 @@ export function Topbar({ accesos, submenu, nombre, rol, cerrando, alSalir, alAbr
         const opciones = esArea && (actual || acceso === accesoBitacora && (ubicacion.pathname === '/' || ubicacion.pathname === '/planta' || ubicacion.pathname === '/novedades')) ? submenu : undefined
         return <Fragment key={acceso.ruta}>
           {acceso.ruta !== '/calderas' && acceso.ruta !== '/ptar' && <NavLink to={acceso.ruta}
-            className={({ isActive }) => isActive && !opciones ? 'active' : ''} onClick={acceso.ruta === '/novedades' || acceso.ruta === '/bitacora-administrativa' ? cerrar : undefined}>{acceso.titulo}</NavLink>}
+            className={({ isActive }) => isActive && !opciones ? 'active' : ''} onClick={acceso.ruta === '/novedades' || acceso.ruta === '/bitacora-administrativa' || acceso.ruta === '/pozo-uf' ? cerrar : undefined}>{acceso.titulo}</NavLink>}
           {opciones && <div className="co-barra-submenu" role="group" aria-label={opciones.titulo}>
             {opciones.opciones.map(opcion => <button type="button" key={opcion.id}
               className={opciones.seleccion === opcion.id ? 'active' : ''} aria-pressed={opciones.seleccion === opcion.id}

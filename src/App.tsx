@@ -36,6 +36,7 @@ function App() {
           <Route path="/novedades" element={<Inicio vista="novedades" />} />
           <Route path="/calidad/limites" element={<Inicio vista="limites" />} />
           <Route path="/reportes" element={<Inicio vista="reportes" />} />
+          <Route path="/pozo-uf" element={<Inicio vista="pozo_uf" />} />
           <Route path="/administracion" element={<Inicio vista="administracion" />} />
           <Route path="/bitacora-administrativa" element={<Inicio vista="bitacora_admin" />} />
         </Route>

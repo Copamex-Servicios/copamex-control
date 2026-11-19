@@ -147,9 +147,10 @@ export function datosTecnico(detalle: DetalleTecnicoAdmin): DatoTecnico[] {
     for (const n of ['1', '2', '3', '4'] as const) agregar('Compresores', `Compresor ${n}`, c.compresores[n], '', 'estado')
     if (c.comentariosCompresores) agregar('Compresores', 'Comentarios de Compresores', c.comentariosCompresores, '', 'texto')
     for (const p of pilasCalderas) {
-      agregar('Pilas de suministro', `${p.nombre} · Nivel`, c.pilas[p.id].nivel, '%')
-      agregar('Pilas de suministro', `${p.nombre} · Bomba`, c.pilas[p.id].bomba, '', 'texto')
-      agregar('Pilas de suministro', `${p.nombre} · Presión`, c.pilas[p.id].presion, p.unidadPresion)
+      const pila = c.pilas[p.id]
+      agregar('Pilas de suministro', `${p.nombre} · Nivel`, pila.nivel, '%')
+      if (p.capturaBombaYPresion || pila.bomba.trim() !== '') agregar('Pilas de suministro', `${p.nombre} · Bomba`, pila.bomba, '', 'texto')
+      if (p.capturaBombaYPresion || pila.presion.trim() !== '') agregar('Pilas de suministro', `${p.nombre} · Presión`, pila.presion, p.unidadPresion)
     }
     if (c.comentariosPilas) agregar('Pilas de suministro', 'Comentarios relevantes de Pilas de suministro', c.comentariosPilas, '', 'texto')
     // En formato 1 estas selecciones no se capturaban: no inferir estados.

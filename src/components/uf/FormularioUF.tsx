@@ -7,8 +7,11 @@ import type { CamposUF, ValoresUF } from '../../lib/tiposUF'
 
 interface PropsFormularioUF {
   alGuardar: (campos: CamposUF) => Promise<boolean>
+  borrador?: Pick<CamposUF, 'alimentacionFinal' | 'aceptacionFinal' | 'notas'>
+  alEditar?: (campos: CamposUF) => void
   valoresIniciales?: ValoresUF
   lecturasIniciales?: { alimentacion: number; aceptacion: number }
+  mostrarAyudaLecturasIniciales?: boolean
   modo?: 'capturar' | 'corregir'
   deshabilitado?: boolean
   alCancelar?: () => void
@@ -56,10 +59,11 @@ function consumoPrevio(inicial: string, final: string): string | null {
 // El padre debe usar una key distinta al cambiar de cuenta, turno o lectura.
 // Los valores iniciales se toman al montar; un refresco no reemplaza lo escrito.
 export function FormularioUF({
-  alGuardar, valoresIniciales, lecturasIniciales, modo = 'capturar', deshabilitado = false, alCancelar, accionSecundaria,
+  alGuardar, valoresIniciales, lecturasIniciales, mostrarAyudaLecturasIniciales = true, borrador, alEditar,
+  modo = 'capturar', deshabilitado = false, alCancelar, accionSecundaria,
 }: PropsFormularioUF) {
   const id = useId()
-  const [campos, setCampos] = useState<CamposUF>(() => crearCampos(valoresIniciales, lecturasIniciales))
+  const [campos, setCampos] = useState<CamposUF>(() => ({ ...crearCampos(valoresIniciales, lecturasIniciales), ...borrador }))
   const [error, setError] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
   const [confirmado, setConfirmado] = useState(false)
@@ -78,7 +82,9 @@ export function FormularioUF({
 
   function cambiar(campo: keyof CamposUF, valor: string): void {
     if (bloqueado || envioActivo.current) return
-    setCampos((anteriores) => ({ ...anteriores, [campo]: campo === 'notas' ? mayusculasNota(valor) : valor }))
+    const actualizados = { ...campos, [campo]: campo === 'notas' ? mayusculasNota(valor) : valor }
+    setCampos(actualizados)
+    alEditar?.(actualizados)
     setError(null)
   }
 
@@ -151,7 +157,7 @@ export function FormularioUF({
             {resultados && resultados.rendimiento === null && <p>Sin alimentación</p>}
           </div>
         </div>
-        {modo === 'capturar' && <p className="ayuda-turno">
+        {modo === 'capturar' && mostrarAyudaLecturasIniciales && <p className="ayuda-turno">
           {lecturasIniciales
             ? 'Las lecturas iniciales se llenaron automáticamente con la base histórica o el cierre del turno anterior.'
             : 'No hay una lectura anterior registrada; captura las lecturas iniciales de ambos medidores.'}

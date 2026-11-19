@@ -1,7 +1,7 @@
 import { ConsultaMuestrasCalidad } from '../calidad/ConsultaMuestrasCalidad'
 import '../bitacora/bitacoraCalderas.css'
 import '../bitacora/bitacoraPTAR.css'
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import type { FiltrosPlanta } from '../../lib/planta'
 import { consultarPeriodoTecnicoCompleto } from '../../lib/consultarConsolidadoTecnico'
@@ -15,13 +15,9 @@ import { FormularioBitacoraCalderas } from '../bitacora/FormularioBitacoraCalder
 import { FormularioBitacoraPTAR } from '../bitacora/FormularioBitacoraPTAR'
 import './gestionRegistros.css'
 
-const PanelPozos = lazy(() => import('../pozos/PanelPozos').then(m => ({ default: m.PanelPozos })))
-const PanelUF = lazy(() => import('../uf/PanelUF').then(m => ({ default: m.PanelUF })))
 const seccionesCapturas = [
   { id: 'tecnicos', nombre: 'Reportes técnicos' },
   { id: 'calidad', nombre: 'Calidad de agua' },
-  { id: 'pozos', nombre: 'Pozos' },
-  { id: 'uf', nombre: 'UF' },
 ] as const
 type SeccionCapturas = typeof seccionesCapturas[number]['id']
 
@@ -39,12 +35,6 @@ export function GestionRegistrosAdministracion() {
     </nav>
     <div hidden={seccion !== 'tecnicos'}><ReportesTecnicosAdmin /></div>
     {abiertas.includes('calidad') && <div hidden={seccion !== 'calidad'}><ConsultaMuestrasCalidad exportacionDiaria ocultarFiltros /></div>}
-    {abiertas.includes('pozos') && <div className="co-operativo-referencia" hidden={seccion !== 'pozos'}>
-      <Suspense fallback={<p role="status">Cargando Pozos…</p>}><PanelPozos /></Suspense>
-    </div>}
-    {abiertas.includes('uf') && <div className="co-operativo-referencia" hidden={seccion !== 'uf'}>
-      <Suspense fallback={<p role="status">Cargando UF…</p>}><PanelUF /></Suspense>
-    </div>}
   </div>
 }
 function PresentarTecnico({ detalle }: { detalle: DetalleTecnicoAdmin }) {

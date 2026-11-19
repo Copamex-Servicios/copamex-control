@@ -4,8 +4,6 @@ import { useEffect, useId } from 'react'
 import '../diseno/acordeonHistorial.css'
 import '../operativo/medicionesVisual.css'
 import { useUF } from '../../hooks/useUF'
-import type { TipoTurno } from '../../lib/tiposTurno'
-import { FormularioUF } from './FormularioUF'
 import { formatearVolumenUF } from '../../lib/formatoUF'
 import { LecturaUFGuardada } from './LecturaUFGuardada'
 import { LecturaUFHistorial } from './LecturaUFHistorial'
@@ -13,11 +11,6 @@ import { useHistorialPaginado } from '../../hooks/useHistorialPaginado'
 import { consultarPaginaHistorialUF } from '../../lib/uf'
 import { PaginacionHistorial } from '../diseno/PaginacionHistorial'
 import { useUFStore } from '../../stores/ufStore'
-
-const nombresTurno: Record<TipoTurno, string> = {
-  dia: 'Día', tarde: 'Tarde', noche: 'Noche',
-}
-
 
 interface PropsContenidoUF {
   datos: ReturnType<typeof useUF>
@@ -27,13 +20,12 @@ function ContenidoUF({ datos }: PropsContenidoUF) {
   const grupoHistorial = useId()
   const {
     cuentaId, rol, turno, lecturaActual, historial, estadoCarga, mensaje,
-    guardando, solicitudPendiente, mensajeAccion, puedeCrear,
-    guardarUF, reintentarGuardadoUF, actualizarUF,
+    guardando, solicitudPendiente, mensajeAccion,
+    reintentarGuardadoUF, actualizarUF,
   } = datos
   const listo = estadoCarga === 'listo'
   const ocupado = guardando || solicitudPendiente !== null
   const actual = lecturaActual ?? historial.find((registro) => registro.lectura.turno_id === turno?.id) ?? null
-  const turnoPropio = rol === 'calderas' && turno !== null && turno.iniciado_por === cuentaId
   const anteriores = actual ? historial.filter((registro) => registro.lectura.id !== actual.lectura.id) : historial
   const paginaHistorial = useHistorialPaginado(anteriores, `${cuentaId}:${actual?.lectura.id ?? ''}`, rol === 'calderas' && historial.length >= 14,
     actual?.lectura.turno_id ?? null, consultarPaginaHistorialUF, 7)
@@ -98,19 +90,6 @@ function ContenidoUF({ datos }: PropsContenidoUF) {
             onClick={() => { void actualizarUF() }}>
             Reintentar consulta de UF
           </button>
-        </div>
-      )}
-
-      {/* Conservar esta instancia al recargar UF del mismo turno para mantener el borrador. */}
-      {turnoPropio && turno && (
-        <div className="captura-uf" hidden={!listo || actual !== null}>
-          <h3>Nueva lectura del turno de {nombresTurno[turno.turno]}</h3>
-          {!puedeCrear && !ocupado && listo && actual === null && (
-            <p className="ayuda-turno">Confirma la operación del turno antes de guardar una lectura nueva.</p>
-          )}
-          <FormularioUF key={`${cuentaId}:${turno.id}:captura`} alGuardar={guardarUF}
-            lecturasIniciales={datos.lecturasIniciales ?? undefined}
-            deshabilitado={!listo || !puedeCrear || ocupado || actual !== null} />
         </div>
       )}
 

@@ -4,8 +4,6 @@ import '../operativo/medicionesVisual.css'
 import { useId, useState } from 'react'
 import '../diseno/acordeonHistorial.css'
 import { usePozos } from '../../hooks/usePozos'
-import type { TipoTurno } from '../../lib/tiposTurno'
-import { FormularioPozos } from './FormularioPozos'
 import { formatearVolumenPozos } from '../../lib/formatoPozos'
 import { LecturaPozosGuardada } from './LecturaPozosGuardada'
 import { LecturaPozosHistorial } from './LecturaPozosHistorial'
@@ -13,12 +11,6 @@ import { MonitorConcesionPozos } from './MonitorConcesionPozos'
 import { useHistorialPaginado } from '../../hooks/useHistorialPaginado'
 import { consultarPaginaHistorialPozos } from '../../lib/pozos'
 import { PaginacionHistorial } from '../diseno/PaginacionHistorial'
-import type { CamposPozos } from '../../lib/tiposPozos'
-
-const nombresTurno: Record<TipoTurno, string> = {
-  dia: 'Día', tarde: 'Tarde', noche: 'Noche',
-}
-
 
 interface PropsContenidoPozos {
   datos: ReturnType<typeof usePozos>
@@ -29,13 +21,12 @@ function ContenidoPozos({ datos }: PropsContenidoPozos) {
   const [revisionConcesion, setRevisionConcesion] = useState(0)
   const {
     cuentaId, rol, turno, lecturaActual, historial, baseHistorica, estadoCarga, mensaje,
-    guardando, solicitudPendiente, mensajeAccion, puedeCrear,
-    guardarPozos, reintentarGuardadoPozos, actualizarPozos,
+    guardando, solicitudPendiente, mensajeAccion,
+    reintentarGuardadoPozos, actualizarPozos,
   } = datos
   const listo = estadoCarga === 'listo'
   const ocupado = guardando || solicitudPendiente !== null
   const actual = lecturaActual ?? historial.find((registro) => registro.lectura.turno_id === turno?.id) ?? null
-  const turnoPropio = rol === 'calderas' && turno !== null && turno.iniciado_por === cuentaId
   const todasLasAnteriores = actual ? historial.filter((registro) => registro.lectura.id !== actual.lectura.id) : historial
   const baseAplica = Boolean(turno && baseHistorica
     && turno.fecha_operativa.slice(0, 4) === String(baseHistorica.anio)
@@ -43,30 +34,11 @@ function ContenidoPozos({ datos }: PropsContenidoPozos) {
   const anteriores = baseAplica && baseHistorica
     ? todasLasAnteriores.filter((registro) => registro.turno.fecha_operativa >= baseHistorica.fechaCorte)
     : todasLasAnteriores
-  const lecturaTurnoAnterior = turno ? anteriores
-    .filter(registro => registro.turno.area === 'calderas' && Date.parse(registro.turno.iniciado_en) < Date.parse(turno.iniciado_en))
-    .reduce<typeof anteriores[number] | null>((ultima, registro) => !ultima
-      || Date.parse(registro.turno.iniciado_en) > Date.parse(ultima.turno.iniciado_en) ? registro : ultima, null) : null
-  const lecturasIniciales = lecturaTurnoAnterior ? {
-    pozo1: lecturaTurnoAnterior.lectura.pozo1_fin,
-    pozo2: lecturaTurnoAnterior.lectura.pozo2_fin,
-    origen: 'turno-anterior' as const,
-  } : baseAplica && baseHistorica ? {
-    pozo1: baseHistorica.pozo1,
-    pozo2: baseHistorica.pozo2,
-    origen: 'base-historica' as const,
-  } : undefined
   const paginaHistorial = useHistorialPaginado(anteriores, `${cuentaId}:${actual?.lectura.id ?? ''}`, rol === 'calderas' && historial.length >= 14,
     actual?.lectura.turno_id ?? null, consultarPaginaHistorialPozos, 7)
   const filasHistorial = rol === 'calderas' ? paginaHistorial.visibles : anteriores
   const confirmado = mensajeAccion === 'Lectura de Pozos guardada.'
     || mensajeAccion === 'Corrección de Pozos confirmada.'
-
-  async function guardarPozosYActualizarConsumo(campos: CamposPozos): Promise<boolean> {
-    const guardado = await guardarPozos(campos)
-    if (guardado) setRevisionConcesion(n => n + 1)
-    return guardado
-  }
 
   async function reintentar(): Promise<void> {
     if (guardando || !solicitudPendiente) return
@@ -116,19 +88,6 @@ function ContenidoPozos({ datos }: PropsContenidoPozos) {
             onClick={() => { void actualizarPozos() }}>
             Reintentar consulta de Pozos
           </button>
-        </div>
-      )}
-
-      {/* Conservar esta instancia al recargar Pozos del mismo turno para mantener el borrador. */}
-      {turnoPropio && turno && (
-        <div className="captura-pozos" hidden={!listo || actual !== null}>
-          <h3>Nueva lectura del turno de {nombresTurno[turno.turno]}</h3>
-          {!puedeCrear && !ocupado && listo && actual === null && (
-            <p className="ayuda-turno">Confirma la operación del turno antes de guardar una lectura nueva.</p>
-          )}
-          <FormularioPozos key={`${cuentaId}:${turno.id}:captura`} alGuardar={guardarPozosYActualizarConsumo}
-            lecturasIniciales={lecturasIniciales}
-            deshabilitado={!listo || !puedeCrear || ocupado || actual !== null} />
         </div>
       )}
 

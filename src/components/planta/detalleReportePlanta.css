@@ -31,6 +31,7 @@
 .co-layout .planta-reporte-detalle .pcr-pila { min-width:0; padding:9px; border:1px solid #e4ecf7; border-radius:6px; }
 .co-layout .planta-reporte-detalle .pcr-pila h6 { margin:0 0 8px; color:var(--co-navy,#073b7a); font-size:12px; font-weight:650; line-height:1.4; }
 .co-layout .planta-reporte-detalle .pcr-pila-datos { grid-template-columns:repeat(3,minmax(0,1fr)); gap:0; overflow:hidden; border:1px solid #edf2f9; border-radius:5px; }
+.co-layout .planta-reporte-detalle .pcr-pila-datos.pcr-pila-solo-nivel { grid-template-columns:minmax(0,1fr); }
 .co-layout .planta-reporte-detalle .pcr-pila-datos .pcr-dato { padding:0; }
 .co-layout .planta-reporte-detalle .pcr-pila-datos .pcr-dato:first-child { border-inline-start:0; }
 .co-layout .planta-reporte-detalle .pcr-pila-datos dt { padding:5px 3px; background:#f0f5fc; text-align:center; font-size:10px; }

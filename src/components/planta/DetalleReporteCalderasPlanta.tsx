@@ -65,14 +65,19 @@ export function DetalleReporteCalderasPlanta({ reporte }: { reporte: ReporteTecn
       </Seccion>
 
       <Seccion titulo="Pilas de suministro">
-        <div className="pcr-pilas">{pilasCalderas.map(p => <section className="pcr-pila" key={p.id}>
-          <h6>{p.nombre}</h6>
-          <dl className="pcr-pila-datos">
-            <Dato nombre="Nivel" valor={b.pilas[p.id].nivel} unidad="%" />
-            <Dato nombre="Bomba" valor={b.pilas[p.id].bomba} vacio="Sin registrar" />
-            <Dato nombre="Presión" valor={b.pilas[p.id].presion} unidad={p.unidadPresion} />
-          </dl>
-        </section>)}</div>
+        <div className="pcr-pilas">{pilasCalderas.map(p => {
+          const pila = b.pilas[p.id]
+          const mostrarBomba = p.capturaBombaYPresion || pila.bomba.trim() !== ''
+          const mostrarPresion = p.capturaBombaYPresion || pila.presion.trim() !== ''
+          return <section className="pcr-pila" key={p.id}>
+            <h6>{p.nombre}</h6>
+            <dl className={mostrarBomba || mostrarPresion ? "pcr-pila-datos" : "pcr-pila-datos pcr-pila-solo-nivel"}>
+              <Dato nombre="Nivel" valor={pila.nivel} unidad="%" />
+              {mostrarBomba && <Dato nombre="Bomba" valor={pila.bomba} vacio="Sin registrar" />}
+              {mostrarPresion && <Dato nombre="Presión" valor={pila.presion} unidad={p.unidadPresion} />}
+            </dl>
+          </section>
+        })}</div>
         {b.comentariosPilas && <dl className="pcr-datos"><Dato nombre="Comentarios relevantes de Pilas de suministro" valor={b.comentariosPilas} /></dl>}
       </Seccion>
 

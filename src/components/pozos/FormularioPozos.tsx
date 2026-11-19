@@ -1,6 +1,7 @@
 import { GrupoMediciones } from '../operativo/GrupoMediciones'
 import { useEffect, useId, useRef, useState } from 'react'
 import { mayusculasNota } from '../../lib/notasOperativas'
+import './formularioPozos.css'
 import type { FormEvent, ReactNode } from 'react'
 import { calcularConsumosPozos, ErrorPozos, validarCamposPozos } from '../../lib/pozos'
 import type { CamposPozos, ValoresPozos } from '../../lib/tiposPozos'
@@ -13,8 +14,11 @@ interface LecturasIniciales {
 
 interface PropsFormularioPozos {
   alGuardar: (campos: CamposPozos) => Promise<boolean>
+  borrador?: Pick<CamposPozos, 'pozo1Final' | 'pozo2Final' | 'notas'>
+  alEditar?: (campos: CamposPozos) => void
   valoresIniciales?: ValoresPozos
   lecturasIniciales?: LecturasIniciales
+  mostrarAyudaLecturasIniciales?: boolean
   modo?: 'capturar' | 'corregir'
   deshabilitado?: boolean
   alCancelar?: () => void
@@ -62,10 +66,11 @@ function consumoPrevio(inicial: string, final: string): string | null {
 // El padre debe usar una key distinta al cambiar de cuenta, turno o lectura.
 // Los valores iniciales se toman al montar; un refresco no reemplaza lo escrito.
 export function FormularioPozos({
-  alGuardar, valoresIniciales, lecturasIniciales, modo = 'capturar', deshabilitado = false, alCancelar, accionSecundaria,
+  alGuardar, valoresIniciales, lecturasIniciales, mostrarAyudaLecturasIniciales = true, borrador, alEditar,
+  modo = 'capturar', deshabilitado = false, alCancelar, accionSecundaria,
 }: PropsFormularioPozos) {
   const id = useId()
-  const [campos, setCampos] = useState<CamposPozos>(() => crearCampos(valoresIniciales, lecturasIniciales))
+  const [campos, setCampos] = useState<CamposPozos>(() => ({ ...crearCampos(valoresIniciales, lecturasIniciales), ...borrador }))
   const [error, setError] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
   const [confirmado, setConfirmado] = useState(false)
@@ -90,7 +95,9 @@ export function FormularioPozos({
 
   function cambiar(campo: keyof CamposPozos, valor: string): void {
     if (bloqueado || envioActivo.current) return
-    setCampos((anteriores) => ({ ...anteriores, [campo]: campo === 'notas' ? mayusculasNota(valor) : valor }))
+    const actualizados = { ...campos, [campo]: campo === 'notas' ? mayusculasNota(valor) : valor }
+    setCampos(actualizados)
+    alEditar?.(actualizados)
     setError(null)
   }
 
@@ -155,33 +162,36 @@ export function FormularioPozos({
             </GrupoMediciones>
           ))}
         </div>
-        {modo === 'capturar' && <p className="ayuda-turno">
+        {modo === 'capturar' && mostrarAyudaLecturasIniciales && <p className="ayuda-turno">
           {lecturasIniciales?.origen === 'base-historica'
             ? 'Las lecturas iniciales se tomaron de la base histórica de los medidores.'
             : lecturasIniciales
               ? 'Las lecturas iniciales se copiaron automáticamente de las lecturas finales del turno anterior.'
             : 'No hay una lectura anterior registrada; captura las lecturas iniciales de ambos pozos.'}
         </p>}
-        <div className="campo-turno campo-turno-ancho">
-          <label htmlFor={`${id}-notas`}>Notas (opcional)</label>
-          <textarea id={`${id}-notas`} name="notas" rows={3} value={campos.notas}
-            onChange={(evento) => cambiar('notas', evento.target.value)} />
-        </div>
       </fieldset>
 
       {error && <p id={`${id}-error`} className="mensaje-error" role="alert">{error}</p>}
       {confirmado && <p className="mensaje-exito" role="status">{correccion ? 'Corrección confirmada.' : 'Lectura guardada.'}</p>}
-      <div className="acciones-turno">
-        {accionSecundaria}
-        <button className="boton-primario" type="submit" disabled={bloqueado}>
-          {enviando ? 'Guardando…' : correccion ? 'Guardar corrección' : 'Guardar'}
-        </button>
-        {alCancelar && (
-          <button className="boton-secundario" type="button" onClick={alCancelar}
-            disabled={deshabilitado || enviando}>
-            Cancelar
+      <div className="pozos-captura-pie">
+        <div className="campo-turno">
+          <label htmlFor={`${id}-notas`}>Notas (opcional)</label>
+          <textarea id={`${id}-notas`} name="notas" rows={1} placeholder="Escribe una nota corta"
+            value={campos.notas} disabled={bloqueado}
+            onChange={(evento) => cambiar('notas', evento.target.value)} />
+        </div>
+        <div className="acciones-turno">
+          {accionSecundaria}
+          <button className="boton-primario" type="submit" disabled={bloqueado}>
+            {enviando ? 'Guardando…' : correccion ? 'Guardar corrección' : 'Guardar'}
           </button>
-        )}
+          {alCancelar && (
+            <button className="boton-secundario" type="button" onClick={alCancelar}
+              disabled={deshabilitado || enviando}>
+              Cancelar
+            </button>
+          )}
+        </div>
       </div>
     </form>
   )
