@@ -42,7 +42,7 @@ const nombresRol: Record<RolUsuario, string> = {
 }
 
 const paginas: Record<Exclude<VistaInicio, 'inicio'>, Pagina> = {
-  bitacora_admin: { titulo: 'Bit\u00e1cora', ruta: '/bitacora-administrativa', descripcion: 'Actividades de Administraci\u00f3n por \u00e1rea e historial mensual.', roles: ['admin'] },
+  bitacora_admin: { titulo: 'Relevantes', ruta: '/bitacora-administrativa', descripcion: 'Actividades de Administraci\u00f3n por \u00e1rea e historial mensual.', roles: ['admin'] },
   calidad: { titulo: 'Calidad de agua', ruta: '/calidad', descripcion: 'Consulta de mediciones de ambas áreas.', roles: ['calidad'] },
   gestion: { titulo: 'Avisos y producción', ruta: '/gestion', descripcion: 'Avisos, producción y calendario.', roles: ['calidad'] },
   calderas: {
@@ -68,7 +68,7 @@ const paginas: Record<Exclude<VistaInicio, 'inicio'>, Pagina> = {
     descripcion: 'Operadores, avisos, producción, calendario y catálogos.',
     roles: ['admin'],
   },
-  novedades: { titulo: 'Novedades', ruta: '/novedades', descripcion: 'Consulta mensual de actividades de Administración.', roles: ['calderas', 'ptar'] },
+  novedades: { titulo: 'Relevantes', ruta: '/novedades', descripcion: 'Consulta mensual de actividades de Administración.', roles: ['calderas', 'ptar'] },
 }
 
 // Limpiar las vistas conservadas al cambiar de cuenta, rol o acceso.

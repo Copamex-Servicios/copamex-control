@@ -11,6 +11,7 @@ export const medicionesBitacoraPTAR = [
   { campo: 'flujo_daf_chino', nombre: 'Flujo del DAF Chino', unidad: 'L/s', seccion: 2 },
   { campo: 'nivel_daf_chino', nombre: 'Nivel del DAF Chino', unidad: 'm', seccion: 2 },
   { campo: 'flujo_daf_huber', nombre: 'Flujo del DAF Huber', unidad: 'm³/h', seccion: 2 },
+  { campo: 'flujo_reactor_1', nombre: 'Flujo al Reactor 1', unidad: 'L/s', seccion: 2 },
   { campo: 'flujo_reactor_2', nombre: 'Flujo al Reactor 2', unidad: 'L/s', seccion: 2 },
   { campo: 'flujo_aimsu', nombre: 'Flujo general de AIMSU', unidad: 'L/s', seccion: 3 },
   { campo: 'presion_linea', nombre: 'Presión en línea', unidad: 'kg/cm²', seccion: 3 },

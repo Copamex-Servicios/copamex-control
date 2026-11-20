@@ -26,6 +26,7 @@ const borradores = new Map<string, { fecha: string; inicial1: number | null; ini
 type Solicitud = {
   p_modulo: Modulo
   p_id: string
+  p_fecha: string
   p_final1: number
   p_final2: number
   p_notas: string | null
@@ -65,6 +66,14 @@ function etiquetaTurno(turno: TipoTurno): string {
 function fechaLegible(value: string): string {
   const [year, month, day] = value.split('-').map(Number)
   return new Date(year, month - 1, day).toLocaleDateString('es-MX')
+}
+
+function fechaCaptura(value: string, modulo: Modulo): string {
+  const fecha = new Date(value)
+  if (!Number.isFinite(fecha.getTime())) return '—'
+  return modulo === 'pozos'
+    ? fecha.toLocaleDateString('es-MX', { timeZone: 'America/Mexico_City' })
+    : fecha.toLocaleString('es-MX')
 }
 
 function errorRPC(error: { code?: string; message: string }, migracion: string): string {
@@ -137,13 +146,18 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
     setError('')
     setSolicitudPendiente(null)
     try {
-      const { data, error: rpcError } = await supabase.rpc('consultar_referencia_diaria_medicion_admin', {
-        p_modulo: modulo,
-      }).abortSignal(AbortSignal.timeout(20000))
-      if (rpcError) throw new Error(errorRPC(rpcError, '20261119000400_capturas_admin_fecha_actual.sql'))
+      const { data, error: rpcError } = modulo === 'uf'
+        ? await supabase.rpc('consultar_referencia_uf_admin', { p_fecha: fecha })
+          .abortSignal(AbortSignal.timeout(20000))
+        : await supabase.rpc('consultar_referencia_diaria_medicion_admin', { p_modulo: modulo })
+          .abortSignal(AbortSignal.timeout(20000))
+      if (rpcError) throw new Error(errorRPC(rpcError,
+        modulo === 'uf' ? '20261120000200_historial_capturas_y_fecha_uf.sql' : '20261119000400_capturas_admin_fecha_actual.sql'))
       const resultado = data as Record<string, unknown> | null
       if (!resultado) throw new Error('No se recibió una referencia de lecturas.')
-      const fechaResultado = typeof resultado.fecha_operativa === 'string' ? resultado.fecha_operativa : fechaActualMexico()
+      const fechaResultado = modulo === 'uf'
+        ? fecha
+        : typeof resultado.fecha_operativa === 'string' ? resultado.fecha_operativa : fechaActualMexico()
       const inicial1 = numeroSeguro(resultado.inicial1)
       const inicial2 = numeroSeguro(resultado.inicial2)
       const existente = resultado.existente && typeof resultado.existente === 'object'
@@ -168,17 +182,18 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
       operacion.current = false
       setOcupado(false)
     }
-  }, [claveBorrador, modulo, solicitudPendiente])
+  }, [claveBorrador, fecha, modulo, solicitudPendiente])
 
   useEffect(() => {
     if (ocupado || solicitudPendiente) return
-    const clave = `${cuenta}:${modulo}:${versionConsultaReferencia}`
+    const clave = `${cuenta}:${modulo}:${modulo === 'uf' ? fecha : 'hoy'}:${versionConsultaReferencia}`
     if (consultaAutomatica.current === clave) return
     consultaAutomatica.current = clave
     void consultarReferencia()
-  }, [cuenta, modulo, ocupado, solicitudPendiente, versionConsultaReferencia, consultarReferencia])
+  }, [cuenta, modulo, fecha, ocupado, solicitudPendiente, versionConsultaReferencia, consultarReferencia])
 
   useEffect(() => {
+    if (modulo !== 'pozos') return
     const actualizarReferenciaActual = () => {
       if (formularioEditado.current || borrador) return
       const actual = fechaActualMexico()
@@ -192,7 +207,7 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
     }
     const temporizador = window.setInterval(actualizarReferenciaActual, 30_000)
     return () => window.clearInterval(temporizador)
-  }, [borrador, fecha])
+  }, [borrador, fecha, modulo])
 
   async function guardar(campos: CamposPozos | CamposUF): Promise<boolean> {
     if (operacion.current || !referencia || referencia.inicial1 === null || referencia.inicial2 === null) return false
@@ -218,6 +233,7 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
     }
 
     if (solicitudPendiente && (solicitudPendiente.p_modulo !== modulo
+      || solicitudPendiente.p_fecha !== referencia.fecha
       || solicitudPendiente.p_final1 !== final1 || solicitudPendiente.p_final2 !== final2
       || solicitudPendiente.p_notas !== notas)) {
       setError('Hay un guardado sin confirmar. Reintenta con los mismos datos antes de cambiar la lectura.')
@@ -226,7 +242,7 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
 
     let solicitud = solicitudPendiente
     if (!solicitud) {
-      solicitud = { p_modulo: modulo, p_id: crypto.randomUUID(), p_final1: final1, p_final2: final2, p_notas: notas }
+      solicitud = { p_modulo: modulo, p_id: crypto.randomUUID(), p_fecha: referencia.fecha, p_final1: final1, p_final2: final2, p_notas: notas }
       setSolicitudPendiente(solicitud)
     }
     operacion.current = true
@@ -234,11 +250,19 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
     setError('')
     setMensaje('')
     try {
-      const { data, error: rpcError } = await supabase.rpc('crear_medicion_diaria_admin', solicitud)
-        .abortSignal(AbortSignal.timeout(25000))
+      const { data, error: rpcError } = modulo === 'uf'
+        ? await supabase.rpc('crear_medicion_uf_admin', {
+          p_id: solicitud.p_id, p_fecha: solicitud.p_fecha,
+          p_final1: solicitud.p_final1, p_final2: solicitud.p_final2, p_notas: solicitud.p_notas,
+        }).abortSignal(AbortSignal.timeout(25000))
+        : await supabase.rpc('crear_medicion_diaria_admin', {
+          p_modulo: solicitud.p_modulo, p_id: solicitud.p_id,
+          p_final1: solicitud.p_final1, p_final2: solicitud.p_final2, p_notas: solicitud.p_notas,
+        }).abortSignal(AbortSignal.timeout(25000))
       if (rpcError) {
         if (['42501', '22023', '22P02', '23505', '23514', 'PGRST202'].includes(rpcError.code)) setSolicitudPendiente(null)
-        throw new Error(errorRPC(rpcError, '20261119000400_capturas_admin_fecha_actual.sql'))
+        throw new Error(errorRPC(rpcError,
+          modulo === 'uf' ? '20261120000200_historial_capturas_y_fecha_uf.sql' : '20261119000400_capturas_admin_fecha_actual.sql'))
       }
       if (data !== solicitud.p_id) throw new Error('No se confirmó la lectura. Reintenta el mismo guardado.')
       borradores.delete(claveBorrador)
@@ -272,7 +296,7 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
       p_modulo: modulo, p_limite: 7, p_offset: offsetHistorial,
     }).abortSignal(controller.signal)).then(({ data, error: rpcError }) => {
       if (!activa) return
-      if (rpcError) throw new Error(errorRPC(rpcError, '20261119000300_capturas_admin_pozo_uf_sin_turno.sql'))
+      if (rpcError) throw new Error(errorRPC(rpcError, '20261120000200_historial_capturas_y_fecha_uf.sql'))
       const resultado = data as { filas?: unknown; mas?: unknown } | null
       const filas = Array.isArray(resultado?.filas) ? resultado.filas as FilaHistorial[] : []
       setFilasHistorial(filas)
@@ -296,6 +320,22 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
     </div>}
     <section className="panel-informacion panel-mediciones">
       <h2>Captura administrativa de {titulo}</h2>
+      {modulo === 'uf' && <div className="gestion-mediciones-filtros pozo-uf-fecha-captura">
+        <label>Fecha de captura · Turno Día
+          <input type="date" value={fecha} max={fechaActualMexico()} disabled={ocupado || Boolean(solicitudPendiente)}
+            onChange={event => {
+              const siguiente = event.currentTarget.value
+              if (!siguiente || siguiente > fechaActualMexico()) return
+              formularioEditado.current = false
+              borradores.delete(claveBorrador)
+              setReferencia(null)
+              setError('')
+              setMensaje('')
+              setFecha(siguiente)
+              setVersionFormulario(n => n + 1)
+            }} />
+        </label>
+      </div>}
       <p className="pozo-uf-ayuda">{ocupado && referencia === null ? 'Cargando lecturas iniciales…' : `Fecha de captura: ${fechaLegible(referencia?.fecha ?? fecha)} · Turno: Día`}</p>
       {error && <p className="mensaje-error" role="alert">{error}</p>}
       {mensaje && <p className="mensaje-exito" role="status">{mensaje}</p>}
@@ -311,14 +351,14 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
             mostrarAyudaLecturasIniciales={false} alGuardar={guardar} deshabilitado={ocupado} />}
       </>}
       {referencia?.existente && <RegistroExistente modulo={modulo} registro={referencia.existente} />}
-      {referencia?.ocupadaOperativa && <p>La captura de hoy ya está ligada a un turno operativo. No se agregó otra para evitar duplicar el consumo.</p>}
+      {referencia?.ocupadaOperativa && <p>La captura de esta fecha ya está ligada a un turno operativo. No se agregó otra para evitar duplicar el registro.</p>}
       {solicitudPendiente && <p className="mensaje-error" role="status">El guardado no se confirmó. Vuelve a pulsar Guardar para reintentar la misma solicitud.</p>}
     </section>
 
     <section className="panel-informacion pozo-uf-historial" aria-label={`Historial de capturas administrativas de ${titulo}`}>
       <h2>Historial de capturas administrativas</h2>
       {errorHistorial && <p className="mensaje-error" role="alert">{errorHistorial}</p>}
-      {cargandoHistorial ? <p role="status">Cargando historial…</p> : filasHistorial.length === 0
+      {cargandoHistorial ? <p role="status">Cargando historial…</p> : !errorHistorial && filasHistorial.length === 0
         ? <p>No hay capturas administrativas registradas.</p>
         : <div className="tabla-scroll"><table>
           <thead><tr>
@@ -333,7 +373,7 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
             <td>{fila.inicial1.toLocaleString('es-MX')} → {fila.final1.toLocaleString('es-MX')} ({fila.consumo1.toLocaleString('es-MX')} m³)</td>
             <td>{fila.inicial2.toLocaleString('es-MX')} → {fila.final2.toLocaleString('es-MX')} ({fila.consumo2.toLocaleString('es-MX')} m³)</td>
             {modulo === 'uf' && <td>{fila.rechazo?.toLocaleString('es-MX') ?? '—'} m³</td>}
-            <td>{new Date(fila.capturado_en).toLocaleString('es-MX')}</td>
+            <td>{fechaCaptura(fila.capturado_en, modulo)}</td>
           </tr>)}</tbody>
         </table></div>}
       {(offsetHistorial > 0 || hayMasHistorial) && <div className="pozo-uf-paginacion">
@@ -351,7 +391,7 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
 function RegistroExistente({ modulo, registro }: { modulo: Modulo; registro: Record<string, unknown> }) {
   const final1 = numeroSeguro(registro.final1 ?? registro.pozo1_fin ?? registro.alim_fin)
   const final2 = numeroSeguro(registro.final2 ?? registro.pozo2_fin ?? registro.acep_fin)
-  const capturado = typeof registro.capturado_en === 'string' ? new Date(registro.capturado_en).toLocaleString('es-MX') : '—'
+  const capturado = typeof registro.capturado_en === 'string' ? fechaCaptura(registro.capturado_en, modulo) : '—'
   return <div className="pozo-uf-registro-existente">
     <strong>Esta lectura ya está registrada; no se reemplazará.</strong>
     <p>{modulo === 'pozos' ? 'Pozo 1' : 'Alimentación'}: {final1?.toLocaleString('es-MX') ?? '—'} m³ · {modulo === 'pozos' ? 'Pozo 2' : 'Aceptación'}: {final2?.toLocaleString('es-MX') ?? '—'} m³</p>

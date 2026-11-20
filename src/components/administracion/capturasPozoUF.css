@@ -1,6 +1,7 @@
 .co-layout .co-admin-referencia .gestion-mediciones-admin .co-operativo-referencia { display:grid; gap:12px; }
 .co-layout .co-admin-referencia .gestion-mediciones-filtros { display:grid; grid-template-columns:repeat(2,minmax(0,12rem)) auto; gap:12px; align-items:end; justify-content:start; margin:12px 0; }
 .co-layout .co-admin-referencia .gestion-mediciones-filtros label { display:grid; gap:6px; min-width:0; }
+.co-layout .co-admin-referencia .pozo-uf-fecha-captura { grid-template-columns:minmax(0,18rem); margin:10px 0; }
 .co-layout .co-admin-referencia .pozo-uf-ayuda { margin:4px 0 12px; color:var(--texto-secundario,#526987); }
 .co-layout .co-admin-referencia .pozo-uf-registro-existente { margin-top:12px; padding:14px 16px; border:1px solid var(--borde,#d6e2f3); border-radius:12px; background:var(--fondo-suave,#f4f8fd); }
 .co-layout .co-admin-referencia .pozo-uf-registro-existente p { margin:6px 0 0; }

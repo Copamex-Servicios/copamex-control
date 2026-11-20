@@ -34,7 +34,7 @@ export async function prepararArchivoDiaCalidad(s:SolicitudDiaCompletoCalidad,ti
   comprobar()
   const dia=await consultarDiaCompletoCalidad(solicitud,signal)
   comprobar()
-  const matriz=matrizCalidadDiaria(dia), nombre=`COPAMEX_Calidad_${solicitud.area}_${solicitud.fechaOperativa}.${tipo==='pdf'?'pdf':'xlsx'}`
+  const matriz=matrizCalidadDiaria(dia,tipo==='pdf'), nombre=`COPAMEX_Calidad_${solicitud.area}_${solicitud.fechaOperativa}.${tipo==='pdf'?'pdf':'xlsx'}`
   let blob:Blob
   if(tipo==='pdf'){
     const imagen=await logoCalidad()

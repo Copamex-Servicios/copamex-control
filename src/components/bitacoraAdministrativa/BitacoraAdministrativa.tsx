@@ -105,7 +105,7 @@ function EditorActividades() {
   }
   return <div className="ba-panel">
     <section className="ba-captura" aria-labelledby={`${id}-titulo`}>
-      <h2 id={`${id}-titulo`}>Bitácora administrativa</h2>
+      <h2 id={`${id}-titulo`}>Relevantes</h2>
       <form onSubmit={e => { e.preventDefault(); void guardar() }}>
         {original && <p className="ba-editando">Corregir actividad</p>}
         <div className="ba-captura-fila">
@@ -186,7 +186,7 @@ function ConsultaActividades({ admin = false, mensual = false, corregir, bloquea
   }
   return <section className="ba-historial" aria-labelledby={`${id}-titulo`}>
     <div className={admin ? 'ba-herramientas ba-herramientas-admin' : 'ba-herramientas'}>
-    <div className="ba-cabecera"><h2 id={`${id}-titulo`}>{admin ? 'Historial de actividades' : 'Novedades de Administración'}</h2>
+    <div className="ba-cabecera"><h2 id={`${id}-titulo`}>{admin ? 'Historial de actividades' : 'Relevantes'}</h2>
       {!admin && <button className="boton-secundario" type="button" onClick={() => filtrar({ recientes: !filtro.recientes })}>
         {filtro.recientes ? 'Historial mensual' : 'Ver recientes'}
       </button>}

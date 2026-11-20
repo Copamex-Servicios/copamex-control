@@ -41,34 +41,34 @@ function sustituirXml(base: Uint8Array, reemplazos: Record<string, string | Uint
 
 const estilos =
   '<styleSheet xmlns="' + ns + '">' +
-  '<fonts count="4"><font><sz val="10"/><name val="Arial"/></font><font><b/><sz val="14"/><name val="Arial"/></font><font><b/><sz val="10"/><name val="Arial"/></font><font><b/><sz val="10"/><name val="Arial"/><color rgb="FFFFFFFF"/></font></fonts>' +
+  '<fonts count="4"><font><sz val="10"/><name val="Arial"/></font><font><b/><sz val="14"/><name val="Arial"/><color rgb="FFFFFFFF"/></font><font><b/><sz val="10"/><name val="Arial"/></font><font><b/><sz val="10"/><name val="Arial"/><color rgb="FFFFFFFF"/></font></fonts>' +
   '<fills count="11"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>' +
-  '<fill><patternFill patternType="solid"><fgColor rgb="FF00B050"/></patternFill></fill>' +
-  '<fill><patternFill patternType="solid"><fgColor rgb="FF4472C4"/></patternFill></fill>' +
-  '<fill><patternFill patternType="solid"><fgColor rgb="FF92D050"/></patternFill></fill>' +
-  '<fill><patternFill patternType="solid"><fgColor rgb="FFC6E0B4"/></patternFill></fill>' +
-  '<fill><patternFill patternType="solid"><fgColor rgb="FF00B0F0"/></patternFill></fill>' +
-  '<fill><patternFill patternType="solid"><fgColor rgb="FFFFC000"/></patternFill></fill>' +
-  '<fill><patternFill patternType="solid"><fgColor rgb="FFD9EAD3"/></patternFill></fill>' +
-  '<fill><patternFill patternType="solid"><fgColor rgb="FFFFFF00"/></patternFill></fill>' +
-  '<fill><patternFill patternType="solid"><fgColor rgb="FFE7E6E6"/></patternFill></fill></fills>' +
+  '<fill><patternFill patternType="solid"><fgColor rgb="FF12376A"/></patternFill></fill>' +
+  '<fill><patternFill patternType="solid"><fgColor rgb="FF174783"/></patternFill></fill>' +
+  '<fill><patternFill patternType="solid"><fgColor rgb="FF205A9B"/></patternFill></fill>' +
+  '<fill><patternFill patternType="solid"><fgColor rgb="FF2869AA"/></patternFill></fill>' +
+  '<fill><patternFill patternType="solid"><fgColor rgb="FF174783"/></patternFill></fill>' +
+  '<fill><patternFill patternType="solid"><fgColor rgb="FF205A9B"/></patternFill></fill>' +
+  '<fill><patternFill patternType="solid"><fgColor rgb="FFEAF1FB"/></patternFill></fill>' +
+  '<fill><patternFill patternType="solid"><fgColor rgb="FFEAF1FB"/></patternFill></fill>' +
+  '<fill><patternFill patternType="solid"><fgColor rgb="FFEAF1FB"/></patternFill></fill></fills>' +
   '<borders count="2"><border/><border><left style="thin"><color rgb="FF808080"/></left><right style="thin"><color rgb="FF808080"/></right><top style="thin"><color rgb="FF808080"/></top><bottom style="thin"><color rgb="FF808080"/></bottom></border></borders>' +
   '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
   '<cellXfs count="14">' +
   '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>' +
   '<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
   '<xf numFmtId="0" fontId="3" fillId="3" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
-  '<xf numFmtId="0" fontId="2" fillId="4" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
-  '<xf numFmtId="0" fontId="2" fillId="5" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
-  '<xf numFmtId="0" fontId="2" fillId="5" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
+  '<xf numFmtId="0" fontId="3" fillId="4" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
+  '<xf numFmtId="0" fontId="3" fillId="5" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
+  '<xf numFmtId="0" fontId="3" fillId="5" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
   '<xf numFmtId="0" fontId="3" fillId="6" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
-  '<xf numFmtId="0" fontId="2" fillId="7" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
-  '<xf numFmtId="0" fontId="2" fillId="8" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
+  '<xf numFmtId="0" fontId="3" fillId="7" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
+  '<xf numFmtId="0" fontId="3" fillId="8" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
   '<xf numFmtId="0" fontId="2" fillId="10" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
   '<xf numFmtId="0" fontId="2" fillId="9" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
   '<xf numFmtId="0" fontId="2" fillId="9" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
   '<xf numFmtId="0" fontId="2" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="left" vertical="center" wrapText="1"/></xf>' +
-  '<xf numFmtId="0" fontId="2" fillId="6" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
+  '<xf numFmtId="0" fontId="3" fillId="6" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
   '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>'
 
 const punto = {
@@ -112,9 +112,10 @@ const mesExcel = (fecha: string) => {
   return (gruposMeses[Number(mes) - 1] ?? mes) + '-' + (anio ?? '').slice(-2)
 }
 const horaExcel = (hora: string) => {
-  const hora24 = Number(hora.slice(0, 2))
+  const [horas, minutos = '00', segundos] = hora.split(':')
+  const hora24 = Number(horas)
   const hora12 = String(hora24 % 12 || 12).padStart(2, '0')
-  return hora12 + ':00 ' + (hora24 < 12 ? 'a. m.' : 'p. m.')
+  return hora12 + ':' + minutos + (segundos ? ':' + segundos : '') + ' ' + (hora24 < 12 ? 'a. m.' : 'p. m.')
 }
 const normalizar = (texto: string) => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9]/g, '')
 
@@ -209,7 +210,7 @@ export function crearXlsxCalidadDiaria(m: MatrizCalidadDiaria): Uint8Array {
     for (const operador of operadoresCalidad(turno)) banda(operador)
   }
 
-  const columnasXml = '<col min="1" max="1" width="8" customWidth="1"/><col min="2" max="2" width="15" customWidth="1"/>'
+  const columnasXml = '<col min="1" max="1" width="9" customWidth="1"/><col min="2" max="2" width="18" customWidth="1"/>'
     + '<col min="3" max="' + cantidadColumnas + '" width="13" customWidth="1"/>'
   reemplazos['xl/worksheets/sheet1.xml'] =
     '<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="' + ns + '" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
