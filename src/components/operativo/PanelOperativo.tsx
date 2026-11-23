@@ -9,7 +9,6 @@ import { EncabezadoOperativo } from './EncabezadoOperativo'
 import { useInformacionDia } from '../../hooks/useInformacionDia'
 import { useTurno } from '../../hooks/useTurno'
 import { useBitacora } from '../../hooks/useBitacora'
-import { useCalidad } from '../../hooks/useCalidad'
 import { usePTAR } from '../../hooks/usePTAR'
 import { useRelojServidor } from '../../hooks/useRelojServidor'
 import type { AreaOperativa } from '../../lib/tiposTurno'
@@ -17,7 +16,6 @@ import type { RolUsuario } from '../../lib/tiposAuth'
 
 const PanelBitacoraPTAR = lazy(() => import('../bitacora/PanelBitacoraPTAR').then(m => ({ default: m.PanelBitacoraPTAR })))
 const PanelBitacoraCalderas = lazy(() => import('../bitacora/PanelBitacoraCalderas').then(m => ({ default: m.PanelBitacoraCalderas })))
-const PanelCalidad = lazy(() => import('../calidad/PanelCalidad').then(m => ({ default: m.PanelCalidad })))
 const PanelPTAR = lazy(() => import('../ptar/PanelPTAR').then(m => ({ default: m.PanelPTAR })))
 
 // Montar al visitar por primera vez; conservar después los borradores y filtros.
@@ -28,11 +26,10 @@ function ModuloVisitado({ activo, children }: { activo: boolean; children: React
   return <Suspense fallback={<p role="status">Cargando módulo…</p>}>{children}</Suspense>
 }
 
-export type ModuloOperativo = 'bitacora' | 'calidad' | 'ptar'
+export type ModuloOperativo = 'bitacora' | 'ptar'
 interface Apartado { id: ModuloOperativo; nombre: string; simbolo: string }
 const apartados: Apartado[] = [
   { id: 'bitacora', nombre: 'Bitácora', simbolo: '▤' },
-  { id: 'calidad', nombre: 'Calidad de agua', simbolo: '◇' },
   { id: 'ptar', nombre: 'PTAR', simbolo: '▥' },
 ]
 
@@ -58,10 +55,10 @@ export function PanelOperativo({ area, rol, seleccionExterna, alSeleccionar, sol
   const seleccion = seleccionExterna ?? seleccionInterna
   const setSeleccion = alSeleccionar ?? setSeleccionInterna
   const turno = useTurno()
-  const bitacora = useBitacora(area), calidad = useCalidad(area), ptar = usePTAR()
+  const bitacora = useBitacora(area), ptar = usePTAR()
   const reloj = useRelojServidor()
   const opciones = apartados.filter(a => area !== 'calderas' || a.id !== 'ptar')
-    .filter(a => rol !== 'ptar' || (a.id !== 'ptar' && a.id !== 'calidad'))
+    .filter(a => rol !== 'ptar' || a.id !== 'ptar')
   const actual = opciones.find(a => a.id === seleccion) ?? opciones[0]
   const destinoModulo = useRef<HTMLDivElement>(null)
   const moduloAnterior = useRef(actual.id)
@@ -77,7 +74,7 @@ export function PanelOperativo({ area, rol, seleccionExterna, alSeleccionar, sol
     window.scrollTo({ top, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
   }, [actual.id, rol])
   const turnoId = turno.area === area && turno.turno?.finalizado_en === null ? turno.turno.id : null
-  const datosModulos = { bitacora, calidad, ptar }
+  const datosModulos = { bitacora, ptar }
   const estadoCaptura = datosModulos[actual.id].estadoCarga
   const turnoPropio = !!turnoId && turno.turno?.iniciado_por === turno.cuentaId
   const desplazamientoRealizado = useRef<string | null>(null)
@@ -94,9 +91,9 @@ export function PanelOperativo({ area, rol, seleccionExterna, alSeleccionar, sol
     if (turnoPropio) {
       if (estadoCaptura === 'cargando' || estadoCaptura === 'sin-cuenta') return
       const panel = destinoModulo.current?.querySelector<HTMLElement>('.contenido-modulo:not([hidden])')
-      const captura = panel?.querySelector<HTMLElement>('.captura-pozos,.captura-uf,.calidad-formulario,.ptar-captura')
+      const captura = panel?.querySelector<HTMLElement>('.captura-pozos,.captura-uf,.ptar-captura')
       destino = captura && !captura.closest('[hidden]') && captura.getClientRects().length
-        ? captura : panel?.querySelector<HTMLElement>('.cabecera-turno,.calidad-encabezado,.ptar-cabecera') ?? panel ?? destino
+        ? captura : panel?.querySelector<HTMLElement>('.cabecera-turno,.ptar-cabecera') ?? panel ?? destino
     }
     if (!destino || !destino.getClientRects().length) return
     const barra = raiz.closest('.co-layout')?.querySelector<HTMLElement>('.co-aviso-barra')
@@ -164,7 +161,6 @@ export function PanelOperativo({ area, rol, seleccionExterna, alSeleccionar, sol
           hidden={actual.id !== a.id} tabIndex={0} className="contenido-modulo">
           <ModuloVisitado activo={actual.id === a.id}>
           {a.id === 'bitacora' && (area === 'calderas' ? <PanelBitacoraCalderas /> : <PanelBitacoraPTAR />)}
-          {a.id === 'calidad' && <PanelCalidad area={area} horaServidor={reloj.hora} />}
           {a.id === 'ptar' && <PanelPTAR />}
           </ModuloVisitado>
         </div>)}

@@ -4,7 +4,6 @@ import { ControlSesion } from './components/auth/ControlSesion'
 import { ControlTurno } from './components/turno/ControlTurno'
 import { ControlBitacora } from './components/bitacora/ControlBitacora'
 import { ControlPTAR } from './components/ptar/ControlPTAR'
-import { ControlCalidad } from './components/calidad/ControlCalidad'
 import { ControlUF } from './components/uf/ControlUF'
 import { ControlPozos } from './components/pozos/ControlPozos'
 import { RutaProtegida } from './components/auth/RutaProtegida'
@@ -19,7 +18,6 @@ function App() {
       <ControlTurno />
       <ControlPozos />
       <ControlUF />
-      <ControlCalidad />
       <ControlPTAR />
       <ControlBitacora />
       <Suspense fallback={<p role="status">Cargando aplicación…</p>}><Routes>
@@ -31,10 +29,10 @@ function App() {
           <Route path="/planta" element={<Inicio vista="planta" />} />
           <Route path="/calderas" element={<Inicio vista="calderas" />} />
           <Route path="/ptar" element={<Inicio vista="ptar" />} />
-          <Route path="/calidad" element={<Inicio vista="calidad" />} />
+          <Route path="/calidad" element={<Navigate to="/" replace />} />
           <Route path="/gestion" element={<Inicio vista="gestion" />} />
           <Route path="/novedades" element={<Inicio vista="novedades" />} />
-          <Route path="/calidad/limites" element={<Inicio vista="limites" />} />
+          <Route path="/calidad/limites" element={<Navigate to="/" replace />} />
           <Route path="/reportes" element={<Inicio vista="reportes" />} />
           <Route path="/pozo-uf" element={<Inicio vista="pozo_uf" />} />
           <Route path="/administracion" element={<Inicio vista="administracion" />} />

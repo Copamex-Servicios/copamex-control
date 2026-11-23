@@ -77,10 +77,10 @@
 /* Shared presentation across Dashboard, catalogs and captures. */
 .co-layout .co-admin-referencia .co-admin-tabs { margin:0; }
 .co-layout .co-administracion .co-admin-referencia .co-admin-tabs button { font-size:14px; }
-.co-layout .co-admin-referencia .co-admin-filtros { display:flex; align-items:end; flex-wrap:wrap; gap:12px; margin:14px 0; }
-.co-layout .co-admin-referencia .co-admin-filtros .admin-busqueda { flex:1 1 280px; }
-.co-layout .co-admin-referencia .co-operadores-filtro { display:grid; gap:4px; margin:0; font-size:13px; }
-.co-layout .co-admin-referencia .co-operadores-filtro select { min-height:44px; font-size:14px; }
+.co-layout .co-admin-referencia .co-admin-filtros { display:flex; align-items:center; flex-wrap:nowrap; gap:12px; margin:14px 0; }
+.co-layout .co-admin-referencia .co-admin-filtros .admin-busqueda { flex:1 1 auto; min-width:0; }
+.co-layout .co-admin-referencia .co-operadores-filtro { display:flex; align-items:center; flex:0 0 auto; margin:0; font-size:13px; }
+.co-layout .co-admin-referencia .co-operadores-filtro select { width:164px; min-height:44px; font-size:14px; }
 .co-layout .co-admin-referencia .gestion-filtros-tecnicos :is(input,select) { min-height:44px; font-size:14px; }
 .co-layout .co-admin-referencia .co-aviso-vigencia span { display:block; overflow-wrap:anywhere; }
 .co-layout .co-admin-referencia .co-aviso-acciones-tabla,.co-layout .co-admin-referencia .admin-acciones-aviso { display:flex; flex-wrap:wrap; gap:8px; }
@@ -88,8 +88,9 @@
 .co-layout .co-admin-referencia :is(button,input,select,textarea):focus-visible { outline:2px solid var(--co-primary); outline-offset:2px; }
 @media(max-width:650px) {
  .co-layout .co-admin-referencia .co-admin-tabs button { justify-content:center; padding:8px 6px; font-size:13px; white-space:normal; }
- .co-layout .co-admin-referencia .co-admin-filtros { flex-direction:column; align-items:stretch; gap:10px; }
- .co-layout .co-admin-referencia .co-admin-filtros .admin-busqueda { flex:auto; }
+ .co-layout .co-admin-referencia .co-admin-filtros { flex-wrap:wrap; align-items:stretch; gap:10px; }
+ .co-layout .co-admin-referencia .co-admin-filtros .admin-busqueda { flex:1 1 100%; }
+ .co-layout .co-admin-referencia .co-admin-filtros .co-operadores-filtro { flex:1 1 0; }
  .co-layout .co-admin-referencia .co-operadores-filtro select { width:100%; }
 }
 @media print { .co-layout .co-admin-referencia .co-tabla-avisos { min-width:0; } }

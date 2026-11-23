@@ -146,6 +146,7 @@ export function validarAdmin(c: ConfigAdmin, campos: Record<string, string | boo
 export async function consultarAdministracion(cuenta: string, signal: AbortSignal): Promise<DatosAdmin> {
   exigirAdmin(cuenta); signal.throwIfAborted()
   const resultados = await Promise.allSettled(seccionesAdmin.map(async c => {
+    if (c.tabla === 'puntos_muestreo' || c.tabla === 'parametros_calidad') return { filas: [], error: false, limitada: false }
     if (useAuthStore.getState().perfil?.rol === 'calidad' && !['avisos','programa_produccion','eventos_calendario','maquinas','catalogo_papeles'].includes(c.tabla)) return { filas: [], error: false, limitada: false }
     const filas: FilaAdmin[] = [], ids = new Set<string>()
     for (let offset = 0; offset < 1000; offset += 200) {

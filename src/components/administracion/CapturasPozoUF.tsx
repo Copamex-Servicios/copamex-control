@@ -366,14 +366,16 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
             <th>{modulo === 'pozos' ? 'Pozo 1' : 'Alimentación'}</th>
             <th>{modulo === 'pozos' ? 'Pozo 2' : 'Aceptación'}</th>
             {modulo === 'uf' && <th>Rechazo</th>}
-            <th>Capturada</th>
+            {modulo === 'pozos' ? <th>Total (m³)</th> : <th>Capturada</th>}
           </tr></thead>
           <tbody>{filasHistorial.map(fila => <tr key={fila.id}>
             <td>{fechaLegible(fila.fecha_operativa)}</td><td>{etiquetaTurno(fila.turno)}</td>
             <td>{fila.inicial1.toLocaleString('es-MX')} → {fila.final1.toLocaleString('es-MX')} ({fila.consumo1.toLocaleString('es-MX')} m³)</td>
             <td>{fila.inicial2.toLocaleString('es-MX')} → {fila.final2.toLocaleString('es-MX')} ({fila.consumo2.toLocaleString('es-MX')} m³)</td>
             {modulo === 'uf' && <td>{fila.rechazo?.toLocaleString('es-MX') ?? '—'} m³</td>}
-            <td>{fechaCaptura(fila.capturado_en, modulo)}</td>
+            {modulo === 'pozos'
+              ? <td>{(fila.consumo1 + fila.consumo2).toLocaleString('es-MX')} m³</td>
+              : <td>{fechaCaptura(fila.capturado_en, modulo)}</td>}
           </tr>)}</tbody>
         </table></div>}
       {(offsetHistorial > 0 || hayMasHistorial) && <div className="pozo-uf-paginacion">

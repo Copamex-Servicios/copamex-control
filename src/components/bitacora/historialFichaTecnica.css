@@ -55,6 +55,9 @@
 }
 @media(max-width:600px) {
   .co-layout .planta-reporte-detalle.reporte-ficha-nueva { padding:12px; }
+  .co-layout .planta-reporte-detalle.reporte-ficha-nueva :is(.pcr-datos,.pcr-equipos,.pcr-pilas) { grid-template-columns:minmax(0,1fr); }
+  .co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-equipo { grid-template-columns:minmax(0,1fr) auto; gap:8px 12px; }
+  .co-layout .planta-reporte-detalle.reporte-ficha-nueva .pcr-equipo > dt { min-width:0; overflow-wrap:normal; word-break:normal; }
 }
 
 .co-layout details.co-acordeon-historial, .co-layout .supervision-detalle-reporte { scroll-margin-top:16px; }

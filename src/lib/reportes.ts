@@ -112,7 +112,7 @@ export function exigirExportacionReporte(r: ConsultaReporte): void {
   if (!puedeExportarReporte(r)) throw new Error('La consulta o su auditoría están incompletas. Vuelve a generar el reporte antes de exportar.')
 }
 export function resumirReporte(d: DatosPlanta, f: FiltrosPlanta): ResumenReporte {
-  const capturas = capturasPlanta(d), pozos = capturas.filter(e => e.modulo === 'pozos'), uf = capturas.filter(e => e.modulo === 'uf'), calidad = capturas.filter(e => e.modulo === 'calidad'), ptar = capturas.filter(e => e.modulo === 'ptar')
+  const todasLasCapturas = capturasPlanta(d), capturas = todasLasCapturas.filter(e => e.modulo !== 'calidad'), pozos = capturas.filter(e => e.modulo === 'pozos'), uf = capturas.filter(e => e.modulo === 'uf'), calidad = todasLasCapturas.filter(e => e.modulo === 'calidad'), ptar = capturas.filter(e => e.modulo === 'ptar')
   const suma = (a: number[]) => a.length ? sumarDecimalReporte(a) : null
   const pozo1 = suma(pozos.map(e => e.registro.lectura.consumo_pozo1)), pozo2 = suma(pozos.map(e => e.registro.lectura.consumo_pozo2))
   const alimentado = suma(uf.map(e => e.registro.lectura.alimentado)), aceptado = suma(uf.map(e => e.registro.lectura.aceptado)), rechazo = suma(uf.map(e => e.registro.lectura.rechazo))
@@ -129,9 +129,9 @@ export function resumirReporte(d: DatosPlanta, f: FiltrosPlanta): ResumenReporte
   const diario: DiarioReporte[] = []
   for (let fecha = Date.parse(f.desde); fecha <= Date.parse(f.hasta); fecha += 86400000) {
     const dia = new Date(fecha).toISOString().slice(0, 10), c = capturas.filter(e => e.registro.turno.fecha_operativa === dia)
-    const p = c.filter(e => e.modulo === 'pozos'), u = c.filter(e => e.modulo === 'uf'), q = c.filter(e => e.modulo === 'calidad').flatMap(e => e.registro.lectura.resultados)
+    const p = c.filter(e => e.modulo === 'pozos'), u = c.filter(e => e.modulo === 'uf')
     const a = suma(u.map(e => e.registro.lectura.alimentado)), acep = suma(u.map(e => e.registro.lectura.aceptado))
-    diario.push({ fecha: dia, turnos: d.turnos.elementos.filter(t => t.turno.fecha_operativa === dia).length, capturas: c.length, pozo1: suma(p.map(e => e.registro.lectura.consumo_pozo1)), pozo2: suma(p.map(e => e.registro.lectura.consumo_pozo2)), alimentado: a, aceptado: acep, rechazo: suma(u.map(e => e.registro.lectura.rechazo)), rendimiento: ratio(a, acep), evaluados: q.filter(r => r.fuera_norma !== null).length, fuera: q.filter(r => r.fuera_norma === true).length, sinLimites: q.filter(r => r.fuera_norma === null).length })
+    diario.push({ fecha: dia, turnos: d.turnos.elementos.filter(t => t.turno.fecha_operativa === dia).length, capturas: c.length, pozo1: suma(p.map(e => e.registro.lectura.consumo_pozo1)), pozo2: suma(p.map(e => e.registro.lectura.consumo_pozo2)), alimentado: a, aceptado: acep, rechazo: suma(u.map(e => e.registro.lectura.rechazo)), rendimiento: ratio(a, acep), evaluados: 0, fuera: 0, sinLimites: 0 })
   }
   return { capturas, diario, cerrados: d.turnos.elementos.filter(t => t.turno.finalizado_en !== null).length, abiertos: d.turnos.elementos.filter(t => t.turno.finalizado_en === null).length,
     pozo1, pozo2, totalPozos: suma(pozos.flatMap(e => [e.registro.lectura.consumo_pozo1, e.registro.lectura.consumo_pozo2])), alimentado, aceptado, rechazo, rendimiento: ratio(alimentado, aceptado), ufBalanceNegativo: uf.filter(e => e.registro.lectura.rechazo < 0).length,

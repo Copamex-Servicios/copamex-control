@@ -7,7 +7,7 @@ import { useAuth } from '../hooks/useAuth'
 import { obtenerMantenerSesion } from '../lib/almacenamientoSesion'
 
 const rutasPorRol: Record<RolUsuario, readonly string[]> = {
-  calidad: ['/', '/calidad', '/gestion'],
+  calidad: ['/', '/gestion'],
   calderas: ['/', '/planta', '/calderas'],
   ptar: ['/', '/planta', '/ptar'],
   admin: ['/', '/planta', '/calderas', '/ptar', '/administracion', '/pozo-uf'],

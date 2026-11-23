@@ -36,8 +36,8 @@ export function htmlReporteEjecutivo(r: ConsultaReporte): string {
       <tbody>${s.porArea.map(a => `<tr><td>${nombreAreaReporte(a.area)}</td><td class="numerico">${numero(a.turnos)}</td><td class="numerico">${numero(a.capturas)}</td>${s.porArea.some(x => x.tecnicos !== null) ? `<td class="numerico">${a.tecnicos === null ? 'No disponible' : numero(a.tecnicos)}</td>` : ''}</tr>`).join('')}</tbody></table></section>
     ${s.operacion.length ? `<section><h2>Información operativa del período</h2><table class="operacion"><thead><tr><th>Área</th><th>Indicador</th><th class="numerico">Valor</th><th>Unidad</th></tr></thead><tbody>${s.operacion.map(d => `<tr><td>${nombreAreaReporte(d.area)}</td><td>${escapar(d.indicador)}</td><td class="numerico">${numero(d.valor)}</td><td>${escapar(d.unidad)}</td></tr>`).join('')}</tbody></table></section>` : '<p class="nota">No hay mediciones operativas disponibles para resumir en este período.</p>'}
     ${s.notas.map(n => `<p class="nota">${escapar(n)}</p>`).join('')}
-    <p class="nota">Cada captura operativa se cuenta una vez. Las muestras de calidad no se multiplican por sus resultados. Las bitácoras técnicas se contabilizan por separado.</p>
-    <p class="nota">Capturas vigentes de Pozos, UF, Calidad y Proceso PTAR. Las observaciones antiguas de Bitácora no forman parte de esta consulta. Las mediciones y el historial solicitado se consultan en COPAMEX.</p>
+    <p class="nota">Cada captura operativa se cuenta una vez. Las bitácoras técnicas se contabilizan por separado.</p>
+    <p class="nota">Capturas vigentes de Pozos, UF y Proceso PTAR. Las observaciones antiguas de Bitácora no forman parte de esta consulta. Las mediciones y el historial solicitado se consultan en COPAMEX.</p>
     <footer>Consulta: ${escapar(fechaMexicoAdmin(r.inicioConsulta).replace('T', ' '))} a ${escapar(fechaMexicoAdmin(r.finConsulta).replace('T', ' '))} (México).<br>Fecha operativa asignada al inicio del turno. Historial de cambios: ${r.auditoria === 'completa' ? 'disponible en Reportes → Trazabilidad' : 'no solicitado'}.</footer>
   </body></html>`
 }

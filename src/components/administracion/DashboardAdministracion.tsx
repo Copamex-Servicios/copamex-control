@@ -1,6 +1,4 @@
 import { useState } from 'react'
-import { RefreshCw } from 'lucide-react'
-import { createPortal } from 'react-dom'
 import { StatusBadge } from '../diseno/Elementos'
 import { useDashboardAdministracion } from '../../hooks/useDashboardAdministracion'
 import { intervaloHoyDashboard, modulosArea, nombresModuloDashboard } from '../../lib/dashboardAdministracion'
@@ -12,8 +10,8 @@ import { AlmacenamientoDashboard } from './AlmacenamientoDashboard'
 import { SeguimientoColorM4 } from '../calidad/SeguimientoColorM4'
 import './dashboardAdministracion.css'
 
-export function DashboardAdministracion({ contenedorAcciones }: { contenedorAcciones: HTMLDivElement | null }) {
-  const { cuenta, datos, cargando, error, actualizar } = useDashboardAdministracion()
+export function DashboardAdministracion() {
+  const { cuenta, datos, cargando, error } = useDashboardAdministracion()
   const [fechaInicial] = useState(() => intervaloHoyDashboard(new Date()).fecha)
   // Producción/Eventos cargan con la fecha de México sin esperar la consulta general.
   const fechaHoy = datos?.fecha ?? fechaInicial
@@ -22,7 +20,6 @@ export function DashboardAdministracion({ contenedorAcciones }: { contenedorAcci
   const activos = datos?.turnos.valor
   const completo = activos && activos.total === activos.filas.length
   return <div className="co-admin-dashboard" aria-busy={cargando}>
-    {contenedorAcciones && createPortal(<button className="boton-secundario" type="button" disabled={cargando} onClick={actualizar} data-actualizar="true" aria-label={cargando ? 'Actualizando dashboard…' : 'Actualizar dashboard'} title="Actualizar dashboard"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button>, contenedorAcciones)}
     {error && <p className="mensaje-error" role="alert">{error}</p>}
     <div className="co-dashboard-cuerpo">
     <section className="panel-informacion co-dashboard-estado" aria-labelledby="dashboard-estado"><h2 id="dashboard-estado">Estado actual por área</h2>
@@ -43,7 +40,7 @@ export function DashboardAdministracion({ contenedorAcciones }: { contenedorAcci
             })}</article>
         })}</div></>}
     </section>
-    <div className="co-dashboard-dia"><InformacionDelDia fecha={fechaHoy} informacion={informacionDia} compacto />
+    <div className="co-dashboard-dia"><InformacionDelDia fecha={fechaHoy} informacion={informacionDia} compacto mostrarActualizar={false} />
       <SeguimientoColorM4 key={cuenta} cuenta={cuenta} administracion />
       <ResumenPendientesDashboard key={`${cuenta}:${datos?.fecha ?? ''}:${datos?.consultado ?? ''}`} cuenta={cuenta} fecha={datos?.fecha ?? null} />
       {datos && <AlmacenamientoDashboard cuenta={cuenta} revision={String(datos.consultado)} />}

@@ -5,6 +5,7 @@ import { useAuthStore } from '../stores/authStore'
 import { useTurnoStore } from '../stores/turnoStore'
 import { borradorBitacoraCalderas } from '../lib/tiposBitacoraCalderas'
 import type { BorradorBitacoraCalderas } from '../lib/tiposBitacoraCalderas'
+import { eliminarBorradorBitacoraLocal, guardarBorradorBitacoraLocal, leerBorradorBitacoraLocal } from '../lib/borradoresBitacoraLocal'
 import { consultarReporteCalderas, enviarReporteCalderas, ErrorReporteCalderas, prepararDatosCalderas } from '../lib/bitacoraTecnicaCalderas'
 import type { EnvioReporteCalderas, ReporteTecnicoCalderas } from '../lib/bitacoraTecnicaCalderas'
 
@@ -16,10 +17,11 @@ interface Captura {
   guardando: boolean
   pendiente: EnvioReporteCalderas | null
   mensaje: string | null
+  borradorLocal: 'guardado' | 'recuperado' | 'error' | null
 }
-const nueva = (): Captura => ({ editando: false, borrador: borradorBitacoraCalderas(), reporte: null, estado: 'sin-consultar', guardando: false, pendiente: null, mensaje: null })
+const nueva = (): Captura => ({ editando: false, borrador: borradorBitacoraCalderas(), reporte: null, estado: 'sin-consultar', guardando: false, pendiente: null, mensaje: null, borradorLocal: null })
 const vacia = nueva()
-// Solo memoria, por cuenta y turno. No es una cola offline ni sobrevive a una recarga.
+// Mantiene solo el estado activo en memoria; el borrador editable también se respalda localmente.
 const useCapturas = create<{ entradas: Record<string, Captura> }>()(() => ({ entradas: {} }))
 const controles = new Set<AbortController>()
 let generacion = 0
@@ -63,10 +65,19 @@ async function consultar(clave: string, cuentaId: string, turnoId: string) {
   try {
     const reporte = await limitado(signal => consultarReporteCalderas(turnoId, signal))
     if (!sigue(cuentaId, g)) return
+    if (reporte) eliminarBorradorBitacoraLocal('calderas', cuentaId, turnoId)
+    const borradorLocal = reporte ? null : leerBorradorBitacoraLocal('calderas', cuentaId, turnoId, borradorBitacoraCalderas())
+    const estadoLocal = useCapturas.getState().entradas[clave]?.borradorLocal
     poner(clave, { estado: 'listo', reporte, editando: false,
-      ...(reporte ? { borrador: reporte.borrador, pendiente: null, mensaje: 'Reporte técnico registrado. Solo Administración puede corregirlo.' } : { mensaje: null }) })
+      ...(reporte ? { borrador: reporte.borrador, pendiente: null, mensaje: 'Reporte técnico registrado. Solo Administración puede corregirlo.', borradorLocal: null }
+        : { ...(borradorLocal ? { borrador: borradorLocal, borradorLocal: estadoLocal === 'guardado' ? 'guardado' as const : 'recuperado' as const } : {}), mensaje: null }) })
   } catch (error) {
-    if (sigue(cuentaId, g)) poner(clave, { estado: 'error', mensaje: error instanceof Error ? error.message : 'No se pudo consultar el reporte técnico.' })
+    if (sigue(cuentaId, g)) {
+      const borradorLocal = leerBorradorBitacoraLocal('calderas', cuentaId, turnoId, borradorBitacoraCalderas())
+      const estadoLocal = useCapturas.getState().entradas[clave]?.borradorLocal
+      poner(clave, { estado: 'error', ...(borradorLocal ? { borrador: borradorLocal, borradorLocal: estadoLocal === 'guardado' ? 'guardado' as const : 'recuperado' as const } : {}),
+        mensaje: error instanceof Error ? error.message : 'No se pudo consultar el reporte técnico.' })
+    }
   }
 }
 function turnoAutorizado(cuentaId: string, turnoId: string) {
@@ -112,14 +123,16 @@ export function useReporteCalderas(cuentaId: string | null, turnoRecibido: strin
     try {
       const reporte = await limitado(signal => enviarReporteCalderas(envio, signal))
       if (sigue(cuentaId, g)) {
-        poner(clave, { guardando: false, pendiente: null, reporte, editando: false, borrador: reporte.borrador,
+        eliminarBorradorBitacoraLocal('calderas', cuentaId, turnoConsultado)
+        poner(clave, { guardando: false, pendiente: null, reporte, editando: false, borrador: reporte.borrador, borradorLocal: null,
           mensaje: 'Reporte técnico guardado. Solo Administración puede corregirlo.' })
         return true as const
       }
     } catch (error) {
       if (!sigue(cuentaId, g)) return
       if (error instanceof ErrorReporteCalderas && error.sinCambios && estado.reporte) {
-        poner(clave, { guardando: false, pendiente: null, editando: false, borrador: estado.reporte.borrador,
+        eliminarBorradorBitacoraLocal('calderas', cuentaId, turnoConsultado)
+        poner(clave, { guardando: false, pendiente: null, editando: false, borrador: estado.reporte.borrador, borradorLocal: null,
           mensaje: 'No hay cambios para guardar.' })
         return 'sin-cambios' as const
       }
@@ -139,9 +152,20 @@ export function useReporteCalderas(cuentaId: string | null, turnoRecibido: strin
     ...datos, editable, puedeEditar, estadoDelReporte, unidadPresion: datos.reporte?.unidadCondensado ?? 'kg/cm²',
     mensaje: ventana.disponible && datos.mensaje?.includes('Solo Administración puede corregirlo.') ? null : datos.mensaje,
     editar: () => { if (clave && puedeEditar) poner(clave, { editando: true, mensaje: null }) },
+    descartarBorrador: () => {
+      if (!clave || !cuentaId || !turnoConsultado || !datos.borradorLocal || datos.guardando || datos.pendiente) return
+      if (typeof window !== 'undefined' && !window.confirm('¿Descartar el borrador guardado en este dispositivo?')) return
+      eliminarBorradorBitacoraLocal('calderas', cuentaId, turnoConsultado)
+      const actual = useCapturas.getState().entradas[clave]
+      poner(clave, { borrador: actual?.reporte?.borrador ?? borradorBitacoraCalderas(), borradorLocal: null, editando: false, mensaje: null })
+    },
     puedeGuardar: !datos.guardando && datos.estado === 'listo' && (!!datos.pendiente || editable),
     cambiarBorrador: (cambio: (b: BorradorBitacoraCalderas) => BorradorBitacoraCalderas) => {
-      if (clave && editable) poner(clave, { borrador: cambio(useCapturas.getState().entradas[clave]?.borrador ?? borradorBitacoraCalderas()) })
+      if (clave && cuentaId && turnoConsultado && editable) {
+        const borrador = cambio(useCapturas.getState().entradas[clave]?.borrador ?? borradorBitacoraCalderas())
+        const guardado = guardarBorradorBitacoraLocal('calderas', cuentaId, turnoConsultado, borrador)
+        poner(clave, { borrador, borradorLocal: guardado ? 'guardado' : 'error' })
+      }
     },
     guardar,
     actualizar: () => { if (clave && cuentaId && turnoConsultado) { ventana.actualizar(); void consultar(clave, cuentaId, turnoConsultado) } },

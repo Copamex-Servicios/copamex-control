@@ -51,8 +51,8 @@ export function ConsolidadoReportesTecnicos({ cuenta, filtros, corregir }: Props
     return () => { vigente = false; control.abort(); window.clearTimeout(limite) }
   }, [cuenta, filtros, pagina, intento])
   const actual = vista?.pagina === pagina ? vista : null
-  return <section className="panel-informacion consolidado-tecnico" aria-labelledby="consolidado-tecnico-titulo">
-    <div className="ct-encabezado"><div><h2 id="consolidado-tecnico-titulo">Reportes técnicos por día</h2><p>Cada área debe entregar 3 reportes por día</p></div>
+  return <section className="panel-informacion consolidado-tecnico" aria-label="Bitácora de reportes técnicos">
+    <div className="ct-encabezado">
       <label className="ct-ir-fecha">Ir a fecha<input type="date" min={filtros.desde} max={filtros.hasta} value={fechaIr}
         aria-label="Seleccionar fecha para ir a sus reportes técnicos" disabled={!actual?.dias}
         onChange={e => {
@@ -227,7 +227,7 @@ export function ContenidoDia({ cuenta, dia, filtros, corregir, actualizar }: Omi
 
   return <div className="ct-contenido" aria-busy={exportando}>
     <div className="ct-barra">
-      <div className="ct-detalle-titulo"><h3>Detalle del día</h3><p>Turnos registrados para la fecha seleccionada</p>
+      <div className="ct-detalle-titulo">
       <label>Área<select aria-label={`Área del ${fecha(dia.fecha)}`} value={area} disabled={exportando} onChange={e => {
         const nueva = e.target.value as AreaOperativa
         setArea(nueva); setVista(null); setErrorExportacion(null)
@@ -260,7 +260,7 @@ export function ContenidoDia({ cuenta, dia, filtros, corregir, actualizar }: Omi
         <div className="ct-turno">
           <strong className="ct-turno-nombre">{nombreTurnoTecnico[turno]}</strong>
           <span className={`ct-estado-reporte ${fila ? 'ct-registrado' : 'ct-sin-reporte'}`}>{fila ? 'Registrado' : 'Sin reporte'}</span>
-          <div className="ct-operador">{fila ? <><span>{fila.operador}</span><small>Revisión {fila.revision}</small></> : <span>No hay captura registrada</span>}</div>
+          <div className="ct-operador">{fila ? <><span>{fila.operador}</span>{fila.revision > 0 && <small>Revisión {fila.revision}</small>}</> : <span>No hay captura registrada</span>}</div>
           {fila ? <div className="ct-acciones"><button type="button" className="boton-secundario ct-icono-accion" aria-label={abierto ? `Ocultar reporte del turno ${nombreTurnoTecnico[turno]}` : `Ver reporte del turno ${nombreTurnoTecnico[turno]}`} title={abierto ? 'Ocultar reporte' : 'Ver reporte'} aria-expanded={abierto} aria-controls={detalleId} onClick={() => { void ver(fila) }}>
             {abierto ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 10.6a2 2 0 002.8 2.8"/><path d="M9.9 5.2A11.2 11.2 0 0121 12a11.7 11.7 0 01-3.1 4.2M6.2 6.2A11.4 11.4 0 003 12s3 7 9 7a9.3 9.3 0 003.2-.6"/></svg>
               : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2.5 12s3.3-7 9.5-7 9.5 7 9.5 7-3.3 7-9.5 7-9.5-7-9.5-7z"/><circle cx="12" cy="12" r="2.7"/></svg>}

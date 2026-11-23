@@ -187,6 +187,13 @@ export function FormularioBitacoraCalderas({ captura, observaciones, nombresOper
     </Apartado>
     <Apartado indice={6} activo={activo} prefijo={prefijo}>{observaciones}</Apartado>
     {operacion?.mensaje && operacion.mensaje !== 'Reporte técnico registrado. Solo Administración puede corregirlo.' && <p className="bc-ayuda" role={operacion.estado === 'error' || (!captura.reporte && !operacion.guardando) ? 'alert' : 'status'}>{operacion.mensaje}</p>}
+    {operacion?.borradorLocal && <p className="bc-ayuda" role="status">
+      {operacion.borradorLocal === 'guardado' ? 'Borrador guardado en este dispositivo.'
+        : operacion.borradorLocal === 'recuperado' ? 'Borrador recuperado de este dispositivo.'
+          : 'No se pudo guardar el borrador en este dispositivo; guarda el reporte antes de salir.'}
+      {' '}<button type="button" className="boton-texto" disabled={operacion.guardando || !!operacion.pendiente}
+        onClick={operacion.descartarBorrador}>Descartar borrador</button>
+    </p>}
     {completarAdministracion && <div className="co-pendiente-contenido-final" hidden={activo !== pestanasVisibles.length - 1}>{completarAdministracion.contenidoFinal}</div>}
     {(operacion || completarAdministracion) && activo < pestanasVisibles.length - 1 && <footer className="bc-acciones"><span className="bc-ayuda" id={`${prefijo}-guardado`} hidden={!ayudaGuardado}>{ayudaGuardado}</span>
       {completarAdministracion || activo < pestanasVisibles.length - 2 ? <button type="button" className="boton-primario" disabled={operacion?.guardando || completarAdministracion?.guardando}

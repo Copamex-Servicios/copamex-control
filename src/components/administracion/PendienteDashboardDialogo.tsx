@@ -33,7 +33,7 @@ export function PendienteDashboardDialogo({ cuenta, turno, cerrar }: {
     void (async () => {
       const pendiente = pendienteTecnica(cuenta)
       if (pendiente && pendiente.detalle.fila.id !== fila.id) {
-        throw new Error('Confirma primero la corrección pendiente en Capturas antes de abrir otro reporte.')
+        throw new Error('Confirma primero la corrección pendiente en Bitácora antes de abrir otro reporte.')
       }
       return pendiente?.detalle ?? await consultarTecnicoAdmin(cuenta, fila, control.signal)
     })().then(d => { if (vigente) { setDetalle(d); setError(null) } })

@@ -15,9 +15,6 @@
 .co-layout .co-dashboard-almacenamiento[data-tono="alto"] progress::-moz-progress-bar { background:#bf3030; }
 .co-layout .co-dashboard-almacenamiento .co-almacenamiento-detalle { display:flex; justify-content:space-between; flex-wrap:wrap; gap:4px 12px; font-size:12px; color:#4c648a; }
 .co-layout .co-admin-dashboard { display:grid; gap:16px; min-width:0; }
-.co-layout .co-admin-tabs > .co-admin-acciones-dashboard { display:flex; align-items:center; flex:0 0 auto; }
-.co-layout .co-admin-tabs > .co-admin-acciones-dashboard[hidden] { display:none; }
-.co-layout .co-admin-tabs .co-admin-acciones-dashboard > button { display:grid; place-items:center; width:42px; min-width:42px; min-height:42px; height:42px; padding:8px; border:1px solid #c7dcfa; border-radius:7px; background:#fff; color:#0057d8; }
 .co-layout .co-admin-dashboard h2 { font-size:20px; }
 .co-layout .co-admin-dashboard h3 { margin:0; font-size:17px; }
 .co-layout .co-admin-dashboard .ayuda-turno { margin:6px 0 0; font-size:14px; line-height:1.4; }

@@ -68,7 +68,7 @@
 @media(max-width:800px) {
  .co-layout .consolidado-tecnico .ct-turno { grid-template-columns:100px minmax(0,1fr); gap:6px 12px; }
  .co-layout .consolidado-tecnico .ct-turno>.ct-acciones { grid-column:1 / -1; }
- .co-layout .consolidado-tecnico .ct-barra>.ct-acciones { width:100%; }
+ .co-layout .consolidado-tecnico .ct-barra>.ct-acciones { width:auto; }
 }
 .co-layout .consolidado-tecnico .ct-lista-cabecera {
   min-height:38px; box-sizing:border-box; padding:8px 14px; border:1px solid #052655;
@@ -106,7 +106,19 @@
 .co-layout .consolidado-tecnico .ct-turno .ct-icono-accion { width:38px; min-width:38px; min-height:34px; height:34px; padding:7px; border-radius:7px; }
 @media(max-width:600px) {
  .co-layout .consolidado-tecnico .ct-detalle-cabecera { display:none; }
- .co-layout .consolidado-tecnico .ct-turno { grid-template-columns:70px minmax(0,1fr) 86px; gap:8px; }
- .co-layout .consolidado-tecnico .ct-turno .ct-operador { grid-column:1/-1; grid-row:2; }
+ .co-layout .consolidado-tecnico .ct-turno { grid-template-columns:minmax(0,1fr) auto auto; gap:8px; }
+ .co-layout .consolidado-tecnico .ct-turno .ct-operador { grid-column:1/-1; grid-row:2; overflow-wrap:break-word; word-break:normal; }
  .co-layout .consolidado-tecnico .ct-turno :is(.ct-acciones,.ct-sin-acciones) { grid-column:3; grid-row:1; }
+ .co-layout .consolidado-tecnico .ct-estado-reporte { white-space:nowrap; }
+ .co-layout .consolidado-tecnico .ct-barra { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; }
+ .co-layout .consolidado-tecnico .ct-detalle-titulo { min-width:0; }
+ .co-layout .consolidado-tecnico .ct-detalle-titulo label { display:grid; grid-template-columns:44px minmax(0,1fr); align-items:center; gap:6px; }
+ .co-layout .consolidado-tecnico .ct-detalle-titulo select { box-sizing:border-box; width:100%; min-width:0; min-height:40px; padding:6px 8px; font-size:14px; }
+ .co-layout .consolidado-tecnico .ct-barra>.ct-acciones { display:flex; gap:6px; width:auto; }
+ .co-layout .consolidado-tecnico .ct-barra>.ct-acciones>button { width:auto; min-width:0; min-height:40px; padding:6px 8px; font-size:12px; }
+}
+@media(max-width:380px) {
+ .co-layout .consolidado-tecnico .ct-detalle-titulo label { grid-template-columns:36px minmax(0,1fr); gap:4px; }
+ .co-layout .consolidado-tecnico .ct-barra>.ct-acciones { gap:5px; }
+ .co-layout .consolidado-tecnico .ct-barra>.ct-acciones>button { padding:6px 5px; font-size:11px; }
 }

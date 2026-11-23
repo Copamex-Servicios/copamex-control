@@ -11,7 +11,7 @@ export function DetalleReportePTARPlanta({ reporte }: { reporte: ReporteTecnicoP
     <Dato key={m.campo} nombre={m.nombre} valor={b.mediciones[m.campo]} unidad={m.unidad} />)
   return <div className="bpt-detalle-tecnico planta-ptar-detalle planta-reporte-detalle reporte-ficha-nueva">
     <div className="pcr-metadatos">
-      <p>Registrado: {fechaHoraBitacora(reporte.creadoEn)} (México) · Revisión {reporte.revision}</p>
+      <p>Registrado: {fechaHoraBitacora(reporte.creadoEn)} (México){reporte.revision > 0 ? ` · Revisión ${reporte.revision}` : ''}</p>
       <span>Solo consulta</span>
     </div>
     <div className="pcr-secciones">

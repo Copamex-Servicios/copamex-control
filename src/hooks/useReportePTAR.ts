@@ -5,6 +5,7 @@ import { useAuthStore } from '../stores/authStore'
 import { useTurnoStore } from '../stores/turnoStore'
 import { borradorBitacoraPTAR } from '../lib/tiposBitacoraPTAR'
 import type { BorradorBitacoraPTAR } from '../lib/tiposBitacoraPTAR'
+import { eliminarBorradorBitacoraLocal, guardarBorradorBitacoraLocal, leerBorradorBitacoraLocal } from '../lib/borradoresBitacoraLocal'
 import { consultarReportePTAR, enviarReportePTAR, ErrorReportePTAR, prepararDatosPTAR } from '../lib/bitacoraTecnicaPTAR'
 import type { EnvioReportePTAR, ReporteTecnicoPTAR } from '../lib/bitacoraTecnicaPTAR'
 
@@ -16,10 +17,11 @@ interface Captura {
   guardando: boolean
   pendiente: EnvioReportePTAR | null
   mensaje: string | null
+  borradorLocal: 'guardado' | 'recuperado' | 'error' | null
 }
-const nueva = (): Captura => ({ editando: false, borrador: borradorBitacoraPTAR(), reporte: null, estado: 'sin-consultar', guardando: false, pendiente: null, mensaje: null })
+const nueva = (): Captura => ({ editando: false, borrador: borradorBitacoraPTAR(), reporte: null, estado: 'sin-consultar', guardando: false, pendiente: null, mensaje: null, borradorLocal: null })
 const vacia = nueva()
-// Solo memoria, por cuenta y turno. No es una cola offline ni sobrevive a una recarga.
+// Mantiene solo el estado activo en memoria; el borrador editable también se respalda localmente.
 const useCapturas = create<{ entradas: Record<string, Captura> }>()(() => ({ entradas: {} }))
 const controles = new Set<AbortController>()
 let generacion = 0
@@ -63,10 +65,19 @@ async function consultar(clave: string, cuentaId: string, turnoId: string) {
   try {
     const reporte = await limitado(signal => consultarReportePTAR(turnoId, signal))
     if (!sigue(cuentaId, g)) return
+    if (reporte) eliminarBorradorBitacoraLocal('ptar', cuentaId, turnoId)
+    const borradorLocal = reporte ? null : leerBorradorBitacoraLocal('ptar', cuentaId, turnoId, borradorBitacoraPTAR())
+    const estadoLocal = useCapturas.getState().entradas[clave]?.borradorLocal
     poner(clave, { estado: 'listo', reporte, editando: false,
-      ...(reporte ? { borrador: reporte.borrador, pendiente: null, mensaje: 'Reporte técnico registrado. Solo Administración puede corregirlo.' } : { mensaje: null }) })
+      ...(reporte ? { borrador: reporte.borrador, pendiente: null, mensaje: 'Reporte técnico registrado. Solo Administración puede corregirlo.', borradorLocal: null }
+        : { ...(borradorLocal ? { borrador: borradorLocal, borradorLocal: estadoLocal === 'guardado' ? 'guardado' as const : 'recuperado' as const } : {}), mensaje: null }) })
   } catch (error) {
-    if (sigue(cuentaId, g)) poner(clave, { estado: 'error', mensaje: error instanceof Error ? error.message : 'No se pudo consultar el reporte técnico.' })
+    if (sigue(cuentaId, g)) {
+      const borradorLocal = leerBorradorBitacoraLocal('ptar', cuentaId, turnoId, borradorBitacoraPTAR())
+      const estadoLocal = useCapturas.getState().entradas[clave]?.borradorLocal
+      poner(clave, { estado: 'error', ...(borradorLocal ? { borrador: borradorLocal, borradorLocal: estadoLocal === 'guardado' ? 'guardado' as const : 'recuperado' as const } : {}),
+        mensaje: error instanceof Error ? error.message : 'No se pudo consultar el reporte técnico.' })
+    }
   }
 }
 function turnoAutorizado(cuentaId: string, turnoId: string) {
@@ -112,14 +123,16 @@ export function useReportePTAR(cuentaId: string | null, turnoRecibido: string | 
     try {
       const reporte = await limitado(signal => enviarReportePTAR(envio, signal))
       if (sigue(cuentaId, g)) {
-        poner(clave, { guardando: false, pendiente: null, reporte, editando: false, borrador: reporte.borrador,
+        eliminarBorradorBitacoraLocal('ptar', cuentaId, turnoConsultado)
+        poner(clave, { guardando: false, pendiente: null, reporte, editando: false, borrador: reporte.borrador, borradorLocal: null,
           mensaje: 'Reporte técnico guardado. Solo Administración puede corregirlo.' })
         return true as const
       }
     } catch (error) {
       if (!sigue(cuentaId, g)) return
       if (error instanceof ErrorReportePTAR && error.sinCambios && estado.reporte) {
-        poner(clave, { guardando: false, pendiente: null, editando: false, borrador: estado.reporte.borrador,
+        eliminarBorradorBitacoraLocal('ptar', cuentaId, turnoConsultado)
+        poner(clave, { guardando: false, pendiente: null, editando: false, borrador: estado.reporte.borrador, borradorLocal: null,
           mensaje: 'No hay cambios para guardar.' })
         return 'sin-cambios' as const
       }
@@ -139,9 +152,20 @@ export function useReportePTAR(cuentaId: string | null, turnoRecibido: string | 
     ...datos, editable, puedeEditar, estadoDelReporte,
     mensaje: ventana.disponible && datos.mensaje?.includes('Solo Administración puede corregirlo.') ? null : datos.mensaje,
     editar: () => { if (clave && puedeEditar) poner(clave, { editando: true, mensaje: null }) },
+    descartarBorrador: () => {
+      if (!clave || !cuentaId || !turnoConsultado || !datos.borradorLocal || datos.guardando || datos.pendiente) return
+      if (typeof window !== 'undefined' && !window.confirm('¿Descartar el borrador guardado en este dispositivo?')) return
+      eliminarBorradorBitacoraLocal('ptar', cuentaId, turnoConsultado)
+      const actual = useCapturas.getState().entradas[clave]
+      poner(clave, { borrador: actual?.reporte?.borrador ?? borradorBitacoraPTAR(), borradorLocal: null, editando: false, mensaje: null })
+    },
     puedeGuardar: !datos.guardando && datos.estado === 'listo' && (!!datos.pendiente || editable),
     cambiarBorrador: (cambio: (b: BorradorBitacoraPTAR) => BorradorBitacoraPTAR) => {
-      if (clave && editable) poner(clave, { borrador: cambio(useCapturas.getState().entradas[clave]?.borrador ?? borradorBitacoraPTAR()) })
+      if (clave && cuentaId && turnoConsultado && editable) {
+        const borrador = cambio(useCapturas.getState().entradas[clave]?.borrador ?? borradorBitacoraPTAR())
+        const guardado = guardarBorradorBitacoraLocal('ptar', cuentaId, turnoConsultado, borrador)
+        poner(clave, { borrador, borradorLocal: guardado ? 'guardado' : 'error' })
+      }
     },
     guardar,
     actualizar: () => { if (clave && cuentaId && turnoConsultado) { ventana.actualizar(); void consultar(clave, cuentaId, turnoConsultado) } },

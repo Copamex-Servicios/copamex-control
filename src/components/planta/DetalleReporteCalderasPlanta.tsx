@@ -9,7 +9,7 @@ export function DetalleReporteCalderasPlanta({ reporte }: { reporte: ReporteTecn
   const b = reporte.borrador, m = b.mediciones
   return <div className="bc-detalle-tecnico planta-calderas-detalle planta-reporte-detalle reporte-ficha-nueva">
     <div className="pcr-metadatos">
-      <p>Registrado: {fechaHoraBitacora(reporte.creadoEn)} (México) · Revisión {reporte.revision}</p>
+      <p>Registrado: {fechaHoraBitacora(reporte.creadoEn)} (México){reporte.revision > 0 ? ` · Revisión ${reporte.revision}` : ''}</p>
       <span>Solo consulta</span>
     </div>
     {reporte.versionFormato === 1 && <p className="pcr-formato-anterior">

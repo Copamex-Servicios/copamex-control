@@ -1,4 +1,3 @@
-import { ConsultaMuestrasCalidad } from '../calidad/ConsultaMuestrasCalidad'
 import '../bitacora/bitacoraCalderas.css'
 import '../bitacora/bitacoraPTAR.css'
 import { useEffect, useRef, useState } from 'react'
@@ -15,27 +14,8 @@ import { FormularioBitacoraCalderas } from '../bitacora/FormularioBitacoraCalder
 import { FormularioBitacoraPTAR } from '../bitacora/FormularioBitacoraPTAR'
 import './gestionRegistros.css'
 
-const seccionesCapturas = [
-  { id: 'tecnicos', nombre: 'Reportes técnicos' },
-  { id: 'calidad', nombre: 'Calidad de agua' },
-] as const
-type SeccionCapturas = typeof seccionesCapturas[number]['id']
-
 export function GestionRegistrosAdministracion() {
-  const [seccion, setSeccion] = useState<SeccionCapturas>('tecnicos')
-  const [abiertas, setAbiertas] = useState<SeccionCapturas[]>(['tecnicos'])
-  function abrirSeccion(id: SeccionCapturas) {
-    setSeccion(id)
-    setAbiertas(actuales => actuales.includes(id) ? actuales : [...actuales, id])
-  }
-  return <div className="gestion-registros">
-    <nav className="gestion-capturas-tabs" aria-label="Consultas de capturas">
-      {seccionesCapturas.map(item => <button key={item.id} type="button" aria-pressed={seccion === item.id}
-        onClick={() => abrirSeccion(item.id)}>{item.nombre}</button>)}
-    </nav>
-    <div hidden={seccion !== 'tecnicos'}><ReportesTecnicosAdmin /></div>
-    {abiertas.includes('calidad') && <div hidden={seccion !== 'calidad'}><ConsultaMuestrasCalidad exportacionDiaria ocultarFiltros /></div>}
-  </div>
+  return <div className="gestion-registros"><ReportesTecnicosAdmin /></div>
 }
 function PresentarTecnico({ detalle }: { detalle: DetalleTecnicoAdmin }) {
   return detalle.area === 'calderas' ? <div className="bc-panel"><DetalleReporteCalderasPlanta reporte={detalle.reporte} /></div>
@@ -111,7 +91,7 @@ export function EditorTecnico({ cuenta, detalle, cerrar, guardado, iniciarEdicio
     finally { activo.current = false; setGuardando(false) }
   }
   return <div className={`gestion-editor-tecnico${iniciarEdicion ? ' co-pendiente-editor' : ''}`} aria-busy={guardando}>
-    <div className="planta-encabezado"><h3>Reporte técnico · {detalle.area === 'calderas' ? 'Calderas' : 'PTAR'} · Revisión {detalle.reporte.revision}</h3><button type="button" className="boton-secundario" disabled={bloqueado} onClick={cerrar}>Cerrar detalle</button></div>
+    <div className="planta-encabezado"><h3>Reporte técnico · {detalle.area === 'calderas' ? 'Calderas' : 'PTAR'}{detalle.reporte.revision > 0 ? ` · Revisión ${detalle.reporte.revision}` : ''}</h3><button type="button" className="boton-secundario" disabled={bloqueado} onClick={cerrar}>Cerrar detalle</button></div>
     {error && <p role="alert" className="mensaje-error">{error}</p>}{exito && <p role="status" className="mensaje-exito">Corrección confirmada.</p>}
     {pendiente && <div className="admin-pendiente"><strong>Corrección pendiente de confirmación</strong><p>Se conserva la solicitud original y su motivo.</p><button type="button" className="boton-principal" disabled={guardando} onClick={() => { void guardar() }}>Comprobar / reintentar</button></div>}
     {!editando ? <><PresentarTecnico detalle={detalle} /><button type="button" className="boton-principal" disabled={bloqueado} onClick={() => { setBorrador(detalle.reporte.borrador); setMotivo(''); setEditando(true); setExito(false) }}>Corregir reporte técnico</button></> :

@@ -67,8 +67,9 @@ function CarruselEventos({ eventos, fecha }: { eventos: readonly EventoDia[]; fe
   </div>
 }
 
-export function InformacionDelDia({ fecha, informacion, compacto = false }: {
+export function InformacionDelDia({ fecha, informacion, compacto = false, mostrarActualizar = true }: {
   compacto?: boolean
+  mostrarActualizar?: boolean
   fecha: string | null; informacion: ReturnType<typeof useInformacionDia>
 }) {
   const idEventos = useId()
@@ -83,12 +84,12 @@ export function InformacionDelDia({ fecha, informacion, compacto = false }: {
     <section className="resumen-dia-tarjeta" aria-label="Producción de hoy">
       <div className="resumen-dia-cabecera">
         <h2>Producción de hoy</h2>
-        <button className="boton-icono" type="button" onClick={actualizar}
-          disabled={!fecha || cargando} aria-label="Actualizar producción y eventos">{compacto ? <RefreshCw aria-hidden="true" /> : <span aria-hidden="true">↻</span>}</button>
+        {mostrarActualizar && <button className="boton-icono" type="button" onClick={actualizar}
+          disabled={!fecha || cargando} aria-label="Actualizar producción y eventos">{compacto ? <RefreshCw aria-hidden="true" /> : <span aria-hidden="true">↻</span>}</button>}
       </div>
       {!fecha ? <p className="resumen-dia-vacio">Esperando fecha del servidor…</p>
         : !datos ? <p className="resumen-dia-vacio" role="status">Consultando…</p>
-        : datos.produccion.error ? <p className="error-lateral" role="alert">No se pudo consultar la producción. Usa Actualizar.</p>
+        : datos.produccion.error ? <p className="error-lateral" role="alert">{mostrarActualizar ? 'No se pudo consultar la producción. Usa Actualizar.' : 'No se pudo consultar la producción.'}</p>
         : !datos.produccion.elementos.length ? <p className="resumen-dia-vacio">Sin producción programada.</p>
         : <div className="resumen-dia-produccion">{datos.produccion.elementos.map(p => <article className="resumen-dia-programa" key={p.id}>
           <div className="resumen-dia-papel"><span className="resumen-dia-maquina">{p.maquina}</span><strong>{p.papel}</strong></div>
@@ -106,7 +107,7 @@ export function InformacionDelDia({ fecha, informacion, compacto = false }: {
       </div>
       {!fecha ? <p className="resumen-dia-vacio">Esperando fecha del servidor…</p>
         : !datos ? <p className="resumen-dia-vacio" role="status">Consultando…</p>
-        : datos.eventos.error ? <p className="error-lateral" role="alert">No se pudieron consultar los eventos. Usa Actualizar.</p>
+        : datos.eventos.error ? <p className="error-lateral" role="alert">{mostrarActualizar ? 'No se pudieron consultar los eventos. Usa Actualizar.' : 'No se pudieron consultar los eventos.'}</p>
         : !eventos.length ? <p className="resumen-dia-vacio">Sin eventos programados.</p>
         : compacto ? <div id={idEventos}>{expandido
           ? <div className="co-eventos-lista" role="region" aria-label="Todos los eventos consultados" tabIndex={0}>

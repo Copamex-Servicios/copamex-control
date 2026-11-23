@@ -11,8 +11,6 @@ import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import type { RolUsuario } from '../lib/tiposAuth'
 
-const PaginaLimitesCalidad = lazy(() => import('../components/calidad/PaginaLimitesCalidad').then(modulo => ({ default: modulo.PaginaLimitesCalidad })))
-const ConsultaCalidad = lazy(() => import('../components/calidad/ConsultaCalidad').then(modulo => ({ default: modulo.ConsultaCalidad })))
 const PanelReportes = lazy(() => import('../components/reportes/PanelReportes').then(modulo => ({ default: modulo.PanelReportes })))
 const CapturasPozoUF = lazy(() => import('../components/administracion/CapturasPozoUF').then(m => ({ default: m.CapturasPozoUF })))
 const PanelAdministracion = lazy(() => import('../components/administracion/PanelAdministracion').then(modulo => ({ default: modulo.PanelAdministracion })))
@@ -21,7 +19,7 @@ const PanelOperativo = lazy(() => import('../components/operativo/PanelOperativo
 const PanelBitacoraAdministrativa = lazy(() => import('../components/bitacoraAdministrativa/BitacoraAdministrativa').then(m => ({ default: m.PanelBitacoraAdministrativa })))
 const NovedadesAdministracion = lazy(() => import('../components/bitacoraAdministrativa/BitacoraAdministrativa').then(m => ({ default: m.NovedadesAdministracion })))
 
-type VistaInicio = 'inicio' | 'calderas' | 'ptar' | 'planta' | 'administracion' | 'reportes' | 'calidad' | 'gestion' | 'limites' | 'novedades' | 'bitacora_admin' | 'pozo_uf'
+type VistaInicio = 'inicio' | 'calderas' | 'ptar' | 'planta' | 'administracion' | 'reportes' | 'gestion' | 'novedades' | 'bitacora_admin' | 'pozo_uf'
 
 interface PropsInicio {
   vista?: VistaInicio
@@ -43,16 +41,15 @@ const nombresRol: Record<RolUsuario, string> = {
 
 const paginas: Record<Exclude<VistaInicio, 'inicio'>, Pagina> = {
   bitacora_admin: { titulo: 'Relevantes', ruta: '/bitacora-administrativa', descripcion: 'Actividades de Administraci\u00f3n por \u00e1rea e historial mensual.', roles: ['admin'] },
-  calidad: { titulo: 'Calidad de agua', ruta: '/calidad', descripcion: 'Consulta de mediciones de ambas áreas.', roles: ['calidad'] },
   gestion: { titulo: 'Avisos y producción', ruta: '/gestion', descripcion: 'Avisos, producción y calendario.', roles: ['calidad'] },
   calderas: {
     titulo: 'Calderas', ruta: '/calderas',
-    descripcion: 'Turnos, Bitácora y Calidad de agua.',
+    descripcion: 'Turnos y Bitácora.',
     roles: ['calderas', 'admin'],
   },
   ptar: {
     titulo: 'PTAR', ruta: '/ptar',
-    descripcion: 'Turnos, Bitácora, PTAR y Calidad.',
+    descripcion: 'Turnos, Bitácora y proceso PTAR.',
     roles: ['ptar', 'admin'],
   },
   planta: {
@@ -60,8 +57,7 @@ const paginas: Record<Exclude<VistaInicio, 'inicio'>, Pagina> = {
     descripcion: 'Consulta de las áreas de Calderas y PTAR.',
     roles: ['calderas', 'ptar', 'admin'],
   },
-  limites: { titulo: 'Calidad de agua', ruta: '/calidad/limites', descripcion: 'Administra los límites de calidad del sistema.', roles: ['admin'] },
-  reportes: { titulo: 'Reportes', ruta: '/reportes', descripcion: 'Consumos, balances, Calidad, PTAR y trazabilidad para juntas y revisión.', roles: ['admin'] },
+  reportes: { titulo: 'Reportes', ruta: '/reportes', descripcion: 'Consumos, balances, PTAR y trazabilidad para juntas y revisión.', roles: ['admin'] },
   pozo_uf: { titulo: 'Pozo y UF', ruta: '/pozo-uf', descripcion: 'Captura y consulta de lecturas de Pozos y Ultrafiltración.', roles: ['admin'] },
   administracion: {
     titulo: 'Administración', ruta: '/administracion',
@@ -121,6 +117,11 @@ function ContenidoInicio({ vista = 'inicio' }: PropsInicio = {}) {
     return null
   }
 
+  // Administración usa su propio panel; entrar directamente a las rutas operativas vuelve a Inicio.
+  if (perfil.rol === 'admin' && (vista === 'calderas' || vista === 'ptar')) {
+    return <Navigate to="/" replace />
+  }
+
   const pagina = vista === 'inicio' ? null : paginas[vista]
   if (pagina && !pagina.roles.includes(perfil.rol)) {
     return <Navigate to="/sin-acceso" replace state={{ desde: pagina.ruta, motivo: 'rol' }} />
@@ -128,21 +129,21 @@ function ContenidoInicio({ vista = 'inicio' }: PropsInicio = {}) {
   const accesos = Object.values(paginas).filter((opcion) => opcion.roles.includes(perfil.rol)
     && (perfil.rol !== 'admin' || !['/calderas', '/ptar', '/planta', '/reportes'].includes(opcion.ruta)))
   const visuales: AccesoVisual[] = accesos.map(opcion => ({ titulo: opcion.titulo, ruta: opcion.ruta,
-    icono: opcion.ruta === '/pozo-uf' ? 'pozos' : opcion.ruta === '/bitacora-administrativa' ? 'bitacora' : opcion.ruta === '/calidad' || opcion.ruta === '/calidad/limites' ? 'calidad' : opcion.ruta === '/calderas' ? 'calderas' : opcion.ruta === '/ptar' ? 'ptar' : opcion.ruta === '/planta' ? 'planta' : opcion.ruta === '/reportes' ? 'reportes' : 'administracion',
-    descripcion: opcion.ruta === '/pozo-uf' || opcion.ruta === '/bitacora-administrativa' ? opcion.descripcion : opcion.ruta === '/calidad/limites' ? 'Administra los límites de calidad del sistema.' : opcion.ruta === '/calidad' ? 'Resultados de agua registrados por los operadores.' : opcion.ruta === '/gestion' ? 'Avisos, calendario y programa de producción.' : opcion.ruta === '/calderas' ? 'Turnos, bitácora y calidad del área.' : opcion.ruta === '/ptar' ? 'Turnos, bitácora, proceso PTAR y calidad del área.' : opcion.ruta === '/planta' ? 'Consulta de Calderas y PTAR en un solo lugar.' : opcion.ruta === '/reportes' ? 'Indicadores, gráficas y exportación a Excel.' : 'Operadores, capturas, avisos y configuración.',
+    icono: opcion.ruta === '/pozo-uf' ? 'pozos' : opcion.ruta === '/bitacora-administrativa' ? 'bitacora' : opcion.ruta === '/calderas' ? 'calderas' : opcion.ruta === '/ptar' ? 'ptar' : opcion.ruta === '/planta' ? 'planta' : opcion.ruta === '/reportes' ? 'reportes' : 'administracion',
+    descripcion: opcion.ruta === '/pozo-uf' || opcion.ruta === '/bitacora-administrativa' ? opcion.descripcion : opcion.ruta === '/gestion' ? 'Avisos, calendario y programa de producción.' : opcion.ruta === '/calderas' ? 'Turnos y bitácora del área.' : opcion.ruta === '/ptar' ? 'Turnos, bitácora y proceso PTAR.' : opcion.ruta === '/planta' ? 'Consulta de Calderas y PTAR en un solo lugar.' : opcion.ruta === '/reportes' ? 'Indicadores, gráficas y exportación a Excel.' : 'Operadores, capturas, avisos y configuración.',
   }))
-  if (vista === 'calidad' || vista === 'gestion' || vista === 'limites') return <AppLayout accesos={visuales} nombre={perfil.nombre} rol={nombresRol[perfil.rol]} titulo={pagina?.titulo ?? 'Calidad'} cerrando={cerrando} alSalir={() => { void salir() }}>
+  if (vista === 'gestion') return <AppLayout accesos={visuales} nombre={perfil.nombre} rol={nombresRol[perfil.rol]} titulo={pagina?.titulo ?? 'Avisos y producción'} cerrando={cerrando} alSalir={() => { void salir() }}>
     {error && <p className="mensaje-error" role="alert">{error}</p>}
-    <div className="co-consulta co-administracion">{perfil.rol !== 'admin' && vista !== 'gestion' && <PageHeader titulo="Calidad de agua" icono="calidad" />}{vista === 'limites' ? <PaginaLimitesCalidad key={perfil.id} /> : vista === 'calidad' ? <ConsultaCalidad key={perfil.id} /> : <PanelAdministracion key={perfil.id} soloGestion />}</div>
+    <div className="co-consulta co-administracion"><PanelAdministracion key={perfil.id} soloGestion /></div>
   </AppLayout>
   if (vista !== 'administracion') {
     const operativo = vista === 'calderas' || vista === 'ptar'
     const menuCalderas = vista === 'calderas' || perfil.rol === 'calderas' && (vista === 'inicio' || vista === 'planta' || vista === 'novedades')
     const seleccion = vista === 'calderas' ? moduloCalderas : moduloPTAR
     const opciones: { id: ModuloOperativo; nombre: string; icono: AccesoVisual['icono'] }[] = menuCalderas
-      ? [{ id: 'bitacora', nombre: 'Bitácora', icono: 'bitacora' }, { id: 'calidad', nombre: 'Calidad de agua', icono: 'calidad' }]
-      : [{ id: 'bitacora', nombre: 'Bitácora', icono: 'bitacora' }, { id: 'ptar', nombre: 'Proceso PTAR', icono: 'ptar' }, { id: 'calidad', nombre: 'Calidad de agua', icono: 'calidad' }]
-    const opcionesVisibles = opciones.filter(opcion => perfil.rol !== 'ptar' || (opcion.id !== 'ptar' && opcion.id !== 'calidad'))
+      ? [{ id: 'bitacora', nombre: 'Bitácora', icono: 'bitacora' }]
+      : [{ id: 'bitacora', nombre: 'Bitácora', icono: 'bitacora' }, { id: 'ptar', nombre: 'Proceso PTAR', icono: 'ptar' }]
+    const opcionesVisibles = opciones.filter(opcion => perfil.rol !== 'ptar' || opcion.id !== 'ptar')
     return <AppLayout accesos={visuales} nombre={perfil.nombre} rol={nombresRol[perfil.rol]} titulo={pagina?.titulo ?? 'Inicio'} cerrando={cerrando} alSalir={() => { void salir() }} alAbrirBitacora={() => abrirBitacoraArea(perfil.rol === 'calderas' ? '/calderas' : '/ptar')} submenu={operativo || menuCalderas ? {
       titulo: menuCalderas ? 'MÓDULO CALDERAS' : 'MÓDULO PTAR',
       seleccion: operativo ? seleccion : '',
