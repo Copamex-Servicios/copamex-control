@@ -154,7 +154,7 @@ export function useReportePTAR(cuentaId: string | null, turnoRecibido: string | 
     editar: () => { if (clave && puedeEditar) poner(clave, { editando: true, mensaje: null }) },
     descartarBorrador: () => {
       if (!clave || !cuentaId || !turnoConsultado || !datos.borradorLocal || datos.guardando || datos.pendiente) return
-      if (typeof window !== 'undefined' && !window.confirm('¿Descartar el borrador guardado en este dispositivo?')) return
+      if (typeof window !== 'undefined' && !window.confirm('¿Descartar el borrador guardado?')) return
       eliminarBorradorBitacoraLocal('ptar', cuentaId, turnoConsultado)
       const actual = useCapturas.getState().entradas[clave]
       poner(clave, { borrador: actual?.reporte?.borrador ?? borradorBitacoraPTAR(), borradorLocal: null, editando: false, mensaje: null })
