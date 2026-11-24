@@ -4,11 +4,11 @@ import { FormularioBitacoraCalderas } from './FormularioBitacoraCalderas'
 import { useReporteCalderas } from '../../hooks/useReporteCalderas'
 import { HistorialReportesCalderas } from './HistorialReportesCalderas'
 
-export function PanelBitacoraCalderas() {
+export function PanelBitacoraCalderas({ activo = true }: { activo?: boolean }) {
   const datos = useBitacora('calderas')
   const habilitado = datos.rol === 'calderas' && datos.estadoCarga === 'listo'
     && datos.turno?.finalizado_en === null && datos.turno.iniciado_por === datos.cuentaId
-  const captura = useReporteCalderas(datos.rol === 'calderas' ? datos.cuentaId : null, datos.turno?.id ?? null, habilitado)
+  const captura = useReporteCalderas(datos.rol === 'calderas' ? datos.cuentaId : null, datos.turno?.id ?? null, habilitado, activo)
   if (!datos.cuentaId || (datos.rol !== 'calderas' && datos.rol !== 'admin') || datos.estadoCarga === 'sin-cuenta') return null
   const observaciones = <HistorialReportesCalderas key={`${datos.cuentaId}:${datos.rol}`} actualizacion={`${captura.reporte?.id ?? ''}:${captura.reporte?.revision ?? ''}`} operador={datos.rol === 'calderas'} />
   return <section className="panel-informacion bc-panel" aria-label="Bitácora de Calderas">

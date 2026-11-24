@@ -87,8 +87,8 @@ function turnoAutorizado(cuentaId: string, turnoId: string) {
     && !t.accionEnCurso && !t.solicitudPendiente
 }
 
-export function useReporteCalderas(cuentaId: string | null, turnoRecibido: string | null, habilitadoAnterior: boolean) {
-  const ventana = useVentanaReporte(cuentaId, 'calderas', turnoRecibido)
+export function useReporteCalderas(cuentaId: string | null, turnoRecibido: string | null, habilitadoAnterior: boolean, activo = true) {
+  const ventana = useVentanaReporte(cuentaId, 'calderas', turnoRecibido, activo)
   const turnoId = ventana.disponible ? ventana.contexto?.turnoId ?? null : turnoRecibido
   const habilitado = ventana.listo && (ventana.disponible ? ventana.puedeEditar : habilitadoAnterior)
   const entradas = useCapturas(s => s.entradas)
@@ -154,7 +154,7 @@ export function useReporteCalderas(cuentaId: string | null, turnoRecibido: strin
     editar: () => { if (clave && puedeEditar) poner(clave, { editando: true, mensaje: null }) },
     descartarBorrador: () => {
       if (!clave || !cuentaId || !turnoConsultado || !datos.borradorLocal || datos.guardando || datos.pendiente) return
-      if (typeof window !== 'undefined' && !window.confirm('¿Descartar el borrador guardado en este dispositivo?')) return
+      if (typeof window !== 'undefined' && !window.confirm('¿Descartar el borrador guardado?')) return
       eliminarBorradorBitacoraLocal('calderas', cuentaId, turnoConsultado)
       const actual = useCapturas.getState().entradas[clave]
       poner(clave, { borrador: actual?.reporte?.borrador ?? borradorBitacoraCalderas(), borradorLocal: null, editando: false, mensaje: null })

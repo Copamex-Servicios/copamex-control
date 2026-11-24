@@ -27,7 +27,7 @@ before(async () => {
     const q = {
       select(columnas, opciones) { llamada.columnas = columnas; assert.equal(opciones.count, 'exact'); return q },
       is(c, v) { llamada.filtros.push([c, v]); return q },
-      not(c, operador, valor) { assert.equal(c,'seguimiento_id'); assert.equal(operador,'is'); assert.equal(valor,null); llamada.soloAdicionales=true; return q },
+      not(c, operador, valor) { assert.equal(c,'seguimiento_valor_inicial'); assert.equal(operador,'is'); assert.equal(valor,null); llamada.soloAdicionales=true; return q },
       limit() { return q },
       gte(c, v) { llamada.filtros.push([c, v]); return q }, lte(c, v) { llamada.filtros.push([c, v]); return q },
       eq(c, v) { llamada.filtros.push([c, v]); return q },
@@ -37,7 +37,7 @@ before(async () => {
         s.throwIfAborted()
         let datos = tabla === 'turnos_operativos' ? grupos : filas
         if (tabla === 'muestras_calidad') datos = datos.filter(m => m.turno_id === llamada.filtros.find(([c]) => c === 'turno_id')[1])
-        if (llamada.soloAdicionales) datos=datos.filter(m=>m.seguimiento_id!=null)
+        if (llamada.soloAdicionales) datos=datos.filter(m=>m.seguimiento_valor_inicial!=null)
         const [a,b] = llamada.rango
         return { data: datos.slice(a,b + 1 - (truncar ? 1 : 0)), count: datos.length, error: null }
       },
@@ -103,7 +103,7 @@ test('valida filtros y cancelacion antes de consultar', async () => {
   assert.equal(llamadas.length, 0)
 })
 test('la hoja incorpora todas las adicionales aunque superen la página visible del historial',async()=>{
- filas=Array.from({length:451},(_,n)=>({...muestra(n),seguimiento_id:id(90)}))
+  filas=Array.from({length:451},(_,n)=>({...muestra(n),seguimiento_id:id(90),seguimiento_valor_inicial:42}))
  filas.push(muestra(999))
  const g=await grupo()
  const adicionales=await servicio.consultarAdicionalesTurnoCalidad(g,signal())

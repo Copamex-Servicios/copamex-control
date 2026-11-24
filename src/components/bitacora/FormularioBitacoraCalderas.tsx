@@ -120,6 +120,7 @@ export function FormularioBitacoraCalderas({ captura, observaciones, nombresOper
       {medicion('presion_422', 'Bomba de ósmosis 422 · Presión', 'PSI')}
       {medicion('presion_424', 'Bomba de ósmosis 424 · Presión', 'PSI')}
       {medicion('flujo_osmosis', 'Flujo de ósmosis', 'GPM')}
+      {medicion('dureza_total_ppm', 'Dureza total', 'PPM')}
     </div></Apartado>
     <Apartado indice={2} activo={activo} prefijo={prefijo}><div className="bc-mediciones">
       {medicion('flujo_uf', 'Flujo de entrada', 'm³/h')}{medicion('nivel_rotoplas', 'Nivel del Rotoplas de entrada', '%')}
@@ -188,11 +189,11 @@ export function FormularioBitacoraCalderas({ captura, observaciones, nombresOper
     <Apartado indice={6} activo={activo} prefijo={prefijo}>{observaciones}</Apartado>
     {operacion?.mensaje && operacion.mensaje !== 'Reporte técnico registrado. Solo Administración puede corregirlo.' && <p className="bc-ayuda" role={operacion.estado === 'error' || (!captura.reporte && !operacion.guardando) ? 'alert' : 'status'}>{operacion.mensaje}</p>}
     {operacion?.borradorLocal && <p className="bc-ayuda" role="status">
-      {operacion.borradorLocal === 'guardado' ? 'Borrador guardado en este dispositivo.'
-        : operacion.borradorLocal === 'recuperado' ? 'Borrador recuperado de este dispositivo.'
-          : 'No se pudo guardar el borrador en este dispositivo; guarda el reporte antes de salir.'}
-      {' '}<button type="button" className="boton-texto" disabled={operacion.guardando || !!operacion.pendiente}
-        onClick={operacion.descartarBorrador}>Descartar borrador</button>
+      {operacion.borradorLocal === 'guardado' ? 'Borrador guardado.'
+        : operacion.borradorLocal === 'recuperado' ? 'Borrador recuperado.'
+          : 'No se pudo guardar el borrador; guarda el reporte antes de salir.'}
+      {' '}<button type="button" className="bc-descartar-borrador" disabled={operacion.guardando || !!operacion.pendiente}
+        onClick={operacion.descartarBorrador}>Descartar</button>
     </p>}
     {completarAdministracion && <div className="co-pendiente-contenido-final" hidden={activo !== pestanasVisibles.length - 1}>{completarAdministracion.contenidoFinal}</div>}
     {(operacion || completarAdministracion) && activo < pestanasVisibles.length - 1 && <footer className="bc-acciones"><span className="bc-ayuda" id={`${prefijo}-guardado`} hidden={!ayudaGuardado}>{ayudaGuardado}</span>

@@ -66,6 +66,7 @@ export function SeguimientoColorM4({ cuenta, administracion = false, turno, habi
   const [revisionAvisosAdmin, setRevisionAvisosAdmin] = useState(0)
   const [nuevoAvisoAbierto, setNuevoAvisoAbierto] = useState(false)
   const [textoAvisoAdmin, setTextoAvisoAdmin] = useState('')
+  const textoAvisoAdminRef = useRef<HTMLTextAreaElement>(null)
   const [duracionAvisoAdmin, setDuracionAvisoAdmin] = useState<DuracionAviso>('8')
   const [solicitudAvisoAdmin, setSolicitudAvisoAdmin] = useState<SolicitudAdmin | null>(null)
   const [guardandoAvisoAdmin, setGuardandoAvisoAdmin] = useState(false)
@@ -76,6 +77,12 @@ export function SeguimientoColorM4({ cuenta, administracion = false, turno, habi
   const dialogo = useRef<HTMLDialogElement>(null)
   const idDialogo = useId()
   const modalAbierto = !administracion && abierto
+  useEffect(() => {
+    const campo = textoAvisoAdminRef.current
+    if (!campo) return
+    campo.style.height = 'auto'
+    campo.style.height = `${campo.scrollHeight}px`
+  }, [textoAvisoAdmin, nuevoAvisoAbierto])
   useEffect(() => {
     if (!administracion) return
     let vivo = true
@@ -317,9 +324,9 @@ export function SeguimientoColorM4({ cuenta, administracion = false, turno, habi
       {errorGuardarAvisoAdmin && <p className="co-avisos-admin-error" role="alert">{errorGuardarAvisoAdmin}</p>}
       {nuevoAvisoAbierto && <form className="co-aviso-admin-nuevo" onSubmit={e => { e.preventDefault(); void publicarAvisoAdmin() }}>
         <strong>Nuevo aviso</strong>
-        <label><span>Texto del aviso</span><input type="text" maxLength={4000} required value={textoAvisoAdmin}
+        <label><span>Texto del aviso</span><textarea ref={textoAvisoAdminRef} rows={1} maxLength={4000} required value={textoAvisoAdmin}
           placeholder="Escribe el aviso para los operadores" disabled={guardandoAvisoAdmin || !!solicitudAvisoAdmin}
-          onChange={e => setTextoAvisoAdmin(mayusculasNota(e.target.value))} /></label>
+          onChange={e => setTextoAvisoAdmin(e.target.value)} /></label>
         <label><span>Duración</span><select value={duracionAvisoAdmin} disabled={guardandoAvisoAdmin || !!solicitudAvisoAdmin}
           onChange={e => setDuracionAvisoAdmin(e.target.value as DuracionAviso)}>
           {opcionesDuracionAviso.map(opcion => <option key={opcion.valor} value={opcion.valor}>{opcion.etiqueta}</option>)}

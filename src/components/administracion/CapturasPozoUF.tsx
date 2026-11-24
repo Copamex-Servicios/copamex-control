@@ -59,6 +59,19 @@ function numeroSeguro(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null
 }
 
+function numeroFinito(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null
+}
+
+function porcentajeLegible(value: number | null): string {
+  return value === null ? 'No aplica'
+    : `${value.toLocaleString('es-MX', { maximumFractionDigits: 2 })} %`
+}
+
+function anchoPorcentaje(value: number | null): number {
+  return value === null ? 0 : Math.min(100, Math.max(0, value))
+}
+
 function etiquetaTurno(turno: TipoTurno): string {
   return turno === 'dia' ? 'Día' : turno === 'tarde' ? 'Tarde' : 'Noche'
 }
@@ -74,6 +87,14 @@ function fechaCaptura(value: string, modulo: Modulo): string {
   return modulo === 'pozos'
     ? fecha.toLocaleDateString('es-MX', { timeZone: 'America/Mexico_City' })
     : fecha.toLocaleString('es-MX')
+}
+
+function horaCapturaMexico(value: unknown): string {
+  if (typeof value !== 'string') return '—'
+  const fecha = new Date(value)
+  return Number.isFinite(fecha.getTime())
+    ? fecha.toLocaleTimeString('es-MX', { timeZone: 'America/Mexico_City', hour: 'numeric', minute: '2-digit' })
+    : '—'
 }
 
 function errorRPC(error: { code?: string; message: string }, migracion: string): string {
@@ -319,7 +340,6 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
       <MonitorConcesionPozos revision={revisionMonitorPozos} supervision />
     </div>}
     <section className="panel-informacion panel-mediciones">
-      <h2>Captura administrativa de {titulo}</h2>
       {modulo === 'uf' && <div className="gestion-mediciones-filtros pozo-uf-fecha-captura">
         <label>Fecha de captura · Turno Día
           <input type="date" value={fecha} max={fechaActualMexico()} disabled={ocupado || Boolean(solicitudPendiente)}
@@ -336,7 +356,6 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
             }} />
         </label>
       </div>}
-      <p className="pozo-uf-ayuda">{ocupado && referencia === null ? 'Cargando lecturas iniciales…' : `Fecha de captura: ${fechaLegible(referencia?.fecha ?? fecha)} · Turno: Día`}</p>
       {error && <p className="mensaje-error" role="alert">{error}</p>}
       {mensaje && <p className="mensaje-exito" role="status">{mensaje}</p>}
       {referencia && !entradaOcupada && inicialesDisponibles && <>
@@ -366,17 +385,27 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
             <th>{modulo === 'pozos' ? 'Pozo 1' : 'Alimentación'}</th>
             <th>{modulo === 'pozos' ? 'Pozo 2' : 'Aceptación'}</th>
             {modulo === 'uf' && <th>Rechazo</th>}
-            {modulo === 'pozos' ? <th>Total (m³)</th> : <th>Capturada</th>}
+            {modulo === 'pozos' ? <th>Total (m³)</th> : <th>Aceptado (%)</th>}
           </tr></thead>
-          <tbody>{filasHistorial.map(fila => <tr key={fila.id}>
-            <td>{fechaLegible(fila.fecha_operativa)}</td><td>{etiquetaTurno(fila.turno)}</td>
-            <td>{fila.inicial1.toLocaleString('es-MX')} → {fila.final1.toLocaleString('es-MX')} ({fila.consumo1.toLocaleString('es-MX')} m³)</td>
-            <td>{fila.inicial2.toLocaleString('es-MX')} → {fila.final2.toLocaleString('es-MX')} ({fila.consumo2.toLocaleString('es-MX')} m³)</td>
-            {modulo === 'uf' && <td>{fila.rechazo?.toLocaleString('es-MX') ?? '—'} m³</td>}
-            {modulo === 'pozos'
-              ? <td>{(fila.consumo1 + fila.consumo2).toLocaleString('es-MX')} m³</td>
-              : <td>{fechaCaptura(fila.capturado_en, modulo)}</td>}
-          </tr>)}</tbody>
+          <tbody>{filasHistorial.map(fila => {
+            const aceptadoPorcentaje = modulo === 'uf' ? numeroFinito(fila.rendimiento) : null
+            return <tr key={fila.id}>
+              <td>{fechaLegible(fila.fecha_operativa)}</td><td>{etiquetaTurno(fila.turno)}</td>
+              <td>{fila.inicial1.toLocaleString('es-MX')} → {fila.final1.toLocaleString('es-MX')} ({fila.consumo1.toLocaleString('es-MX')} m³)</td>
+              <td>{fila.inicial2.toLocaleString('es-MX')} → {fila.final2.toLocaleString('es-MX')} ({fila.consumo2.toLocaleString('es-MX')} m³)</td>
+              {modulo === 'uf' && <td>{numeroFinito(fila.rechazo)?.toLocaleString('es-MX', { maximumFractionDigits: 3 }) ?? '—'} m³</td>}
+              {modulo === 'pozos'
+                ? <td>{(fila.consumo1 + fila.consumo2).toLocaleString('es-MX')} m³</td>
+                : <td>
+                  <div className="pozo-uf-aceptado-resumen">
+                    <strong>{porcentajeLegible(aceptadoPorcentaje)}</strong>
+                    <div className="pozo-uf-balance-barra" aria-hidden="true">
+                      <span style={{ width: `${anchoPorcentaje(aceptadoPorcentaje)}%` }} />
+                    </div>
+                  </div>
+                </td>}
+            </tr>
+          })}</tbody>
         </table></div>}
       {(offsetHistorial > 0 || hayMasHistorial) && <div className="pozo-uf-paginacion">
         <button type="button" className="boton-secundario" disabled={cargandoHistorial || offsetHistorial === 0}
@@ -391,12 +420,111 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
 }
 
 function RegistroExistente({ modulo, registro }: { modulo: Modulo; registro: Record<string, unknown> }) {
+  const inicial1 = numeroSeguro(registro.inicial1 ?? registro.alim_ini)
+  const inicial2 = numeroSeguro(registro.inicial2 ?? registro.acep_ini)
   const final1 = numeroSeguro(registro.final1 ?? registro.pozo1_fin ?? registro.alim_fin)
   const final2 = numeroSeguro(registro.final2 ?? registro.pozo2_fin ?? registro.acep_fin)
   const capturado = typeof registro.capturado_en === 'string' ? fechaCaptura(registro.capturado_en, modulo) : '—'
-  return <div className="pozo-uf-registro-existente">
-    <strong>Esta lectura ya está registrada; no se reemplazará.</strong>
-    <p>{modulo === 'pozos' ? 'Pozo 1' : 'Alimentación'}: {final1?.toLocaleString('es-MX') ?? '—'} m³ · {modulo === 'pozos' ? 'Pozo 2' : 'Aceptación'}: {final2?.toLocaleString('es-MX') ?? '—'} m³</p>
-    <p>Guardada: {capturado}</p>
+  if (modulo === 'pozos') {
+    const pozos = [
+      {
+        numero: 1,
+        inicial: numeroSeguro(registro.inicial1 ?? registro.pozo1_ini),
+        final: numeroSeguro(registro.final1 ?? registro.pozo1_fin),
+        consumo: numeroSeguro(registro.consumo1 ?? registro.consumo_pozo1),
+      },
+      {
+        numero: 2,
+        inicial: numeroSeguro(registro.inicial2 ?? registro.pozo2_ini),
+        final: numeroSeguro(registro.final2 ?? registro.pozo2_fin),
+        consumo: numeroSeguro(registro.consumo2 ?? registro.consumo_pozo2),
+      },
+    ]
+    const fecha = typeof registro.fecha_operativa === 'string' ? fechaLegible(registro.fecha_operativa) : capturado
+    const turno = registro.turno === 'tarde' ? 'Tarde' : registro.turno === 'noche' ? 'Noche' : 'Día'
+    const volumenPozo = (valor: number | null) => valor?.toLocaleString('es-MX', { maximumFractionDigits: 3 }) ?? '—'
+    return <article className="pozo-uf-registro-existente pozo-uf-pozos-guardado">
+      <header className="pozo-uf-resumen-encabezado">
+        <div>
+          <h3>Captura de Pozos</h3>
+          <p>Fecha de captura: {fecha} · Turno {turno}</p>
+        </div>
+        <span className="pozo-uf-resumen-estado">Registrada</span>
+      </header>
+      <div className="pozo-uf-pozos-resumen">
+        {pozos.map(pozo => <section key={pozo.numero} aria-label={`Pozo ${pozo.numero}`}>
+          <h4>Pozo {pozo.numero}</h4>
+          <dl>
+            <div><dt>Lectura inicial (m³)</dt><dd>{volumenPozo(pozo.inicial)}</dd></div>
+            <div><dt>Lectura final (m³)</dt><dd>{volumenPozo(pozo.final)}</dd></div>
+            <div><dt>Consumo (m³)</dt><dd>{volumenPozo(pozo.consumo)}</dd></div>
+          </dl>
+        </section>)}
+      </div>
+      <p className="pozo-uf-pozos-nota">Esta lectura ya está registrada; no se reemplazará.</p>
+    </article>
+  }
+
+  const alimentado = numeroFinito(registro.alimentado)
+  const aceptado = numeroFinito(registro.aceptado)
+  const rendimientoGuardado = numeroFinito(registro.rendimiento)
+  const rendimiento = rendimientoGuardado ?? (alimentado !== null && alimentado > 0 && aceptado !== null
+    ? aceptado / alimentado * 100 : null)
+  const rechazoPorcentaje = rendimiento === null ? null : 100 - rendimiento
+  const rechazo = numeroFinito(registro.rechazo)
+  const fecha = typeof registro.fecha_operativa === 'string' ? fechaLegible(registro.fecha_operativa) : '—'
+  const turno = registro.turno === 'tarde' ? 'Tarde' : registro.turno === 'noche' ? 'Noche' : 'Día'
+  const etiquetaRendimiento = rendimiento === null ? 'No aplica' : porcentajeLegible(rendimiento)
+  const etiquetaRechazo = rechazoPorcentaje === null ? 'No aplica' : porcentajeLegible(rechazoPorcentaje)
+  const volumen = (value: number | null) => value?.toLocaleString('es-MX', { maximumFractionDigits: 3 }) ?? '—'
+  return <div className="pozo-uf-registro-existente pozo-uf-resumen-guardado">
+    <header className="pozo-uf-resumen-encabezado">
+      <div>
+        <h3>Ultrafiltración</h3>
+        <p>{fecha} · Turno {turno} · Guardada {horaCapturaMexico(registro.capturado_en)}</p>
+      </div>
+      <span className="pozo-uf-resumen-estado">Registrada</span>
+    </header>
+    <div className="pozo-uf-tabla-lecturas">
+      <table>
+        <thead><tr>
+          <th scope="col">Medidor</th>
+          <th scope="col">Lectura inicial (m³)</th>
+          <th scope="col">Lectura final (m³)</th>
+          <th scope="col">Consumo (m³)</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <th scope="row">Alimentación</th>
+            <td>{volumen(inicial1)}</td><td>{volumen(final1)}</td>
+            <td><strong>{volumen(alimentado)}</strong></td>
+          </tr>
+          <tr>
+            <th scope="row">Aceptación</th>
+            <td>{volumen(inicial2)}</td><td>{volumen(final2)}</td>
+            <td><strong>{volumen(aceptado)}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <section className="pozo-uf-rendimiento" aria-label="Rendimiento de Ultrafiltración">
+      <div className="pozo-uf-rendimiento-cabecera">
+        <strong>Rendimiento</strong>
+        <strong>{etiquetaRendimiento}</strong>
+      </div>
+      <div className="pozo-uf-balance-barra" role="img" aria-label={`${etiquetaRendimiento} aceptado; ${etiquetaRechazo} rechazado`}>
+        <span aria-hidden="true" style={{ width: `${anchoPorcentaje(rendimiento)}%` }} />
+      </div>
+      <div className="pozo-uf-balance-leyenda">
+        <div>
+          <span className="pozo-uf-balance-punto pozo-uf-balance-punto-aceptado" aria-hidden="true" />
+          <span>Aceptado<strong>{volumen(aceptado)} m³ · {etiquetaRendimiento}</strong></span>
+        </div>
+        <div>
+          <span className="pozo-uf-balance-punto pozo-uf-balance-punto-rechazado" aria-hidden="true" />
+          <span>Rechazado<strong>{volumen(rechazo)} m³ · {etiquetaRechazo}</strong></span>
+        </div>
+      </div>
+    </section>
   </div>
 }

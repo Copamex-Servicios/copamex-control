@@ -41,6 +41,7 @@
 .co-layout .ba-area { color:var(--co-text); font-size:15px; font-weight:600; }
 .co-layout .ba-lista li p { margin:0; font-size:15px; line-height:1.6; white-space:pre-wrap; overflow-wrap:anywhere; }
 .co-layout .ba-paginacion { justify-content:flex-end; margin-top:14px; font-size:14px; }
+.co-layout .ba-paginacion-flecha { display:inline-grid; width:44px; min-width:44px; min-height:44px; padding:8px; place-items:center; }
 .co-layout :is(.ba-pendiente,.ba-editando,.ba-vacio) { font-size:14px; line-height:1.5; }
 .co-layout .ba-pendiente { color:#78520b; }
 .co-layout .ba-editando { margin:0 0 12px; font-weight:600; }

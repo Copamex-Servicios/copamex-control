@@ -1,4 +1,5 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { areasBitacora, consultarPaginaBitacora, eventoBitacora, guardarActividad, pendienteBitacora,
   prepararActividad, consultarActividadFecha, fechaActualMexico, mensajeRegistroDiario } from '../../lib/bitacoraAdministrativa'
@@ -116,7 +117,7 @@ function EditorActividades() {
           <label htmlFor={`${id}-fecha`}><span className="ba-etiqueta-sr">Fecha de actividad</span><input id={`${id}-fecha`} type="date" max={fechaActualMexico()} required
             disabled={original !== null} value={fechaSeleccionada} onChange={e => setFechaSeleccionada(e.target.value)} /></label>
           <div className="ba-descripcion"><label className="ba-etiqueta-sr" htmlFor={`${id}-actividad`}>Actividad relevante</label><textarea ref={texto} id={`${id}-actividad`}
-          placeholder="Actividad relevante" disabled={registradoSeleccionado} value={actividad} onChange={e => setActividad(e.target.value.toLocaleUpperCase('es-MX'))} rows={1} required maxLength={10000} /></div>
+          placeholder="Actividad relevante" disabled={registradoSeleccionado} value={actividad} onChange={e => setActividad(e.target.value)} rows={1} required maxLength={10000} /></div>
         </fieldset>
         <div className="ba-acciones">
           {original && !pendiente && <button type="button" className="boton-secundario" disabled={guardando}
@@ -186,18 +187,14 @@ function ConsultaActividades({ admin = false, mensual = false, corregir, bloquea
   }
   return <section className="ba-historial" aria-labelledby={`${id}-titulo`}>
     <div className={admin ? 'ba-herramientas ba-herramientas-admin' : 'ba-herramientas'}>
-    <div className="ba-cabecera"><h2 id={`${id}-titulo`}>{admin ? 'Historial de actividades' : 'Relevantes'}</h2>
-      {!admin && <button className="boton-secundario" type="button" onClick={() => filtrar({ recientes: !filtro.recientes })}>
-        {filtro.recientes ? 'Historial mensual' : 'Ver recientes'}
-      </button>}
-    </div>
+    <div className="ba-cabecera"><h2 id={`${id}-titulo`}>{admin ? 'Historial de actividades' : 'Relevantes'}</h2></div>
     <div className="ba-filtros">
       {!filtro.recientes && <label><span className={admin ? 'ba-etiqueta-sr' : undefined}>Mes y año</span><input type="month" disabled={exportando} value={filtro.mes || actual?.datos?.mes || ''} onChange={e => filtrar({ mes: e.target.value })} /></label>}
       <label><span className={admin ? 'ba-etiqueta-sr' : undefined}>Área</span><select disabled={exportando} value={filtro.area} onChange={e => filtrar({ area: e.target.value as FiltroBitacora['area'] })}>
         <option value="todas">Todas</option>
         {Object.entries(areasBitacora).filter(([a]) => admin || a !== 'obra_civil').map(([a, n]) => <option key={a} value={a}>{n}</option>)}
       </select></label>
-      <button type="button" className="boton-secundario" disabled={exportando} onClick={() => { setPagina(0); setCursores([null]); setRevision(n => n + 1) }}>Actualizar</button>
+      {admin && <button type="button" className="boton-secundario" disabled={exportando} onClick={() => { setPagina(0); setCursores([null]); setRevision(n => n + 1) }}>Actualizar</button>}
       {admin && <button type="button" className="boton-secundario ba-word" title="Descargar Word del mes y área seleccionados"
         disabled={exportando || bloqueado || !(filtro.mes || actual?.datos?.mes)} onClick={() => { void exportarWord() }}>{exportando ? 'Preparando…' : 'Word'}</button>}
     </div>
@@ -219,15 +216,17 @@ function ConsultaActividades({ admin = false, mensual = false, corregir, bloquea
         </button>}
       </li>)}</ol></>}
     {!filtro.recientes && (pagina > 0 || actual?.datos?.mas) && <nav className="ba-paginacion" aria-label="Páginas de actividades">
-      <button className="boton-secundario" type="button" disabled={pagina === 0 || !actual?.datos} onClick={() => setPagina(n => n - 1)}>Anterior</button>
+      <button className="boton-secundario ba-paginacion-flecha" type="button" disabled={pagina === 0 || !actual?.datos}
+        aria-label="Página anterior" title="Página anterior" onClick={() => setPagina(n => n - 1)}><ChevronLeft size={18} aria-hidden="true" /></button>
       <span>Página {pagina + 1}</span>
-      <button className="boton-secundario" type="button" disabled={!actual?.datos?.mas} onClick={() => {
+      <button className="boton-secundario ba-paginacion-flecha" type="button" disabled={!actual?.datos?.mas}
+        aria-label="Página siguiente" title="Página siguiente" onClick={() => {
         const ultimo = actual?.datos?.filas.at(-1)
         if (ultimo) {
           if (!filtro.mes && actual?.datos) setFiltro(v => ({ ...v, mes: actual.datos!.mes }))
           setCursores(v => [...v.slice(0, pagina + 1), { creado_en: ultimo.creado_en, id: ultimo.id }]); setPagina(n => n + 1)
         }
-      }}>Siguiente</button>
+      }}><ChevronRight size={18} aria-hidden="true" /></button>
     </nav>}
   </section>
 }

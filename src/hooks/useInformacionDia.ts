@@ -1,16 +1,24 @@
 import { useEffect, useState } from 'react'
 import { useAuthStore } from '../stores/authStore'
-import { consultarInformacionDia } from '../lib/informacionDia'
+import { claveCacheAvisos, consultarInformacionDia } from '../lib/informacionDia'
 import type { InformacionDia } from '../lib/informacionDia'
 import type { AreaOperativa } from '../lib/tiposTurno'
-import { escucharCambiosInformacion, intervaloInformacion } from '../lib/actualizacionInformacion'
+import {
+  crearActualizadorAgrupado,
+  escucharCambiosInformacion,
+  escucharReactivacionInformacion,
+  intervaloInformacion,
+} from '../lib/actualizacionInformacion'
 
 export function useInformacionDia(area: AreaOperativa | 'todas', fecha: string | null) {
   const auth = useAuthStore()
   const cuentaId = auth.estado === 'autenticado' && auth.perfil?.activo === true
     && auth.perfil.id === auth.sesion?.user.id
     && (area === 'todas' ? auth.perfil.rol === 'admin' : auth.perfil.rol === area) ? auth.perfil.id : null
-  const clave = cuentaId && fecha ? `${cuentaId}:${area}:${fecha}` : null
+  const claveAvisos = cuentaId && auth.sesion && auth.perfil
+    ? claveCacheAvisos(cuentaId, auth.sesion.access_token, auth.sesion.user.last_sign_in_at, auth.perfil.rol, area)
+    : null
+  const clave = cuentaId && fecha && claveAvisos ? `${claveAvisos}:${fecha}` : null
   const [vista, setVista] = useState<{ clave: string; datos: InformacionDia | null; cargando: boolean } | null>(null)
   const [revision, setRevision] = useState(0)
 
@@ -35,7 +43,7 @@ export function useInformacionDia(area: AreaOperativa | 'todas', fecha: string |
       setVista(anterior => ({ clave: clave!, datos: anterior?.clave === clave ? anterior.datos : null, cargando: true }))
       limite = window.setTimeout(() => peticion.abort(), 15000)
       try {
-        const datos = await consultarInformacionDia(fecha!, area, peticion.signal)
+        const datos = await consultarInformacionDia(fecha!, area, claveAvisos!, peticion.signal)
         if (sigueLaCuenta()) setVista({ clave: clave!, datos, cargando: false })
       } catch {
         if (sigueLaCuenta()) setVista({ clave: clave!, datos: {
@@ -48,24 +56,21 @@ export function useInformacionDia(area: AreaOperativa | 'todas', fecha: string |
         if (pendiente && sigueLaCuenta()) void cargar()
       }
     }
-    const alVolver = () => { void cargar() }
+    const agenda = crearActualizadorAgrupado(() => { void cargar() })
     void cargar()
-    const dejarEscuchar = escucharCambiosInformacion(alVolver)
-    const intervalo = window.setInterval(alVolver, intervaloInformacion)
-    window.addEventListener('focus', alVolver)
-    window.addEventListener('online', alVolver)
-    document.addEventListener('visibilitychange', alVolver)
+    const dejarEscuchar = escucharCambiosInformacion(agenda.solicitar)
+    const dejarReactivacion = escucharReactivacionInformacion(agenda.solicitar)
+    const intervalo = window.setInterval(agenda.solicitar, intervaloInformacion)
     return () => {
       vigente = false
       dejarEscuchar()
+      dejarReactivacion()
+      agenda.limpiar()
       control?.abort()
       if (limite !== null) window.clearTimeout(limite)
       window.clearInterval(intervalo)
-      window.removeEventListener('focus', alVolver)
-      window.removeEventListener('online', alVolver)
-      document.removeEventListener('visibilitychange', alVolver)
     }
-  }, [area, cuentaId, clave, fecha, revision])
+  }, [area, cuentaId, clave, claveAvisos, fecha, revision])
 
   return {
     datos: clave && vista?.clave === clave ? vista.datos : null,

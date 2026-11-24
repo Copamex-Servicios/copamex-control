@@ -160,7 +160,9 @@ export function PanelOperativo({ area, rol, seleccionExterna, alSeleccionar, sol
         {opciones.map(a => <div key={a.id} id={`${id}-panel-${a.id}`} role={seleccionExterna !== undefined ? 'region' : 'tabpanel'} aria-label={seleccionExterna !== undefined ? a.nombre : undefined} aria-labelledby={seleccionExterna !== undefined ? undefined : `${id}-tab-${a.id}`}
           hidden={actual.id !== a.id} tabIndex={0} className="contenido-modulo">
           <ModuloVisitado activo={actual.id === a.id}>
-          {a.id === 'bitacora' && (area === 'calderas' ? <PanelBitacoraCalderas /> : <PanelBitacoraPTAR />)}
+          {a.id === 'bitacora' && (area === 'calderas'
+            ? <PanelBitacoraCalderas activo={actual.id === a.id} />
+            : <PanelBitacoraPTAR activo={actual.id === a.id} />)}
           {a.id === 'ptar' && <PanelPTAR />}
           </ModuloVisitado>
         </div>)}

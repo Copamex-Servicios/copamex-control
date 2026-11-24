@@ -63,8 +63,8 @@ export function HistorialReportesCalderas({ actualizacion, compartido = false, f
   }, [clave, filtros.desde, filtros.hasta, filtros.turno, pagina, compartido, filtroCache, tamanoPagina])
   const datos = resultado?.clave === clave ? resultado : cacheHistorial.leer(filtroCache)
   return <section className="bc-historial-tecnico" aria-label="Reportes técnicos de Calderas">
-    <div className="bc-historial-cabecera">{!filtroArea && <h4>Reportes técnicos</h4>}<button type="button" className="boton-secundario"
-      disabled={!datos} onClick={() => { setPagina(0); setIntento(n => n + 1) }} data-actualizar="true" aria-label="Actualizar reportes" title="Actualizar reportes"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button></div>
+    <div className="bc-historial-cabecera">{!filtroArea && <h4>Reportes técnicos</h4>}{!filtroArea && <button type="button" className="boton-secundario"
+      disabled={!datos} onClick={() => { setPagina(0); setIntento(n => n + 1) }} data-actualizar="true" aria-label="Actualizar reportes" title="Actualizar reportes"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button>}</div>
     <div className="bc-filtros-tecnicos">
       {filtroArea}
       <label className="bc-campo"><span>Desde</span><input type="date" value={filtros.desde}

@@ -42,6 +42,7 @@ export function DetalleReporteCalderasPlanta({ reporte }: { reporte: ReporteTecn
           <Dato nombre="Bomba de ósmosis 422 · Presión" valor={m.presion_422} unidad="PSI" />
           <Dato nombre="Bomba de ósmosis 424 · Presión" valor={m.presion_424} unidad="PSI" />
           <Dato nombre="Flujo de ósmosis" valor={m.flujo_osmosis} unidad="GPM" />
+          <Dato nombre="Dureza total" valor={m.dureza_total_ppm} unidad="PPM" />
         </dl>
       </Seccion>
 

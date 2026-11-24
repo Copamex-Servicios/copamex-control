@@ -3,13 +3,13 @@ import test,{before,after} from 'node:test'
 import assert from 'node:assert/strict'
 import {createServer} from 'vite'
 const id=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0')
-let server,mod,ptar,calderas,store,errores=[],respuesta,peticiones=[]
+let server,mod,ptar,calderas,ventana,store,errores=[],respuesta,peticiones=[]
 const contexto=()=>({turno_id:id(20),reporte_id:id(30),ahora:'2026-11-06T20:50:00Z',inicio:'2026-11-06T13:01:00Z',fin:'2026-11-06T21:01:00Z',fecha_operativa:'2026-11-06',turno:'dia',puede_editar:true,estado:'Enviado'})
 const sesion=(rol='calderas',cuenta=id(2))=>store.setState({estado:'autenticado',perfil:{id:cuenta,nombre:'Prueba',rol,activo:true},sesion:{user:{id:cuenta}}})
 before(async()=>{
  globalThis.__horario={rpc(nombre,args){peticiones.push({nombre,args});return{abortSignal:async signal=>{signal.throwIfAborted();const e=errores.shift();if(e)throw e;return typeof respuesta==='function'?respuesta():respuesta}}}}
  server=await createServer({configFile:false,envDir:false,cacheDir:'.tmp/vite-tests/correcciones-operativas',server:{middlewareMode:true,hmr:false},plugins:[{name:'sin-remoto',enforce:'pre',resolveId(n){if(/(^|\/)supabase(?:\.ts)?$/.test(n)&&!n.startsWith('@'))return '\0horario-supabase'},load(n){if(n==='\0horario-supabase')return 'export const supabase=globalThis.__horario'}}]})
- mod=await server.ssrLoadModule('/src/lib/reporteOperativo.ts');ptar=await server.ssrLoadModule('/src/lib/bitacoraTecnicaPTAR.ts');calderas=await server.ssrLoadModule('/src/lib/bitacoraTecnicaCalderas.ts');store=(await server.ssrLoadModule('/src/stores/authStore.ts')).useAuthStore
+ mod=await server.ssrLoadModule('/src/lib/reporteOperativo.ts');ventana=await server.ssrLoadModule('/src/hooks/useVentanaReporte.ts');ptar=await server.ssrLoadModule('/src/lib/bitacoraTecnicaPTAR.ts');calderas=await server.ssrLoadModule('/src/lib/bitacoraTecnicaCalderas.ts');store=(await server.ssrLoadModule('/src/stores/authStore.ts')).useAuthStore
 })
 after(async()=>{await server.close();delete globalThis.__horario})
 test('el permiso vence exactamente al límite del servidor y no usa el reloj de pared del equipo',()=>{
@@ -17,6 +17,23 @@ test('el permiso vence exactamente al límite del servidor y no usa el reloj de 
  assert.equal(mod.permisoVigente(c,999),true);assert.equal(mod.permisoVigente(c,1000),false)
  assert.equal(mod.permisoVigente(c,-1),false);assert.equal(mod.permisoVigente(mod.leerContextoReporte(contexto()),60000),false)
  assert.throws(()=>mod.leerContextoReporte({...contexto(),ahora:contexto().fin}),/horario/)
+})
+test('revalidating a report blocks stale permission, including after a failed query',()=>{
+ const clave='cuenta:calderas:turno:1',c=mod.leerContextoReporte(contexto())
+ const previa={clave,contexto:c,referencia:100,error:null,revalidando:false}
+ assert.equal(ventana.permisoVistaReporteVigente(previa,clave,0),true)
+ const pendiente=ventana.iniciarRevalidacionReporte(clave,previa,200)
+ assert.equal(pendiente.contexto,c,'conserva el contexto para mostrar sus datos mientras consulta')
+ assert.equal(pendiente.revalidando,true)
+ assert.equal(ventana.permisoVistaReporteVigente(pendiente,clave,0),false,'no reutiliza el permiso previo durante la consulta')
+ const fallida=ventana.fallarRevalidacionReporte(clave,pendiente,300,'No se pudo confirmar el horario.')
+ assert.equal(fallida.contexto,c,'el contexto anterior no se elimina por un error de red')
+ assert.equal(fallida.revalidando,false)
+ assert.match(fallida.error,/No se pudo confirmar/)
+ assert.equal(ventana.permisoVistaReporteVigente(fallida,clave,0),false,'un fallo no reactiva el permiso obsoleto')
+ const fresca={clave,contexto:c,referencia:400,error:null,revalidando:false}
+ assert.equal(ventana.permisoVistaReporteVigente(fresca,clave,0),true,'solo una respuesta nueva permite volver a editar')
+ assert.equal(ventana.permisoVistaReporteVigente(pendiente,'otra-cuenta:calderas:turno:1',0),false,'no reutiliza contexto de otra clave')
 })
 test('Noche conserva fecha operativa anterior y usa hora de registro del servidor',()=>{
  const c=mod.leerContextoReporte({...contexto(),fecha_operativa:'2026-11-04',turno:'noche',inicio:'2026-11-05T03:01:00Z',fin:'2026-11-05T13:01:00Z',ahora:'2026-11-05T11:00:00Z'})
@@ -44,6 +61,7 @@ test('borrar opcionales en corrección envía ausencia explícita; una captura v
  const b=borradorBitacoraPTAR();assert.throws(()=>ptar.prepararDatosPTAR(b))
  b.reporteRelevante='Turno';for(const m of medicionesBitacoraPTAR)b.mediciones[m.campo]='1'
  b.estadoAgitador='Servicio';b.destinoDescarga='Tanque 11';b.horasDescarga={tanque11:'1',tanques56:'0'}
+ b.horasBombaP6='0'
  b.bombas={'9':'Automático (A)','13':'Manual (M)','9310':'Automático (A)'};b.prensas={Essity:'Servicio',Nalco:'Mantenimiento'}
  const original=structuredClone(b);original.velocidadesPrensas={Essity:'42.5',Nalco:'0'}
  assert.deepEqual(ptar.prepararDatosPTAR(b,original).velocidadesPrensas,{Essity:null,Nalco:null});assert.equal('velocidadesPrensas' in ptar.prepararDatosPTAR(b),false)
