@@ -117,7 +117,7 @@ function EditorActividades() {
           <label htmlFor={`${id}-fecha`}><span className="ba-etiqueta-sr">Fecha de actividad</span><input id={`${id}-fecha`} type="date" max={fechaActualMexico()} required
             disabled={original !== null} value={fechaSeleccionada} onChange={e => setFechaSeleccionada(e.target.value)} /></label>
           <div className="ba-descripcion"><label className="ba-etiqueta-sr" htmlFor={`${id}-actividad`}>Actividad relevante</label><textarea ref={texto} id={`${id}-actividad`}
-          placeholder="Actividad relevante" disabled={registradoSeleccionado} value={actividad} onChange={e => setActividad(e.target.value.toLocaleUpperCase('es-MX'))} rows={1} required maxLength={10000} /></div>
+          placeholder="Actividad relevante" disabled={registradoSeleccionado} value={actividad} onChange={e => setActividad(e.target.value)} rows={1} required maxLength={10000} /></div>
         </fieldset>
         <div className="ba-acciones">
           {original && !pendiente && <button type="button" className="boton-secundario" disabled={guardando}
