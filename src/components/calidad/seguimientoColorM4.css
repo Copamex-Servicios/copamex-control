@@ -31,6 +31,7 @@
 .co-layout .co-aviso-admin-nuevo label { display:grid; gap:6px; margin:0; font-size:12px; }
 .co-layout .co-aviso-admin-nuevo label>span { color:#334a69; }
 .co-layout .co-aviso-admin-nuevo input,.co-layout .co-aviso-admin-nuevo select { box-sizing:border-box; width:100%; max-width:none; min-width:0; height:40px; padding:8px 11px; border:1px solid #b9cae3; border-radius:8px; color:inherit; background:#fff; font:inherit; font-size:13px; }
+.co-layout .co-aviso-admin-nuevo textarea { box-sizing:border-box; width:100%; min-width:0; min-height:40px; padding:8px 11px; overflow:hidden; overflow-wrap:anywhere; resize:none; border:1px solid #b9cae3; border-radius:8px; color:inherit; background:#fff; font:inherit; font-size:13px; line-height:1.4; white-space:pre-wrap; }
 .co-aviso-admin-nuevo>button { min-height:40px; margin:0; padding:8px 18px; white-space:nowrap; }
 @media(max-width:700px) {
   .co-layout .co-seguimiento-m4.co-seguimiento-admin { padding:12px; }

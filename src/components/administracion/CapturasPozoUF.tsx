@@ -340,7 +340,6 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
       <MonitorConcesionPozos revision={revisionMonitorPozos} supervision />
     </div>}
     <section className="panel-informacion panel-mediciones">
-      <h2>Captura administrativa de {titulo}</h2>
       {modulo === 'uf' && <div className="gestion-mediciones-filtros pozo-uf-fecha-captura">
         <label>Fecha de captura · Turno Día
           <input type="date" value={fecha} max={fechaActualMexico()} disabled={ocupado || Boolean(solicitudPendiente)}
@@ -357,7 +356,6 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
             }} />
         </label>
       </div>}
-      <p className="pozo-uf-ayuda">{ocupado && referencia === null ? 'Cargando lecturas iniciales…' : `Fecha de captura: ${fechaLegible(referencia?.fecha ?? fecha)} · Turno: Día`}</p>
       {error && <p className="mensaje-error" role="alert">{error}</p>}
       {mensaje && <p className="mensaje-exito" role="status">{mensaje}</p>}
       {referencia && !entradaOcupada && inicialesDisponibles && <>

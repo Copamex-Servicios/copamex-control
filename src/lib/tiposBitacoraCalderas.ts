@@ -22,7 +22,7 @@ export const equiposAguaCalderas = [
   { id: 'pozo1', nombre: 'Pozo 1' }, { id: 'pozo2', nombre: 'Pozo 2' },
 ] as const
 export type CampoCalderas = 'nivel_condensado' | 'presion_432' | 'presion_433' | 'presion_422' | 'presion_424'
-  | 'flujo_osmosis' | 'flujo_uf' | 'nivel_rotoplas' | 'presion_aire' | 'nivel_agua_potable'
+  | 'flujo_osmosis' | 'dureza_total_ppm' | 'flujo_uf' | 'nivel_rotoplas' | 'presion_aire' | 'nivel_agua_potable'
 export interface BorradorBitacoraCalderas {
   reporteRelevante: string
   reportesOperadores?: ReportesIndividuales
@@ -41,7 +41,7 @@ export function borradorBitacoraCalderas(): BorradorBitacoraCalderas {
     reporteRelevante: '',
     equipos: Object.fromEntries(equiposCalderas.map(e => [e.id, { estado: '', presion: '' }])) as BorradorBitacoraCalderas['equipos'],
     mediciones: { nivel_condensado: '', presion_432: '', presion_433: '', presion_422: '', presion_424: '',
-      flujo_osmosis: '', flujo_uf: '', nivel_rotoplas: '', presion_aire: '', nivel_agua_potable: '' },
+      flujo_osmosis: '', dureza_total_ppm: '', flujo_uf: '', nivel_rotoplas: '', presion_aire: '', nivel_agua_potable: '' },
     pilas: Object.fromEntries(pilasCalderas.map(p => [p.id, { nivel: '', bomba: '', presion: '' }])) as BorradorBitacoraCalderas['pilas'],
     compresores: { '1': '', '2': '', '3': '', '4': '' }, estadoUF: '', comentariosUF: '', comentariosPilas: '', comentariosCompresores: '',
     servicioAgua: { norte: false, sur: false, pozo1: false, pozo2: false },

@@ -120,6 +120,7 @@ export function FormularioBitacoraCalderas({ captura, observaciones, nombresOper
       {medicion('presion_422', 'Bomba de ósmosis 422 · Presión', 'PSI')}
       {medicion('presion_424', 'Bomba de ósmosis 424 · Presión', 'PSI')}
       {medicion('flujo_osmosis', 'Flujo de ósmosis', 'GPM')}
+      {medicion('dureza_total_ppm', 'Dureza total', 'PPM')}
     </div></Apartado>
     <Apartado indice={2} activo={activo} prefijo={prefijo}><div className="bc-mediciones">
       {medicion('flujo_uf', 'Flujo de entrada', 'm³/h')}{medicion('nivel_rotoplas', 'Nivel del Rotoplas de entrada', '%')}

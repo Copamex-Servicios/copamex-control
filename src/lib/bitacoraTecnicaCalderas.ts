@@ -66,7 +66,10 @@ export function leerReporteCalderas(snapshot: unknown, turnoId: string): Reporte
     if (r.version_formato === 2 && valor !== null && valor !== true) throw new ErrorReporteCalderas('No se pudo comprobar la selección en servicio.')
     borrador.servicioAgua[e.id] = r.version_formato === 2 && valor === true
   }
-  for (const campo of Object.keys(borrador.mediciones) as (keyof typeof borrador.mediciones)[]) borrador.mediciones[campo] = numero(r[campo])
+  for (const campo of Object.keys(borrador.mediciones) as (keyof typeof borrador.mediciones)[]) {
+    const valor = campo === 'dureza_total_ppm' ? r[campo] ?? null : r[campo]
+    borrador.mediciones[campo] = numero(valor)
+  }
   borrador.estadoUF = opcion(r.estado_uf, ['Servicio', 'Alarmada (F/S)', 'Lavado'])
   borrador.comentariosUF = texto(r.comentarios_uf)
   borrador.comentariosPilas = texto(r.comentarios_pilas ?? null)
@@ -117,6 +120,11 @@ export function prepararDatosCalderas(b: BorradorBitacoraCalderas, original?: Bo
     return [e.id, { estado: estado(b.equipos[e.id].estado, ['Servicio', 'Reserva', 'Mantenimiento'], `Estado de ${e.nombre}`),
       presion: e.id.startsWith('sulzer_') ? b.equipos[e.id].estado === 'Servicio' ? medir(b.equipos[e.id].presion, `Presión de ${e.nombre}`) : '0' : null }]
   }))
+  const mediciones = Object.fromEntries(Object.entries(b.mediciones).map(([k, v]) => {
+    // Los reportes anteriores no tenían dureza: si sigue vacía al corregirlos, conservar NULL.
+    if (k === 'dureza_total_ppm' && original && !v.trim() && !original.mediciones.dureza_total_ppm.trim()) return [k, null]
+    return [k, medir(v, k)]
+  }))
   return {
     reporteRelevante: mayusculasNota(b.reporteRelevante).trim(),
     ...(reportesOperadores ? { reportesOperadores } : {}),
@@ -124,7 +132,7 @@ export function prepararDatosCalderas(b: BorradorBitacoraCalderas, original?: Bo
     comentariosCompresores: normalizarNota(b.comentariosCompresores),
     versionFormato: 2 as const,
     servicioAgua: Object.fromEntries(equiposAguaCalderas.map(e => [e.id, b.servicioAgua[e.id] ? true : null])),
-    mediciones: Object.fromEntries(Object.entries(b.mediciones).map(([k, v]) => [k, medir(v, k)])), equipos,
+    mediciones, equipos,
     pilas: Object.fromEntries(pilasCalderas.map(p => {
       const pila = b.pilas[p.id]
       const nivel = medir(pila.nivel, `${p.nombre}: nivel`)

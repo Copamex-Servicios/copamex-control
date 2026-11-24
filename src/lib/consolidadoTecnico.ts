@@ -133,6 +133,7 @@ export function datosTecnico(detalle: DetalleTecnicoAdmin): DatoTecnico[] {
       presion_422: ['Condensado y ósmosis', 'Bomba de ósmosis 422 · Presión', 'PSI'],
       presion_424: ['Condensado y ósmosis', 'Bomba de ósmosis 424 · Presión', 'PSI'],
       flujo_osmosis: ['Condensado y ósmosis', 'Flujo de ósmosis', 'GPM'],
+      dureza_total_ppm: ['Condensado y ósmosis', 'Dureza total', 'PPM'],
       flujo_uf: ['Ultrafiltración', 'Flujo de entrada', 'm³/h'],
       nivel_rotoplas: ['Ultrafiltración', 'Nivel del Rotoplas de entrada', '%'],
       presion_aire: ['Compresores', 'Presión general de aire', 'kg/cm²'],
