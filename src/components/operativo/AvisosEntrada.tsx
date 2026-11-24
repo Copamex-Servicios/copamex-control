@@ -1,7 +1,12 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
-import { supabase } from '../../lib/supabase'
-import { escucharCambiosInformacion, intervaloInformacion } from '../../lib/actualizacionInformacion'
+import { claveCacheAvisos, consultarAvisosActivos } from '../../lib/informacionDia'
+import {
+  crearActualizadorAgrupado,
+  escucharCambiosInformacion,
+  escucharReactivacionInformacion,
+  intervaloInformacion,
+} from '../../lib/actualizacionInformacion'
 import { Icono } from '../diseno/Icono'
 import './avisosEntrada.css'
 
@@ -33,7 +38,14 @@ function guardarVistos(clave: string) {
 export function AvisosEntrada() {
   const { perfil, sesion, estado } = useAuth()
   const cuenta = estado === 'autenticado' && perfil?.activo && perfil.id === sesion?.user.id ? perfil.id : null
-  const clave = cuenta ? cuenta + ':' + identificarSesion(sesion?.access_token, sesion?.user.last_sign_in_at) : null
+  const clave = cuenta && perfil
+    ? JSON.stringify([cuenta, identificarSesion(sesion?.access_token, sesion?.user.last_sign_in_at), perfil.rol,
+      perfil.rol === 'admin' ? 'todas' : perfil.rol])
+    : null
+  const claveCompartida = cuenta && perfil
+    ? claveCacheAvisos(cuenta, sesion?.access_token, sesion?.user.last_sign_in_at, perfil.rol,
+      perfil.rol === 'admin' ? 'todas' : perfil.rol)
+    : null
   const [vista, setVista] = useState<{ clave: string; avisos: Aviso[]; error: boolean } | null>(null)
   const [revision, setRevision] = useState(0)
   const [abierto, setAbierto] = useState(false)
@@ -42,7 +54,7 @@ export function AvisosEntrada() {
   const avisos = vista?.clave === clave ? vista.avisos : []
   const hayAvisos = avisos.length > 0
   useEffect(() => {
-    if (!clave) return
+    if (!clave || !claveCompartida) return
     if (sesionVista !== clave) { sesionVista=clave; vistos.clear(); recuperarVistos(clave) }
     let vigente=true, consultando=false, pendiente=false
     let controller: AbortController | null = null
@@ -55,11 +67,10 @@ export function AvisosEntrada() {
       controller = peticion
       const limite = window.setTimeout(() => peticion.abort(), 15000)
       try {
-        const { data, error } = await supabase.from('avisos').select('id,mensaje')
-          .or('permanente.eq.true,and(or(inicio.is.null,inicio.lte.now),or(fin.is.null,fin.gt.now))')
-          .order('creado_en',{ascending:false}).limit(20).abortSignal(peticion.signal)
+        const resultado = await consultarAvisosActivos(claveCompartida!, peticion.signal)
         if (!vigente) return
-        if (error || !Array.isArray(data) || data.some(a => typeof a.id !== 'string' || typeof a.mensaje !== 'string')) throw new Error('Consulta inválida')
+        if (resultado.error) throw new Error('Consulta inválida')
+        const data = resultado.elementos
         setVista({ clave: clave!, avisos:data, error:false })
         if (data.some(a => !vistos.has(claveAviso(a)))) setAbierto(true)
         if (!data.length) setAbierto(false)
@@ -70,14 +81,19 @@ export function AvisosEntrada() {
       }
     }
     void cargar()
-    const alVolver = () => { void cargar() }
-    const dejarEscuchar = escucharCambiosInformacion(alVolver)
-    const intervalo=window.setInterval(alVolver,intervaloInformacion)
-    window.addEventListener('focus',alVolver)
-    window.addEventListener('online',alVolver)
-    document.addEventListener('visibilitychange',alVolver)
-    return () => { vigente=false; controller?.abort(); dejarEscuchar(); window.clearInterval(intervalo); window.removeEventListener('focus',alVolver); window.removeEventListener('online',alVolver); document.removeEventListener('visibilitychange',alVolver) }
-  }, [clave,revision])
+    const agenda = crearActualizadorAgrupado(() => { void cargar() })
+    const dejarEscuchar = escucharCambiosInformacion(agenda.solicitar)
+    const dejarReactivacion = escucharReactivacionInformacion(agenda.solicitar)
+    const intervalo=window.setInterval(agenda.solicitar,intervaloInformacion)
+    return () => {
+      vigente=false
+      controller?.abort()
+      dejarEscuchar()
+      dejarReactivacion()
+      agenda.limpiar()
+      window.clearInterval(intervalo)
+    }
+  }, [clave,claveCompartida,revision])
   useEffect(() => {
     const elemento=dialogo.current
     if (!elemento) return

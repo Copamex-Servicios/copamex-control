@@ -1,4 +1,3 @@
-import { RefreshCw } from 'lucide-react'
 import { useEffect, useId, useState } from 'react'
 import { cacheConsultas } from '../../lib/cacheConsultas'
 import { useAuth } from '../../hooks/useAuth'
@@ -82,7 +81,7 @@ async function consultarResumenArea(area: AreaOperativa, cuenta: string, filtros
         for (const c of r.filas) {
           if (c.modulo === 'calidad') continue
           const id = `${c.modulo}:${c.id}`
-          if (ids.has(id)) throw new Error('Las capturas cambiaron. Actualiza el resumen.')
+          if (ids.has(id)) throw new Error('Las capturas cambiaron. Vuelve a consultar el periodo.')
           ids.add(id)
           const instante = String(c.snapshot.registro.capturado_en)
           if (!ultima || Date.parse(instante) > Date.parse(ultima)) ultima = instante
@@ -98,7 +97,7 @@ async function consultarResumenArea(area: AreaOperativa, cuenta: string, filtros
         signal.throwIfAborted()
         const r = await consultarResumenesTecnicosPlanta(area, f, pagina++, signal)
         for (const t of r.filas) {
-          if (ids.has(t.id)) throw new Error('Los reportes cambiaron. Actualiza el resumen.')
+          if (ids.has(t.id)) throw new Error('Los reportes cambiaron. Vuelve a consultar el periodo.')
           ids.add(t.id)
           if (!ultima || Date.parse(t.creadoEn) > Date.parse(ultima)) ultima = t.creadoEn
         }
@@ -117,9 +116,8 @@ async function consultarResumenArea(area: AreaOperativa, cuenta: string, filtros
 }
 const cacheResumen = cacheConsultas<ResumenArea[]>('resumen-supervision')
 function ResumenSupervision({ filtros, cuenta, revision }: { filtros: FiltrosPlanta; cuenta: string; revision: number }) {
-  const [recarga, setRecarga] = useState(0)
   const filtroCache = JSON.stringify([filtros, cuenta])
-  const clave = JSON.stringify([filtros, cuenta, revision, recarga])
+  const clave = JSON.stringify([filtros, cuenta, revision])
   const [vista, setVista] = useState<{ clave: string; filas: ResumenArea[] } | null>(null)
   useEffect(() => {
     const guardarCache = cacheResumen.preparar()
@@ -133,13 +131,13 @@ function ResumenSupervision({ filtros, cuenta, revision }: { filtros: FiltrosPla
   return <div className="supervision-resumen">
 
     <section className="panel-informacion">
-      <div className="planta-encabezado"><h2>Resumen por área</h2><button type="button" className="boton-secundario" disabled={!filas} onClick={() => setRecarga(n => n + 1)} data-actualizar="true" aria-label="Actualizar resumen" title="Actualizar resumen"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button></div>
+      <div className="planta-encabezado"><h2>Resumen por área</h2></div>
       <div className="planta-tabla-scroll"><table className="planta-tabla supervision-tabla-resumen"><thead><tr><th>Área</th><th>Turnos registrados</th><th>Capturas vigentes</th><th>Reportes técnicos</th><th>Última captura</th></tr></thead>
         <tbody>{areasSupervision(filtros.area).map(area => { const f = filas?.find(r => r.area === area); return <tr key={area}><th scope="row">{nombreAreaSupervision(area)}</th><td>{!f ? '…' : f.turnos ? `${f.turnos.numero}${f.turnos.limitado ? '+' : ''}` : 'No disponible'}</td><td>{!f ? '…' : f.capturas ?? 'No disponible'}</td><td>{!f ? '…' : f.tecnicos ?? 'No disponible'}</td><td>{!f ? '…' : f.ultima ? horaSupervision(f.ultima) : f.capturas === null || f.tecnicos === null ? 'No disponible' : 'Sin capturas'}</td></tr> })}</tbody>
       </table></div>
       {filas?.some(f => f.turnos?.limitado) && <p className="ayuda-turno">+ indica el límite de 250 turnos por área. Reduce el período para obtener el total exacto.</p>}
-      {filas?.some(f => f.capturas === null || f.tecnicos === null || !f.turnos) && <p role="alert" className="mensaje-error">Hay consultas no disponibles. Actualiza el resumen para reintentar.</p>}
+      {filas?.some(f => f.capturas === null || f.tecnicos === null || !f.turnos) && <p role="alert" className="mensaje-error">Hay consultas no disponibles. Vuelve a consultar el periodo para reintentar.</p>}
     </section>
-    {filtros.area !== 'ptar' && <div className="panel-informacion supervision-monitor"><MonitorConcesionPozos revision={revision + recarga} supervision /></div>}
+    {filtros.area !== 'ptar' && <div className="panel-informacion supervision-monitor"><MonitorConcesionPozos revision={revision} supervision /></div>}
   </div>
 }

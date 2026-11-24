@@ -100,9 +100,9 @@ test('permite una actividad independiente por área el mismo día; valida confir
   const ids=[]
   responder=(_n,p)=>({data:{...fila(1),id:p.p_id,area:p.p_area,actividad:p.p_actividad},error:null})
   for(let i=0;i<3;i++){
-    const s=servicio.prepararActividad(['ptar','calderas','obra_civil'][i],`Actividad ${i}`,null);ids.push(s.id)
+    const s=servicio.prepararActividad(['ptar','calderas','obra_civil'][i],`Actividad ${i}`,null,'2026-11-05');ids.push(s.id)
     const r=await servicio.guardarActividad(s);assert.equal(r.fecha,'2026-11-05')
-    assert.equal('p_fecha' in llamadas.at(-1).parametros,false)
+    assert.equal(llamadas.at(-1).parametros.p_fecha,'2026-11-05')
   }
   assert.equal(new Set(ids).size,3)
 })
@@ -145,7 +145,7 @@ test('solo Admin obtiene captura; las interfaces operativas no muestran creació
     assert.equal(renderToStaticMarkup(createElement(ui.PanelBitacoraAdministrativa)),'')
     const html=renderToStaticMarkup(createElement(ui.NovedadesAdministracion))
     if(rol==='calidad') assert.equal(html,'')
-    else assert.ok(html.includes('Novedades de Administración'))
+    else assert.ok(html.includes('Relevantes'))
     assert.ok(!/Obra Civil|Guardar|Corregir/.test(html))
   }
   sesion();const html=renderToStaticMarkup(createElement(ui.PanelBitacoraAdministrativa))

@@ -40,7 +40,7 @@ export function DashboardAdministracion() {
             })}</article>
         })}</div></>}
     </section>
-    <div className="co-dashboard-dia"><InformacionDelDia fecha={fechaHoy} informacion={informacionDia} compacto mostrarActualizar={false} />
+    <div className="co-dashboard-dia"><InformacionDelDia fecha={fechaHoy} informacion={informacionDia} compacto />
       <SeguimientoColorM4 key={cuenta} cuenta={cuenta} administracion />
       <ResumenPendientesDashboard key={`${cuenta}:${datos?.fecha ?? ''}:${datos?.consultado ?? ''}`} cuenta={cuenta} fecha={datos?.fecha ?? null} />
       {datos && <AlmacenamientoDashboard cuenta={cuenta} revision={String(datos.consultado)} />}

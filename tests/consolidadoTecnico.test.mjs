@@ -1,14 +1,38 @@
 // Datos simulados exclusivamente para pruebas; no consulta ni escribe Supabase.
-import test from 'node:test'
+import test, { before, after } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import { crc32 } from 'node:zlib'
-import { agruparTecnicos, datosTecnico, seleccionarTecnicos, validarConsolidado, matrizTecnicoDiario, textoCeldaTecnica } from '../src/lib/consolidadoTecnico.ts'
-import { crearXlsxTecnicoDiario, fragmentosObservacion, numeroExcelTecnico } from '../src/lib/xlsxTecnicoDiario.ts'
-import { crearPdfTecnicoDiario } from '../src/lib/pdfTecnicoDiario.ts'
-import { descargarArchivo, descargarTecnicoDiario, prepararPdfTecnicoDiario } from '../src/lib/exportarTecnicoDiario.ts'
-import { borradorBitacoraCalderas, equiposCalderas, pilasCalderas } from '../src/lib/tiposBitacoraCalderas.ts'
-import { borradorBitacoraPTAR, medicionesBitacoraPTAR } from '../src/lib/tiposBitacoraPTAR.ts'
+import { createServer } from 'vite'
+
+let agruparTecnicos, datosTecnico, seleccionarTecnicos, validarConsolidado, matrizTecnicoDiario, textoCeldaTecnica
+let crearXlsxTecnicoDiario, fragmentosObservacion, numeroExcelTecnico, crearPdfTecnicoDiario
+let descargarArchivo, descargarTecnicoDiario, prepararPdfTecnicoDiario
+let borradorBitacoraCalderas, equiposCalderas, pilasCalderas, borradorBitacoraPTAR, medicionesBitacoraPTAR
+let server
+
+before(async () => {
+  server = await createServer({ configFile: false, envDir: false, cacheDir: '.tmp/vite-tests/consolidado-tecnico',
+    optimizeDeps: { noDiscovery: true }, server: { middlewareMode: true, hmr: false }, plugins: [{ name: 'consolidado-sin-supabase', enforce: 'pre',
+      resolveId(id) { return /(^|\/)supabase(?:\.ts)?$/.test(id) && !id.startsWith('@') ? '\0consolidado-supabase' : null },
+      load(id) { return id === '\0consolidado-supabase' ? 'export const supabase = {}' : null },
+    }] })
+  const [consolidado, xlsx, pdf, exportador, calderas, ptar] = await Promise.all([
+    server.ssrLoadModule('/src/lib/consolidadoTecnico.ts'),
+    server.ssrLoadModule('/src/lib/xlsxTecnicoDiario.ts'),
+    server.ssrLoadModule('/src/lib/pdfTecnicoDiario.ts'),
+    server.ssrLoadModule('/src/lib/exportarTecnicoDiario.ts'),
+    server.ssrLoadModule('/src/lib/tiposBitacoraCalderas.ts'),
+    server.ssrLoadModule('/src/lib/tiposBitacoraPTAR.ts'),
+  ])
+  ;({ agruparTecnicos, datosTecnico, seleccionarTecnicos, validarConsolidado, matrizTecnicoDiario, textoCeldaTecnica } = consolidado)
+  ;({ crearXlsxTecnicoDiario, fragmentosObservacion, numeroExcelTecnico } = xlsx)
+  ;({ crearPdfTecnicoDiario } = pdf)
+  ;({ descargarArchivo, descargarTecnicoDiario, prepararPdfTecnicoDiario } = exportador)
+  ;({ borradorBitacoraCalderas, equiposCalderas, pilasCalderas } = calderas)
+  ;({ borradorBitacoraPTAR, medicionesBitacoraPTAR } = ptar)
+})
+after(async () => { await server?.close() })
 
 const fecha = '2026-10-19'
 const fuente = fs.readFileSync(new URL('../src/assets/fuentes/DejaVuSans.ttf', import.meta.url))
@@ -27,6 +51,7 @@ function detalle(turno, area = 'calderas', version = 2) {
     borrador.compresores['1'] = 'Preparado'; borrador.estadoUF = 'Lavado'
     borrador.comentariosUF = 'Observación UF completa'; borrador.servicioAgua.norte = true
   } else {
+    borrador.horasBombaP6 = '0'
     borrador.bombas['9'] = 'Manual (M)'; borrador.prensas.Essity = 'Reserva'
     borrador.estadoAgitador = 'Servicio'; borrador.destinoDescarga = 'Tanque 11'
     borrador.horasDescarga = { tanque11: '5', tanques56: '3' }
@@ -52,7 +77,7 @@ test('día incompleto: solo se seleccionan turnos disponibles del área', () => 
 test('un día sin reportes conserva disponibilidad vacía; no fabrica datos', () => {
   const [dia] = agruparTecnicos(fecha, fecha, [])
   assert.deepEqual(dia, { fecha, calderas: {}, ptar: {} })
-  assert.throws(() => agruparTecnicos('2026-02-31', '2026-03-03', []), /válidas/)
+  assert.throws(() => agruparTecnicos('2026-02-31', '2026-03-03', []), /fechas del período/)
 })
 test('día completo: tres turnos disponibles; selección individual y total', () => {
   const [dia] = agruparTecnicos(fecha, fecha, ['dia', 'tarde', 'noche'].map(t => fila(t)))
@@ -83,7 +108,8 @@ test('Calderas conserva mediciones, equipos, pilas, observaciones y unidades por
 })
 test('PTAR conserva todas las mediciones, modos, estados y comentario de prensas', () => {
   const d = detalle('noche', 'ptar'), datos = datosTecnico(d)
-  assert.equal(datos.length, 24)
+  assert.equal(datos.length, 26)
+  assert.ok(datos.some(r => r.parametro === 'Horas de operación de la bomba P6' && r.valor === '0' && r.unidad === 'h'))
   assert.ok(datos.some(r => r.parametro === 'Horas en tanque 11' && r.valor === '5' && r.unidad === 'h'))
   assert.ok(datos.some(r => r.parametro === 'Horas en tanques 5 y 6' && r.valor === '3' && r.unidad === 'h'))
   for (const m of medicionesBitacoraPTAR) {

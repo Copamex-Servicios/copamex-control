@@ -87,8 +87,8 @@ function turnoAutorizado(cuentaId: string, turnoId: string) {
     && !t.accionEnCurso && !t.solicitudPendiente
 }
 
-export function useReporteCalderas(cuentaId: string | null, turnoRecibido: string | null, habilitadoAnterior: boolean) {
-  const ventana = useVentanaReporte(cuentaId, 'calderas', turnoRecibido)
+export function useReporteCalderas(cuentaId: string | null, turnoRecibido: string | null, habilitadoAnterior: boolean, activo = true) {
+  const ventana = useVentanaReporte(cuentaId, 'calderas', turnoRecibido, activo)
   const turnoId = ventana.disponible ? ventana.contexto?.turnoId ?? null : turnoRecibido
   const habilitado = ventana.listo && (ventana.disponible ? ventana.puedeEditar : habilitadoAnterior)
   const entradas = useCapturas(s => s.entradas)

@@ -72,6 +72,7 @@ test('una muestra habitual y tres adicionales conservan cuatro horarios y el val
   filas = Array.from({length:4},(_,n)=>muestra(n))
   for (const m of filas.slice(1)) {
     m.seguimiento_id = id(900)
+    m.seguimiento_valor_inicial = 0
     m.resultados = m.resultados.slice(0,1)
   }
   const resultado = await servicio.consultarDiaCompletoCalidad(solicitud,signal())

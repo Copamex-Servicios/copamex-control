@@ -2,8 +2,9 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {hojasRegistroCalidad,resultadosHojaCalidad} from '../src/lib/hojaRegistroCalidad.ts'
 const muestra=(id,hora,extra=false)=>({turno:{id:'turno'},lectura:{id,turno_id:'turno',
- capturado_en:`2026-11-12T${hora}:00Z`,...(extra?{seguimientoId:'seguimiento'}:{}),
- resultados:[{id:'resultado-'+id,valor:42}]}})
+ capturado_en:`2026-11-12T${hora}:00Z`,...(extra?{seguimientoId:'seguimiento',esAdicional:true}:{}),
+ resultados:[{id:'resultado-'+id,punto_id:'punto',parametro_id:'parametro',valor:42,limite_min_aplicado:null,limite_max_aplicado:null,fuera_norma:null,
+  punto:{id:'punto',nombre:'Pila M-4',area:'calderas'},parametro:{id:'parametro',nombre:'Color',unidad:'Pt-Co'}}]}})
 test('con dos o tres registros habituales las adicionales solo se anexan al último',()=>{
  const originales=[muestra('a','13:00'),muestra('b','14:00'),muestra('c','15:00')]
  const adicionales=[muestra('extra1','16:00',true),muestra('extra2','17:00',true)]

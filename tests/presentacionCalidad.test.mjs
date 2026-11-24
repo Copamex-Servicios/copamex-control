@@ -59,12 +59,13 @@ test('los parámetros sin evaluación no tienen columna en límites y su configu
  assert.equal(config.campos.some(c=>c.clave==='evaluar_limites'),false)
  assert.equal(administracion.leerFilaAdmin(parametros[1],config).evaluar_limites,false)
 })
-test('la captura adicional del operador usa un diálogo sin repetir título, estado ni instrucciones del seguimiento',()=>{
+test('la captura adicional del operador muestra aviso en el diálogo sin el encabezado de seguimiento',()=>{
  globalThis.__seguimientoPresentacion={seguimiento:{id:id(80),creado_por:id(81),instruccion:'TOMAR EL COLOR DE M4 CADA HORA'},error:null,cargando:false,actualizar(){}}
- const html=renderToStaticMarkup(createElement(Seguimiento,{cuenta:id(90),habilitado:true,muestraHabitual:true}))
+ const html=renderToStaticMarkup(createElement(Seguimiento,{cuenta:id(90),turno:{id:id(10)},habilitado:true,muestraHabitual:true}))
  assert.match(html,/aria-haspopup="dialog"/)
  assert.match(html,/<dialog[^>]*class="co-color-m4-dialogo"/)
- assert.doesNotMatch(html,/Seguimiento de color M4|TOMAR EL COLOR DE M4 CADA HORA|>Activo</)
+ assert.match(html,/Aviso: TOMAR EL COLOR DE M4 CADA HORA/)
+ assert.doesNotMatch(html,/Seguimiento de color M4|>Activo</)
  assert.doesNotMatch(html,/<dialog[^>]* open/)
 })
 test('el encabezado permite mostrar Gestión del turno solo al entrar a Bitácora',()=>{
@@ -99,7 +100,7 @@ test('SST no muestra mensajes de evaluación ni insignias sin límites',()=>{
 })
 test('las lecturas adicionales se agregan al final de la misma tabla con su hora',()=>{
  const adicional=structuredClone(registro)
- adicional.lectura.id=id(99);adicional.lectura.seguimientoId=id(90);adicional.lectura.turno_id=id(10)
+ adicional.lectura.id=id(99);adicional.lectura.seguimientoId=id(90);adicional.lectura.esAdicional=true;adicional.lectura.turno_id=id(10)
  adicional.turno.id=id(10);adicional.lectura.capturado_en='2026-11-12T17:30:00Z'
  adicional.lectura.resultados[0].id=id(100);adicional.lectura.resultados[0].valor=30
  const normal=structuredClone(registro)

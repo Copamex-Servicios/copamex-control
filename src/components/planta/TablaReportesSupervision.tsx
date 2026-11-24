@@ -1,6 +1,5 @@
 import { ResumenHistorial } from '../diseno/ResumenHistorial'
 import '../diseno/acordeonHistorial.css'
-import { RefreshCw } from 'lucide-react'
 import { cacheConsultas } from '../../lib/cacheConsultas'
 import { useEffect, useId, useRef, useState } from 'react'
 import type { FiltrosPlanta } from '../../lib/planta'
@@ -25,8 +24,7 @@ const cacheTabla = cacheConsultas<{ filas: Fila[]; mas: boolean; error: string |
 export function TablaReportesSupervision({ filtros, revision, alAbrir }: { filtros: FiltrosPlanta; revision: number; alAbrir?: (fila: Fila) => void }) {
   const id = useId()
   const [navegacion, setNavegacion] = useState({ filtro: '', pagina: 0 })
-  const [recarga, setRecarga] = useState(0)
-  const filtro = JSON.stringify([filtros, revision, recarga])
+  const filtro = JSON.stringify([filtros, revision])
   const pagina = navegacion.filtro === filtro ? navegacion.pagina : 0
   const clave = `${filtro}:${pagina}`
   const filtroCache = JSON.stringify([filtros, pagina])
@@ -45,12 +43,12 @@ export function TablaReportesSupervision({ filtros, revision, alAbrir }: { filtr
         c.signal.throwIfAborted()
         const r = await consultarResumenesTecnicosPlanta(area, filtros, p, c.signal)
         for (const fila of r.filas) {
-          if (ids.has(fila.id)) throw new Error('Los reportes cambiaron durante la consulta. Actualiza.')
+          if (ids.has(fila.id)) throw new Error('Los reportes cambiaron durante la consulta. Vuelve a consultar el periodo.')
           ids.add(fila.id); filas.push({ ...fila, area })
         }
         mas = r.hayMas
         if (!mas) break
-        if (!r.filas.length) throw new Error('Consulta incompleta. Actualiza los reportes.')
+        if (!r.filas.length) throw new Error('Consulta incompleta. Vuelve a consultar el periodo.')
       }
       return { filas, mas }
     })).then(resultados => {
@@ -59,14 +57,14 @@ export function TablaReportesSupervision({ filtros, revision, alAbrir }: { filtr
         const resultado = { filas: filas.slice(pagina * 20, (pagina + 1) * 20), mas: resultados.some(r => r.mas) || filas.length > (pagina + 1) * 20, error: null }
         guardarCache(filtroCache, resultado); setVista({ clave, ...resultado })
       }
-    }).catch(e => { if (vivo) setVista({ clave, filas: [], mas: false, error: c.signal.aborted ? 'La consulta tardó demasiado. Actualiza para reintentar.' : e instanceof Error ? e.message : 'No se pudieron consultar los reportes.' }) })
+    }).catch(e => { if (vivo) setVista({ clave, filas: [], mas: false, error: c.signal.aborted ? 'La consulta tardó demasiado. Vuelve a consultar el periodo para reintentar.' : e instanceof Error ? e.message : 'No se pudieron consultar los reportes.' }) })
       .finally(() => window.clearTimeout(limite))
     return () => { vivo = false; c.abort(); window.clearTimeout(limite) }
   }, [clave, filtros, pagina, filtroCache])
   const actual = vista?.clave === clave ? vista : cacheTabla.leer(filtroCache)
   const elegido = seleccion?.clave === clave ? seleccion.fila : null
   return <section className="panel-informacion supervision-tecnicos">
-    <div className="planta-encabezado"><h2>Reportes técnicos</h2><button type="button" className="boton-secundario" disabled={!actual} onClick={() => setRecarga(n => n + 1)} data-actualizar="true" aria-label="Actualizar reportes" title="Actualizar reportes"><RefreshCw size={18} style={{ width: 18, height: 18, flexShrink: 0 }} aria-hidden="true" /></button></div>
+    <div className="planta-encabezado"><h2>Reportes técnicos</h2></div>
     <div className="supervision-tarjetas-reportes">
       {actual?.filas.map(r => {
         const abierto = elegido?.id === r.id && elegido.area === r.area

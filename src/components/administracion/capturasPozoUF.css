@@ -11,6 +11,50 @@
 .co-layout .co-admin-referencia .pozo-uf-historial th,
 .co-layout .co-admin-referencia .pozo-uf-historial td { padding:10px 12px; border-bottom:1px solid var(--borde,#d6e2f3); text-align:left; vertical-align:middle; }
 .co-layout .co-admin-referencia .pozo-uf-historial thead { background:var(--fondo-suave,#edf3fb); }
+.co-layout .co-admin-referencia .pozo-uf-aceptado-resumen { display:grid; gap:4px; min-width:105px; }
+.co-layout .co-admin-referencia .pozo-uf-aceptado-resumen strong { color:#17643b; font-size:14px; font-variant-numeric:tabular-nums; }
+.co-layout .co-admin-referencia .pozo-uf-balance-barra { height:12px; overflow:hidden; border-radius:999px; background:#aabbd4; }
+.co-layout .co-admin-referencia .pozo-uf-balance-barra > span { display:block; height:100%; border-radius:inherit; background:#174eb3; transition:width .2s ease; }
+.co-layout .co-admin-referencia .pozo-uf-aceptado-resumen .pozo-uf-balance-barra { width:min(120px,100%); }
+.co-layout .co-admin-referencia .pozo-uf-resumen-guardado { padding:22px 24px; border-radius:14px; background:#fff; font:inherit; }
+.co-layout .co-admin-referencia .pozo-uf-pozos-guardado { padding:20px 22px; background:#fff; color:var(--co-text); font-family:var(--co-font); }
+.co-layout .co-admin-referencia .pozo-uf-pozos-guardado * { font-family:inherit; }
+.co-layout .co-admin-referencia .pozo-uf-pozos-resumen { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:16px; }
+.co-layout .co-admin-referencia .pozo-uf-pozos-resumen > section { min-width:0; overflow:hidden; border:1px solid var(--borde,#d6e2f3); border-radius:12px; background:#fff; }
+.co-layout .co-admin-referencia .pozo-uf-pozos-resumen h4 { margin:0; padding:10px 14px; background:#edf3fb; color:var(--co-text,#102a50); font-size:16px; font-weight:700; }
+.co-layout .co-admin-referencia .pozo-uf-pozos-resumen dl { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:0; padding:16px 18px; }
+.co-layout .co-admin-referencia .pozo-uf-pozos-resumen dl > div { display:grid; gap:3px; min-width:0; }
+.co-layout .co-admin-referencia .pozo-uf-pozos-resumen dt { color:var(--co-muted,#5b7090); font-size:14px; }
+.co-layout .co-admin-referencia .pozo-uf-pozos-resumen dd { margin:0; color:var(--co-text,#102a50); font-size:18px; font-weight:700; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.co-layout .co-admin-referencia .pozo-uf-pozos-resumen dl > div:last-child dd { color:#064bb5; }
+.co-layout .co-admin-referencia .pozo-uf-pozos-nota { margin:12px 0 0; color:var(--co-muted,#5b7090); font-size:13px; }
+.co-layout .co-admin-referencia .pozo-uf-resumen-encabezado { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+.co-layout .co-admin-referencia .pozo-uf-resumen-encabezado h3 { margin:0 0 4px; color:var(--co-text,#102a50); font:inherit; font-size:20px; font-weight:700; }
+.co-layout .co-admin-referencia .pozo-uf-resumen-encabezado p { margin:0; color:var(--co-muted,#5b7090); font-size:14px; }
+.co-layout .co-admin-referencia .pozo-uf-resumen-estado { flex:none; padding:6px 13px; border-radius:999px; background:#e4efff; color:#064bb5; font-size:14px; font-weight:700; }
+.co-layout .co-admin-referencia .pozo-uf-tabla-lecturas { overflow-x:auto; margin-top:22px; border:1px solid var(--borde,#d6e2f3); border-radius:14px; }
+.co-layout .co-admin-referencia .pozo-uf-tabla-lecturas table { width:100%; min-width:590px; border-collapse:collapse; table-layout:fixed; font:inherit; }
+.co-layout .co-admin-referencia .pozo-uf-tabla-lecturas th,
+.co-layout .co-admin-referencia .pozo-uf-tabla-lecturas td { padding:14px 20px; border-bottom:1px solid var(--borde,#d6e2f3); text-align:left; vertical-align:middle; }
+.co-layout .co-admin-referencia .pozo-uf-tabla-lecturas thead th { background:#edf3fb; color:var(--co-text,#102a50); font-size:14px; font-weight:700; }
+.co-layout .co-admin-referencia .pozo-uf-tabla-lecturas tbody tr:last-child > * { border-bottom:0; }
+.co-layout .co-admin-referencia .pozo-uf-tabla-lecturas tbody th { color:var(--co-text,#102a50); font-size:15px; font-weight:700; }
+.co-layout .co-admin-referencia .pozo-uf-tabla-lecturas tbody td { color:var(--co-text,#102a50); font-variant-numeric:tabular-nums; }
+.co-layout .co-admin-referencia .pozo-uf-tabla-lecturas tbody td strong { color:#064bb5; font-weight:700; }
+.co-layout .co-admin-referencia .pozo-uf-rendimiento { margin-top:18px; padding:20px; border:1px solid var(--borde,#d6e2f3); border-radius:14px; background:#fff; }
+.co-layout .co-admin-referencia .pozo-uf-rendimiento-cabecera { display:flex; justify-content:space-between; align-items:baseline; gap:16px; }
+.co-layout .co-admin-referencia .pozo-uf-rendimiento-cabecera strong:first-child { color:var(--co-text,#102a50); font-size:14px; font-weight:700; }
+.co-layout .co-admin-referencia .pozo-uf-rendimiento-cabecera strong:last-child { color:#064bb5; font-size:32px; line-height:1.15; font-variant-numeric:tabular-nums; }
+.co-layout .co-admin-referencia .pozo-uf-rendimiento > .pozo-uf-balance-barra { margin:18px 0 20px; }
+.co-layout .co-admin-referencia .pozo-uf-balance-leyenda { display:flex; justify-content:space-between; gap:16px; }
+.co-layout .co-admin-referencia .pozo-uf-balance-leyenda > div { display:flex; align-items:flex-start; gap:10px; min-width:0; }
+.co-layout .co-admin-referencia .pozo-uf-balance-leyenda > div:last-child { margin-left:auto; justify-content:flex-end; text-align:right; }
+.co-layout .co-admin-referencia .pozo-uf-balance-punto { flex:none; width:11px; height:11px; margin-top:4px; border-radius:50%; }
+.co-layout .co-admin-referencia .pozo-uf-balance-punto-aceptado { background:#174eb3; }
+.co-layout .co-admin-referencia .pozo-uf-balance-punto-rechazado { background:#aabbd4; }
+.co-layout .co-admin-referencia .pozo-uf-balance-leyenda > div > span:last-child { display:grid; gap:2px; color:var(--co-muted,#5b7090); font-size:14px; }
+.co-layout .co-admin-referencia .pozo-uf-balance-leyenda > div:last-child > span:last-child { justify-items:end; text-align:right; }
+.co-layout .co-admin-referencia .pozo-uf-balance-leyenda strong { color:var(--co-text,#102a50); font-size:15px; font-variant-numeric:tabular-nums; }
 .co-layout .co-admin-referencia .pozo-uf-paginacion { display:flex; justify-content:flex-end; align-items:center; gap:10px; margin-top:14px; }
 .co-layout .co-admin-referencia .gestion-mediciones-admin .pozo-uf-monitor .monitor-concesion { margin:0; }
 
@@ -83,10 +127,19 @@
   .co-layout .co-admin-referencia .gestion-mediciones-filtros { grid-template-columns:repeat(2,minmax(0,1fr)); justify-content:stretch; }
   .co-layout .co-admin-referencia .gestion-mediciones-filtros button { grid-column:1 / -1; }
   .co-layout .co-admin-referencia .pozo-uf-paginacion { flex-wrap:wrap; }
+  .co-layout .co-admin-referencia .pozo-uf-resumen-guardado { padding:16px; }
+  .co-layout .co-admin-referencia .pozo-uf-resumen-encabezado { flex-wrap:wrap; }
+  .co-layout .co-admin-referencia .pozo-uf-tabla-lecturas th,
+  .co-layout .co-admin-referencia .pozo-uf-tabla-lecturas td { padding:12px; }
+  .co-layout .co-admin-referencia .pozo-uf-rendimiento { padding:16px; }
+  .co-layout .co-admin-referencia .pozo-uf-rendimiento-cabecera strong:last-child { font-size:27px; }
+  .co-layout .co-admin-referencia .pozo-uf-balance-leyenda { gap:12px; }
 }
 @media(max-width:760px) {
+  .co-layout .co-admin-referencia .pozo-uf-pozos-resumen { grid-template-columns:minmax(0,1fr); }
   .co-layout .gestion-mediciones-admin .panel-mediciones .formulario-pozos .mediciones-grupos { grid-template-columns:minmax(0,1fr); }
 }
 @media(max-width:480px) {
+  .co-layout .co-admin-referencia .pozo-uf-pozos-resumen dl { grid-template-columns:minmax(0,1fr); gap:10px; padding:14px; }
   .co-layout .gestion-mediciones-admin .panel-mediciones .formulario-pozos .mediciones-entradas { grid-template-columns:minmax(0,1fr); }
 }

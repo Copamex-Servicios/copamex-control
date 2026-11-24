@@ -19,7 +19,7 @@ test('detalle compacto muestra tres turnos sin seleccionar y conserva las accion
   fechaOperativa:'2026-11-12',turno:'tarde',operador:'OPERADORES DE PRUEBA',revision:1}},ptar:{}}
  const html=renderToStaticMarkup(createElement(Contenido,{cuenta:'cuenta',dia,
   filtros:{desde:'2026-11-12',hasta:'2026-11-12',area:'todas',turno:'tarde'},corregir(){}}))
- assert.match(html,/Detalle del día/)
+ assert.doesNotMatch(html,/Detalle del|Turnos registrados para la fecha seleccionada/)
  assert.doesNotMatch(html,/type="checkbox"|No seleccionado|Seleccionar/)
  assert.match(html,/>Día</);assert.match(html,/>Tarde</);assert.match(html,/>Noche</)
  assert.equal((html.match(/No hay captura registrada/g)??[]).length,2)

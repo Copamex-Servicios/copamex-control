@@ -60,7 +60,9 @@ export function leerReportePTAR(snapshot: unknown, turnoId: string): ReporteTecn
   borrador.estadoAgitador = opcion(r.estado_agitador_9300, ['Servicio', 'Reserva', 'Mantenimiento'])
   borrador.destinoDescarga = opcion(r.destino_descarga_daf, destinosDescargaPTAR)
   borrador.horasDescarga = { tanque11: numero(r.horas_descarga_tanque_11), tanques56: numero(r.horas_descarga_tanques_5_6) }
-  borrador.horasBombaP6 = numero(r.horas_bomba_p6)
+  // Las capturas anteriores a P6 pueden no incluir la clave en sus snapshots.
+  // Se leen como campo vacío; las nuevas capturas siguen validando P6 al guardar.
+  borrador.horasBombaP6 = numero(r.horas_bomba_p6 ?? null)
   for (const n of bombasBitacoraPTAR) {
     const modo = opcion(r[`modo_bomba_${n}`], ['A', 'M'])
     borrador.bombas[n] = modo === 'A' ? 'Automático (A)' : modo === 'M' ? 'Manual (M)' : ''
