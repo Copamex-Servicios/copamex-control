@@ -34,15 +34,16 @@ export function useVentanaReporte(cuenta: string | null, area: AreaOperativa, tu
     if (!cuenta || !activo) return
     let vivo = true, control: AbortController | null = null, secuencia = 0
     let revalidacion: number | null = null
-    let inicioConsulta = 0
-    async function consultar() {
+    let inicioConsultaBloqueante = -Infinity
+    async function consultar(bloqueante = true) {
       const s = ++secuencia; control?.abort(); const peticion = new AbortController(); control = peticion
-      inicioConsulta = performance.now()
-      setVista(v => iniciarRevalidacionReporte(clave, v, performance.now()))
-      let excedioTiempo = false
-      const limite = window.setTimeout(() => { excedioTiempo = true; peticion.abort() }, 15000)
       // Contar también el viaje de red: nunca ampliar el vencimiento por una respuesta tardía.
       const referencia = performance.now()
+      if (bloqueante) inicioConsultaBloqueante = referencia
+      setVista(v => bloqueante || v?.clave !== clave || !v.contexto
+        ? iniciarRevalidacionReporte(clave, v, referencia) : v)
+      let excedioTiempo = false
+      const limite = window.setTimeout(() => { excedioTiempo = true; peticion.abort() }, 15000)
       try {
         const contexto = await consultarContextoReporte(cuenta!, area, turnoId, peticion.signal)
         if (vivo && s === secuencia) { setPulso(performance.now()); setVista({ clave, contexto, referencia, error: null, revalidando: false }) }
@@ -56,25 +57,38 @@ export function useVentanaReporte(cuenta: string | null, area: AreaOperativa, tu
             ? 'La consulta del horario se interrumpió. Intenta actualizar de nuevo.'
             : e instanceof Error ? e.message : 'No se pudo comprobar el horario.'
         setVista(v => fallarRevalidacionReporte(clave, v, referencia, error))
-      } finally { window.clearTimeout(limite) }
+      } finally {
+        window.clearTimeout(limite)
+        if (control === peticion) control = null
+      }
     }
     const volver = () => {
       if (document.visibilityState !== 'visible' || revalidacion !== null
-        || performance.now() - inicioConsulta < 250) return
+        || performance.now() - inicioConsultaBloqueante < 250) return
+      // Una respuesta iniciada antes de recuperar el foco no puede desbloquear la edición.
+      ++secuencia
+      control?.abort()
       setVista(v => iniciarRevalidacionReporte(clave, v, performance.now()))
       revalidacion = window.setTimeout(() => {
         revalidacion = null
-        if (document.visibilityState === 'visible' && performance.now() - inicioConsulta >= 250) void consultar()
+        if (document.visibilityState === 'visible') void consultar()
       }, 50)
     }
     void consultar()
     const reloj = window.setInterval(() => setPulso(performance.now()), 1000)
-    const intervalo = window.setInterval(volver, 30000)
-    window.addEventListener('focus', volver); document.addEventListener('visibilitychange', volver)
+    const intervalo = window.setInterval(() => {
+      // El permiso vigente permite seguir escribiendo mientras llega la actualización periódica.
+      if (document.visibilityState === 'visible' && revalidacion === null && !control) void consultar(false)
+    }, 30000)
+    const alCambiarVisibilidad = () => {
+      if (document.visibilityState === 'visible') volver()
+      else inicioConsultaBloqueante = -Infinity
+    }
+    window.addEventListener('focus', volver); document.addEventListener('visibilitychange', alCambiarVisibilidad)
     return () => {
       vivo = false; control?.abort(); window.clearInterval(reloj); window.clearInterval(intervalo)
       if (revalidacion !== null) window.clearTimeout(revalidacion)
-      window.removeEventListener('focus', volver); document.removeEventListener('visibilitychange', volver)
+      window.removeEventListener('focus', volver); document.removeEventListener('visibilitychange', alCambiarVisibilidad)
     }
   }, [cuenta, area, turnoId, clave, activo, intento])
   const actual = activo && vista?.clave === clave ? vista : null, contexto = actual?.contexto
