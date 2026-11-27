@@ -5,7 +5,7 @@ import { mayusculasNota } from '../../lib/notasOperativas'
 import { CabeceraReporteTecnico } from './CabeceraReporteTecnico'
 import { Fragment, useEffect, useId, useRef, useState } from 'react'
 import type { KeyboardEvent, ReactNode } from 'react'
-import { bombasBitacoraPTAR, calcularHorasTanques56PTAR, destinosDescargaPTAR, duracionTurnoPTAR, medicionesBitacoraPTAR, prensasBitacoraPTAR } from '../../lib/tiposBitacoraPTAR'
+import { bombasBitacoraPTAR, calcularHorasTanques56PTAR, destinosDescargaPTAR, duracionTurnoPTAR, esNivelTanqueFibrasPTAR, medicionesBitacoraPTAR, prensasBitacoraPTAR } from '../../lib/tiposBitacoraPTAR'
 import type { EstadoAgitadorPTAR, EstadoPrensaPTAR, ModoBombaPTAR } from '../../lib/tiposBitacoraPTAR'
 import type { TipoTurno } from '../../lib/tiposTurno'
 import type { useReportePTAR } from '../../hooks/useReportePTAR'
@@ -57,6 +57,17 @@ export function FormularioBitacoraPTAR({ captura, observaciones, nombresOperador
     mostrarSeccion(siguiente)
     evento.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[siguiente]?.focus({ preventScroll: true })
   }
+  function campoMedicion(m: typeof medicionesBitacoraPTAR[number]) {
+    const esNivel = esNivelTanqueFibrasPTAR(m.campo)
+    return <label className="bpt-campo" key={m.campo} htmlFor={`${prefijo}-${m.campo}`}>
+      <span>{m.nombre}</span>
+      <span className="bpt-control bpt-con-unidad"><input aria-label={`${m.nombre} (${m.unidad})`} id={`${prefijo}-${m.campo}`} type="number" step="any" inputMode="decimal" disabled={!habilitado}
+        min={esNivel ? 0 : undefined} max={esNivel ? 100 : undefined}
+        data-reporte-opcional={esNivel && captura.reporte?.borrador.mediciones[m.campo] === '' ? true : undefined}
+        value={borrador.mediciones[m.campo]} onChange={e => setBorrador(b => ({ ...b, mediciones: { ...b.mediciones, [m.campo]: e.target.value } }))} />
+        <span className="bpt-unidad" aria-hidden="true">{m.unidad}</span></span>
+    </label>
+  }
   return <div ref={raizValidacion} onChangeCapture={actualizarValidacion} className="bpt-formulario">
     {operacion && <CabeceraReporteTecnico titulo="Bitácora de PTAR" estado={operacion.estadoDelReporte}
       puedeEditar={operacion.puedeEditar} editando={operacion.editando} editar={operacion.editar} />}
@@ -71,19 +82,15 @@ export function FormularioBitacoraPTAR({ captura, observaciones, nombresOperador
       id={`${prefijo}-panel-${indice}`} aria-labelledby={`${prefijo}-tab-${indice}`} hidden={activo !== indice} tabIndex={0}>
       <div className={`bpt-contenido${indice === 5 ? ' bpt-observaciones' : ''}`}><h3 className="bpt-titulo-seccion">{pestana.titulo}</h3>
         {indice < 4 && <div className="bpt-mediciones">
-          {medicionesBitacoraPTAR.filter(m => m.seccion === indice).map(m => <Fragment key={m.campo}>
+          {medicionesBitacoraPTAR.filter(m => m.seccion === indice && m.seccion !== 1).map(m => <Fragment key={m.campo}>
             {m.campo === 'setpoint_b13' && <label className="bpt-campo" htmlFor={`${prefijo}-agitador-9300`}><span>Agitador 9300</span>
               <select aria-label="Agitador 9300" id={`${prefijo}-agitador-9300`} disabled={!habilitado} value={borrador.estadoAgitador}
                 onChange={e => setBorrador(b => ({ ...b, estadoAgitador: e.target.value as EstadoAgitadorPTAR }))}>
                 <option value="">Selecciona</option>{['Servicio', 'Reserva', 'Mantenimiento'].map(v => <option key={v}>{v}</option>)}
               </select>
             </label>}
-            <label className="bpt-campo" htmlFor={`${prefijo}-${m.campo}`}>
-            <span>{m.nombre}</span>
-            <span className="bpt-control bpt-con-unidad"><input aria-label={`${m.nombre} (${m.unidad})`} id={`${prefijo}-${m.campo}`} type="number" step="any" inputMode="decimal" disabled={!habilitado}
-              value={borrador.mediciones[m.campo]} onChange={e => setBorrador(b => ({ ...b, mediciones: { ...b.mediciones, [m.campo]: e.target.value } }))} />
-              <span className="bpt-unidad" aria-hidden="true">{m.unidad}</span></span>
-          </label></Fragment>)}
+            {campoMedicion(m)}
+          </Fragment>)}
           {indice === 1 && <div className="bpt-daf-destino-horas bpt-ancho">
             <fieldset className="bpt-descarga" disabled={!habilitado}>
               <legend>Destino principal del DAF Chino</legend>
@@ -124,6 +131,7 @@ export function FormularioBitacoraPTAR({ captura, observaciones, nombresOperador
                 value={borrador.horasBombaP6} onChange={e => setBorrador(b => ({ ...b, horasBombaP6: e.target.value }))} />
                 <span className="bpt-unidad" aria-hidden="true">h</span></span>
             </label>
+            {medicionesBitacoraPTAR.filter(m => m.seccion === 1).map(campoMedicion)}
           </div>
         </>}
         {indice === 4 && <div className="bpt-mediciones bpt-prensas">

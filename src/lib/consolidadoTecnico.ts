@@ -158,14 +158,19 @@ export function datosTecnico(detalle: DetalleTecnicoAdmin): DatoTecnico[] {
     if (r.versionFormato === 2) for (const e of equiposAguaCalderas) agregar('Agua potable y pozos', e.nombre, c.servicioAgua[e.id] ? 'En servicio' : '', '', 'estado')
   } else {
     const p = detalle.reporte.borrador
-    const secciones: Record<number, string> = { 0: 'Clarificador primario', 2: 'Flujos PTAR', 3: 'AIMSU y tanque de almacén' }
-    for (const m of medicionesBitacoraPTAR) agregar(secciones[m.seccion], m.nombre, p.mediciones[m.campo], m.unidad)
+    const secciones = ['Clarificador primario', 'DAF Chino y bombas', 'Flujos PTAR', 'AIMSU y tanque de almacén']
+    for (const m of medicionesBitacoraPTAR) {
+      if (m.seccion !== 1) agregar(secciones[m.seccion], m.nombre, p.mediciones[m.campo], m.unidad)
+    }
     agregar('Clarificador primario', 'Agitador 9300', p.estadoAgitador, '', 'estado')
     agregar('DAF Chino y bombas', 'Descarga del DAF Chino', p.destinoDescarga, '', 'estado')
     agregar('DAF Chino y bombas', 'Horas en tanque 11', p.horasDescarga.tanque11, 'h')
     agregar('DAF Chino y bombas', 'Horas en tanques 5 y 6', p.horasDescarga.tanques56, 'h')
     agregar('DAF Chino y bombas', 'Horas de operación de la bomba P6', p.horasBombaP6, 'h')
     for (const n of bombasBitacoraPTAR) agregar('DAF Chino y bombas', `Bomba ${n}`, p.bombas[n], '', 'estado')
+    for (const m of medicionesBitacoraPTAR) {
+      if (m.seccion === 1 && p.mediciones[m.campo] !== '') agregar(secciones[1], m.nombre, p.mediciones[m.campo], m.unidad)
+    }
     for (const n of prensasBitacoraPTAR) agregar('Prensas de fin de turno', `Prensa ${n}`, p.prensas[n], '', 'estado')
     for (const n of prensasBitacoraPTAR) if (p.velocidadesPrensas?.[n]) agregar('Prensas de fin de turno', 'Velocidad de prensa ' + n, p.velocidadesPrensas[n], 'm/min')
     agregar('Prensas de fin de turno', 'Reporte relevante de fin de turno y motivo por el cual la prensa está parada', p.comentarioPrensas, '', 'texto')

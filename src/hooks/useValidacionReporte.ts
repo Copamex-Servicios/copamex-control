@@ -12,7 +12,7 @@ export function revisarCamposReporte(raiz: HTMLElement): FaltaReporte[] {
         || campo.id.endsWith('-compresores-comentarios') || campo.id.endsWith('-comentario-prensas')) return
       // Una casilla desmarcada significa fuera de servicio, no una respuesta faltante.
       if (campo instanceof HTMLInputElement && campo.type === 'checkbox') return
-      let vacio = !campo.value.trim() || !campo.validity.valid
+      let vacio = (!campo.value.trim() && campo.dataset.reporteOpcional !== 'true') || !campo.validity.valid
       if (campo instanceof HTMLInputElement && campo.type === 'radio') {
         if (radios.has(campo.name)) return
         radios.add(campo.name)

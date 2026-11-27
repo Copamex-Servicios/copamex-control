@@ -34,6 +34,8 @@ export function DetalleReportePTARPlanta({ reporte }: { reporte: ReporteTecnicoP
           {bombasBitacoraPTAR.map(n => <div className="pcr-dato" key={n}>
             <dt>Bomba {n}</dt><dd><Estado valor={b.bombas[n]} /></dd>
           </div>)}
+          {medicionesBitacoraPTAR.filter(m => m.seccion === 1 && b.mediciones[m.campo] !== '').map(m =>
+            <Dato key={m.campo} nombre={m.nombre} valor={b.mediciones[m.campo]} unidad={m.unidad} />)}
         </dl>
       </Seccion>
       <Seccion titulo="Flujos PTAR">

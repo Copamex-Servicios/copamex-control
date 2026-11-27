@@ -7,6 +7,9 @@ export const medicionesBitacoraPTAR = [
   { campo: 'nivel_tanque_300', nombre: 'Nivel del tanque 300', unidad: '%', seccion: 0 },
   { campo: 'torque_clarificador', nombre: 'Torque del clarificador', unidad: 'LBS', seccion: 0 },
   { campo: 'setpoint_b13', nombre: 'Setpoint de válvula neumática al colector de la B-13', unidad: '%', seccion: 0 },
+  { campo: 'nivel_tanque_5', nombre: 'Nivel del Tanque 5', unidad: '%', seccion: 1 },
+  { campo: 'nivel_tanque_6', nombre: 'Nivel del Tanque 6', unidad: '%', seccion: 1 },
+  { campo: 'nivel_tanque_fibras', nombre: 'Nivel del Tanque de fibras', unidad: '%', seccion: 1 },
   { campo: 'flujo_entrada_ptar', nombre: 'Flujo de entrada a la PTAR', unidad: 'L/s', seccion: 2 },
   { campo: 'flujo_daf_chino', nombre: 'Flujo del DAF Chino', unidad: 'L/s', seccion: 2 },
   { campo: 'nivel_daf_chino', nombre: 'Nivel del DAF Chino', unidad: 'm', seccion: 2 },
@@ -18,6 +21,9 @@ export const medicionesBitacoraPTAR = [
   { campo: 'nivel_almacen', nombre: 'Nivel del tanque de almacén', unidad: 'm³', seccion: 3 },
 ] as const
 export type CampoBitacoraPTAR = typeof medicionesBitacoraPTAR[number]['campo']
+export function esNivelTanqueFibrasPTAR(campo: CampoBitacoraPTAR) {
+  return campo === 'nivel_tanque_fibras' || campo === 'nivel_tanque_5' || campo === 'nivel_tanque_6'
+}
 export const bombasBitacoraPTAR = ['9', '13', '9310'] as const
 export const prensasBitacoraPTAR = ['Essity', 'Nalco'] as const
 export type ModoBombaPTAR = '' | 'Automático (A)' | 'Manual (M)'

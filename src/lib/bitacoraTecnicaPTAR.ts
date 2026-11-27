@@ -3,7 +3,7 @@ import { leerReportesIndividuales, prepararReportesIndividuales } from './report
 import { supabase } from './supabase'
 import { mayusculasNota, normalizarNota } from './notasOperativas'
 import { consultarResumenesTecnicosPlanta } from './reportesTecnicosPlanta'
-import { borradorBitacoraPTAR, medicionesBitacoraPTAR, bombasBitacoraPTAR, prensasBitacoraPTAR, destinosDescargaPTAR, normalizarVelocidadesPrensas } from './tiposBitacoraPTAR'
+import { borradorBitacoraPTAR, medicionesBitacoraPTAR, bombasBitacoraPTAR, prensasBitacoraPTAR, destinosDescargaPTAR, esNivelTanqueFibrasPTAR, normalizarVelocidadesPrensas } from './tiposBitacoraPTAR'
 import type { BorradorBitacoraPTAR } from './tiposBitacoraPTAR'
 import { esFechaOperativa, esTipoTurno } from './turnos'
 import type { TipoTurno } from './tiposTurno'
@@ -56,7 +56,9 @@ export function leerReportePTAR(snapshot: unknown, turnoId: string): ReporteTecn
   borrador.reporteRelevante = texto(r.reporte_relevante ?? null)
   const reportes = leerReportesIndividuales(r.reportes_operadores)
   if (reportes) borrador.reportesOperadores = reportes
-  for (const m of medicionesBitacoraPTAR) borrador.mediciones[m.campo] = numero(r[m.campo])
+  for (const m of medicionesBitacoraPTAR) {
+    borrador.mediciones[m.campo] = numero(esNivelTanqueFibrasPTAR(m.campo) ? r[m.campo] ?? null : r[m.campo])
+  }
   borrador.estadoAgitador = opcion(r.estado_agitador_9300, ['Servicio', 'Reserva', 'Mantenimiento'])
   borrador.destinoDescarga = opcion(r.destino_descarga_daf, destinosDescargaPTAR)
   borrador.horasDescarga = { tanque11: numero(r.horas_descarga_tanque_11), tanques56: numero(r.horas_descarga_tanques_5_6) }
@@ -92,11 +94,19 @@ export function prepararDatosPTAR(b: BorradorBitacoraPTAR, original?: BorradorBi
     if (!v.trim() || !Number.isFinite(Number(v)) || Number(v) < 0) throw new ErrorReportePTAR(`Registra horas válidas para ${campo}.`)
     return v.trim()
   }
+  const mediciones = Object.fromEntries(medicionesBitacoraPTAR.flatMap(({ campo, nombre }) => {
+    const valor = b.mediciones[campo] ?? ''
+    if (esNivelTanqueFibrasPTAR(campo)) {
+      if (!valor.trim() && original && !original.mediciones[campo]?.trim()) return []
+      if (Number(valor) < 0 || Number(valor) > 100) throw new ErrorReportePTAR(`${nombre} debe estar entre 0 y 100 %.`)
+    }
+    return [[campo, medir(valor, nombre)]]
+  }))
   return {
     reporteRelevante: mayusculasNota(b.reporteRelevante).trim(),
     ...(reportesOperadores ? { reportesOperadores } : {}),
     ...(velocidadesPrensas ? { velocidadesPrensas } : {}),
-    mediciones: Object.fromEntries(medicionesBitacoraPTAR.map(m => [m.campo, medir(b.mediciones[m.campo], m.nombre)])),
+    mediciones,
     estadoAgitador: elegir(b.estadoAgitador, ['Servicio', 'Reserva', 'Mantenimiento'], 'Estado del agitador 9300'),
     destinoDescarga: elegir(b.destinoDescarga, destinosDescargaPTAR, 'Descarga del DAF Chino'),
     horasDescarga: { tanque11: horas(b.horasDescarga.tanque11, 'tanque 11'), tanques56: horas(b.horasDescarga.tanques56, 'tanques 5 y 6') },
