@@ -20,6 +20,7 @@ type Referencia = {
   inicial1: number | null
   inicial2: number | null
   existente: Record<string, unknown> | null
+  motivoBloqueo: string | null
   ocupadaOperativa: boolean
 }
 const borradores = new Map<string, { fecha: string; inicial1: number | null; inicial2: number | null; campos: CamposPozos | CamposUF }>()
@@ -140,10 +141,9 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
   const [versionConsultaReferencia, setVersionConsultaReferencia] = useState(0)
   const [revisionMonitorPozos, setRevisionMonitorPozos] = useState(0)
   const operacion = useRef(false)
-  const formularioEditado = useRef(false)
   const consultaAutomatica = useRef('')
   const serialFormulario = `${modulo}:${fecha}:${versionFormulario}`
-  const claveBorrador = `${cuenta}:${modulo}`
+  const claveBorrador = modulo === 'pozos' ? `${cuenta}:${modulo}:${fecha}` : `${cuenta}:${modulo}`
   const guardadoLocal = borradores.get(claveBorrador)
   const borrador = guardadoLocal && referencia
     && guardadoLocal.fecha === referencia.fecha
@@ -152,7 +152,6 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
 
   function conservarBorrador(campos: CamposPozos | CamposUF) {
     if (!referencia) return
-    formularioEditado.current = true
     borradores.set(claveBorrador, { fecha: referencia.fecha, inicial1: referencia.inicial1, inicial2: referencia.inicial2, campos })
   }
 
@@ -170,33 +169,32 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
       const { data, error: rpcError } = modulo === 'uf'
         ? await supabase.rpc('consultar_referencia_uf_admin', { p_fecha: fecha })
           .abortSignal(AbortSignal.timeout(20000))
-        : await supabase.rpc('consultar_referencia_diaria_medicion_admin', { p_modulo: modulo })
+        : await supabase.rpc('consultar_referencia_pozos_admin', { p_fecha: fecha })
           .abortSignal(AbortSignal.timeout(20000))
       if (rpcError) throw new Error(errorRPC(rpcError,
-        modulo === 'uf' ? '20261120000200_historial_capturas_y_fecha_uf.sql' : '20261119000400_capturas_admin_fecha_actual.sql'))
+        modulo === 'uf' ? '20261120000200_historial_capturas_y_fecha_uf.sql' : '20261127000100_fecha_captura_pozos_admin.sql'))
       const resultado = data as Record<string, unknown> | null
       if (!resultado) throw new Error('No se recibió una referencia de lecturas.')
-      const fechaResultado = modulo === 'uf'
-        ? fecha
-        : typeof resultado.fecha_operativa === 'string' ? resultado.fecha_operativa : fechaActualMexico()
+      if (resultado.fecha_operativa !== fecha) throw new Error('La referencia recibida no coincide con la fecha seleccionada.')
       const inicial1 = numeroSeguro(resultado.inicial1)
       const inicial2 = numeroSeguro(resultado.inicial2)
       const existente = resultado.existente && typeof resultado.existente === 'object'
         ? resultado.existente as Record<string, unknown> : null
+      const motivoBloqueo = typeof resultado.motivo_bloqueo === 'string' ? resultado.motivo_bloqueo : null
       setReferencia({
-        fecha: fechaResultado,
+        fecha,
         inicial1,
         inicial2,
         existente,
+        motivoBloqueo,
         ocupadaOperativa: resultado.ocupada_operativa === true,
       })
-      setFecha(fechaResultado)
       setVersionFormulario(n => n + 1)
       if (existente || resultado.ocupada_operativa === true) {
         borradores.delete(claveBorrador)
         setMensaje('')
       }
-      else if (inicial1 === null || inicial2 === null) setError('No hay lecturas iniciales anteriores ni una base histórica para esta fecha.')
+      else if (!motivoBloqueo && (inicial1 === null || inicial2 === null)) setError('No hay lecturas iniciales anteriores ni una base histórica para esta fecha.')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudieron consultar las lecturas iniciales.')
     } finally {
@@ -207,31 +205,14 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
 
   useEffect(() => {
     if (ocupado || solicitudPendiente) return
-    const clave = `${cuenta}:${modulo}:${modulo === 'uf' ? fecha : 'hoy'}:${versionConsultaReferencia}`
+    const clave = `${cuenta}:${modulo}:${fecha}:${versionConsultaReferencia}`
     if (consultaAutomatica.current === clave) return
     consultaAutomatica.current = clave
     void consultarReferencia()
   }, [cuenta, modulo, fecha, ocupado, solicitudPendiente, versionConsultaReferencia, consultarReferencia])
 
-  useEffect(() => {
-    if (modulo !== 'pozos') return
-    const actualizarReferenciaActual = () => {
-      if (formularioEditado.current || borrador) return
-      const actual = fechaActualMexico()
-      if (actual !== fecha) {
-        setFecha(actual)
-        setReferencia(null)
-        setError('')
-        setMensaje('')
-        setVersionConsultaReferencia(n => n + 1)
-      }
-    }
-    const temporizador = window.setInterval(actualizarReferenciaActual, 30_000)
-    return () => window.clearInterval(temporizador)
-  }, [borrador, fecha, modulo])
-
   async function guardar(campos: CamposPozos | CamposUF): Promise<boolean> {
-    if (operacion.current || !referencia || referencia.inicial1 === null || referencia.inicial2 === null) return false
+    if (operacion.current || !referencia || referencia.motivoBloqueo || referencia.inicial1 === null || referencia.inicial2 === null) return false
     let final1: number
     let final2: number
     let notas: string | null
@@ -276,20 +257,19 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
           p_id: solicitud.p_id, p_fecha: solicitud.p_fecha,
           p_final1: solicitud.p_final1, p_final2: solicitud.p_final2, p_notas: solicitud.p_notas,
         }).abortSignal(AbortSignal.timeout(25000))
-        : await supabase.rpc('crear_medicion_diaria_admin', {
-          p_modulo: solicitud.p_modulo, p_id: solicitud.p_id,
+        : await supabase.rpc('crear_medicion_pozos_admin', {
+          p_id: solicitud.p_id, p_fecha: solicitud.p_fecha,
           p_final1: solicitud.p_final1, p_final2: solicitud.p_final2, p_notas: solicitud.p_notas,
         }).abortSignal(AbortSignal.timeout(25000))
       if (rpcError) {
         if (['42501', '22023', '22P02', '23505', '23514', 'PGRST202'].includes(rpcError.code)) setSolicitudPendiente(null)
         throw new Error(errorRPC(rpcError,
-          modulo === 'uf' ? '20261120000200_historial_capturas_y_fecha_uf.sql' : '20261119000400_capturas_admin_fecha_actual.sql'))
+          modulo === 'uf' ? '20261120000200_historial_capturas_y_fecha_uf.sql' : '20261127000100_fecha_captura_pozos_admin.sql'))
       }
       if (data !== solicitud.p_id) throw new Error('No se confirmó la lectura. Reintenta el mismo guardado.')
       borradores.delete(claveBorrador)
       setSolicitudPendiente(null)
       setReferencia(null)
-      formularioEditado.current = false
       setVersionFormulario(n => n + 1)
       setMensaje('Lectura guardada.')
       if (modulo === 'pozos') setRevisionMonitorPozos(n => n + 1)
@@ -340,14 +320,13 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
       <MonitorConcesionPozos revision={revisionMonitorPozos} supervision />
     </div>}
     <section className="panel-informacion panel-mediciones">
-      {modulo === 'uf' && <div className="gestion-mediciones-filtros pozo-uf-fecha-captura">
-        <label>Fecha de captura · Turno Día
+      <div className="gestion-mediciones-filtros pozo-uf-fecha-captura">
+        <label>{modulo === 'pozos' ? 'Fecha de lectura' : 'Fecha de captura'} · Turno Día
           <input type="date" value={fecha} max={fechaActualMexico()} disabled={ocupado || Boolean(solicitudPendiente)}
             onChange={event => {
               const siguiente = event.currentTarget.value
               if (!siguiente || siguiente > fechaActualMexico()) return
-              formularioEditado.current = false
-              borradores.delete(claveBorrador)
+              if (modulo === 'uf') borradores.delete(claveBorrador)
               setReferencia(null)
               setError('')
               setMensaje('')
@@ -355,10 +334,11 @@ function CapturaMedicion({ cuenta, modulo }: { cuenta: string; modulo: Modulo })
               setVersionFormulario(n => n + 1)
             }} />
         </label>
-      </div>}
+      </div>
       {error && <p className="mensaje-error" role="alert">{error}</p>}
       {mensaje && <p className="mensaje-exito" role="status">{mensaje}</p>}
-      {referencia && !entradaOcupada && inicialesDisponibles && <>
+      {referencia?.motivoBloqueo && !entradaOcupada && <p className="mensaje-error" role="alert">{referencia.motivoBloqueo}</p>}
+      {referencia && !entradaOcupada && !referencia.motivoBloqueo && inicialesDisponibles && <>
         {modulo === 'pozos'
           ? <FormularioPozos key={serialFormulario}
             lecturasIniciales={{ pozo1: referencia.inicial1!, pozo2: referencia.inicial2! }}
