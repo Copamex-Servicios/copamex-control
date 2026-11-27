@@ -1,7 +1,7 @@
 import { supabase } from './supabase'
 import type { AreaOperativa } from './tiposTurno'
 
-export interface AvisoDia { id: string; mensaje: string }
+export interface AvisoDia { id: string; mensaje: string; fin?: string }
 export interface ProduccionDia { id: string; maquina: string; papel: string; color: string | null; consumo: string | null }
 export interface EventoDia { id: string; fecha: string; tipo: string; area: string; horario: string | null; motivo: string | null }
 export interface ResultadoDia<T> { elementos: T[]; error: boolean }
@@ -106,11 +106,12 @@ function crearSolicitudAvisos(clave: string): SolicitudAvisos {
     completa: false,
     cancelacion: null,
   }
-  solicitud.promesa = leer(supabase.from('avisos').select('id,mensaje')
+  solicitud.promesa = leer(supabase.from('avisos').select('id,mensaje,permanente,fin')
     .or('permanente.eq.true,and(or(inicio.is.null,inicio.lte.now),or(fin.is.null,fin.gt.now))')
     .order('creado_en', { ascending: false }).limit(20).abortSignal(controlador.signal), valor => {
     const r = fila(valor)
-    return { id: texto(r.id), mensaje: texto(r.mensaje) }
+    const fin = r.permanente !== true && typeof r.fin === 'string' && Number.isFinite(Date.parse(r.fin)) ? r.fin : undefined
+    return { id: texto(r.id), mensaje: texto(r.mensaje), ...(fin ? { fin } : {}) }
   }).then(resultado => {
     if (!controlador.signal.aborted && !resultado.error && revision === revisionCacheAvisos) {
       cacheAvisos.set(clave, { resultado, vence: Date.now() + vigenciaCacheAvisos, revision })

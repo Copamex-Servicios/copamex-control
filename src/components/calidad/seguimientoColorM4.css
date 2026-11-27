@@ -9,13 +9,19 @@
 .co-layout .co-seguimiento-m4 small { display:block; margin-top:8px; color:#536783; }
 @media(max-width:600px) { .co-layout .co-seguimiento-m4 { padding:16px; } .co-layout .co-seguimiento-cabecera { flex-wrap:wrap; } }
 .co-layout .co-seguimiento-m4.co-seguimiento-admin { display:block; padding:12px 16px; font-family:inherit; }
-.co-avisos-admin-cabecera,.co-avisos-admin-titulo { display:flex; align-items:center; gap:10px; }
+.co-avisos-admin-cabecera,.co-avisos-admin-titulo,.co-avisos-admin-acciones { display:flex; align-items:center; gap:10px; }
 .co-avisos-admin-cabecera { justify-content:space-between; min-height:40px; }
+.co-avisos-admin-titulo { flex-wrap:wrap; }
 .co-avisos-admin-titulo h2 { margin:0; font-size:16px; font-weight:650; }
 .co-avisos-admin-conteo,.co-aviso-admin-activo { padding:4px 10px; border-radius:999px; color:#14623b; background:#e5f5ed; font-size:12px; font-weight:600; white-space:nowrap; }
+.co-aviso-admin-programado { color:#064cb1; background:#e3edfc; }
+.co-aviso-admin-programar { display:inline-flex; align-items:center; gap:8px; min-height:42px; padding:0 14px; border:1px solid #b9cae3; border-radius:10px; color:#064cb1; background:#fff; font:inherit; font-size:13px; font-weight:650; cursor:pointer; }
+.co-aviso-admin-programar:hover,.co-aviso-admin-programar[aria-expanded="true"] { background:#eef4fc; }
 .co-aviso-admin-mas { display:grid; place-items:center; flex:0 0 42px; width:42px; height:42px; padding:0; border:1px solid #d7e2f1; border-radius:10px; color:#0757c9; background:#fff; cursor:pointer; }
 .co-aviso-admin-mas:hover { background:#f3f7fd; }
-.co-aviso-admin-fila { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:14px; padding:12px 0; border-top:1px solid #dfe7f2; }
+.co-avisos-admin-acciones button:disabled { opacity:.6; cursor:not-allowed; }
+.co-aviso-admin-fila { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:14px; padding:12px 0; }
+.co-aviso-admin-fila + .co-aviso-admin-fila { border-top:1px solid #dfe7f2; }
 .co-aviso-admin-detalle { display:grid; gap:3px; min-width:0; }
 .co-aviso-admin-detalle strong { overflow-wrap:anywhere; font-size:14px; }
 .co-aviso-admin-detalle span { color:#536783; font-size:12px; }
@@ -33,13 +39,17 @@
 .co-layout .co-aviso-admin-nuevo input,.co-layout .co-aviso-admin-nuevo select { box-sizing:border-box; width:100%; max-width:none; min-width:0; height:40px; padding:8px 11px; border:1px solid #b9cae3; border-radius:8px; color:inherit; background:#fff; font:inherit; font-size:13px; }
 .co-layout .co-aviso-admin-nuevo textarea { box-sizing:border-box; width:100%; min-width:0; min-height:40px; padding:8px 11px; overflow:hidden; overflow-wrap:anywhere; resize:none; border:1px solid #b9cae3; border-radius:8px; color:inherit; background:#fff; font:inherit; font-size:13px; line-height:1.4; white-space:pre-wrap; }
 .co-aviso-admin-nuevo>button { min-height:40px; margin:0; padding:8px 18px; white-space:nowrap; }
+.co-layout .co-aviso-admin-nuevo.co-aviso-admin-horario { grid-template-columns:minmax(0,1.25fr) repeat(2,minmax(0,1fr)) minmax(0,2fr); }
+.co-aviso-admin-horario .co-aviso-admin-texto { grid-column:1/-1; }
 @media(max-width:700px) {
   .co-layout .co-seguimiento-m4.co-seguimiento-admin { padding:12px; }
+  .co-avisos-admin-cabecera { flex-wrap:wrap; }
   .co-aviso-admin-fila { grid-template-columns:minmax(0,1fr) auto; gap:8px 10px; }
   .co-aviso-admin-detalle { grid-column:1/-1; }
   .co-aviso-admin-activo { grid-column:1; grid-row:2; justify-self:start; }
   .co-aviso-admin-quitar { grid-column:2; grid-row:2; }
   .co-layout .co-aviso-admin-nuevo { grid-template-columns:minmax(0,1fr); }
+  .co-layout .co-aviso-admin-nuevo.co-aviso-admin-horario { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .co-aviso-admin-nuevo>strong { grid-column:1; }
 }
 .co-color-m4-dialogo { box-sizing:border-box; width:min(440px,calc(100vw - 32px)); max-height:calc(100dvh - 40px); margin:auto; padding:24px; overflow:auto; border:1px solid #cbdcf2; border-radius:14px; background:#fff; color:inherit; font:inherit; box-shadow:0 24px 80px #09275040; }

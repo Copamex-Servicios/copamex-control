@@ -2,6 +2,7 @@ import { RefreshCw } from 'lucide-react'
 import './avisosCompactos.css'
 import { useId } from 'react'
 import type { useInformacionDia } from '../../hooks/useInformacionDia'
+import { useAvisosVigentes } from '../../hooks/useAvisosVigentes'
 
 export function AvisosVisibles({ fecha, informacion }: {
   fecha: string | null
@@ -10,7 +11,7 @@ export function AvisosVisibles({ fecha, informacion }: {
   const titulo = useId()
   const { datos, cargando, actualizar } = informacion
   const error = !!fecha && !!datos?.avisos.error
-  const avisos = error ? [] : datos?.avisos.elementos ?? []
+  const avisos = useAvisosVigentes(error ? [] : datos?.avisos.elementos ?? [])
   const vacio = !!fecha && !!datos && !error && avisos.length === 0
   return <section className={`avisos-visibles${avisos.length > 0 ? ' avisos-visibles-activos' : ''}${error ? ' avisos-visibles-error' : vacio ? ' avisos-visibles-sin' : ''}`}
     aria-labelledby={titulo}>

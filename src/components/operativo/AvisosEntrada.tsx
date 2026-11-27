@@ -1,6 +1,8 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
+import { useAvisosVigentes } from '../../hooks/useAvisosVigentes'
 import { claveCacheAvisos, consultarAvisosActivos } from '../../lib/informacionDia'
+import type { AvisoDia } from '../../lib/informacionDia'
 import {
   crearActualizadorAgrupado,
   escucharCambiosInformacion,
@@ -10,7 +12,7 @@ import {
 import { Icono } from '../diseno/Icono'
 import './avisosEntrada.css'
 
-interface Aviso { id: string; mensaje: string }
+type Aviso = AvisoDia
 let sesionVista = ''
 const vistos = new Set<string>()
 const claveAviso = (a: Aviso) => JSON.stringify([a.id,a.mensaje])
@@ -51,7 +53,7 @@ export function AvisosEntrada() {
   const [abierto, setAbierto] = useState(false)
   const dialogo = useRef<HTMLDialogElement>(null)
   const titulo = useId()
-  const avisos = vista?.clave === clave ? vista.avisos : []
+  const avisos = useAvisosVigentes(vista?.clave === clave ? vista.avisos : [])
   const hayAvisos = avisos.length > 0
   useEffect(() => {
     if (!clave || !claveCompartida) return
@@ -70,7 +72,8 @@ export function AvisosEntrada() {
         const resultado = await consultarAvisosActivos(claveCompartida!, peticion.signal)
         if (!vigente) return
         if (resultado.error) throw new Error('Consulta inválida')
-        const data = resultado.elementos
+        const ahora = Date.now()
+        const data = resultado.elementos.filter(aviso => !aviso.fin || Date.parse(aviso.fin) > ahora)
         setVista({ clave: clave!, avisos:data, error:false })
         if (data.some(a => !vistos.has(claveAviso(a)))) setAbierto(true)
         if (!data.length) setAbierto(false)
